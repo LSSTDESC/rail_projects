@@ -1,0 +1,82 @@
+
+Files and directories at S3DF.
+
+Base area:  PZ_BASE_AREA=/sdf/data/rubin/shared/pz/
+     Top level data for PZ studies at s3df
+
+
+Data area:  PZ_DATA_AREA=/sdf/data/rubin/shared/pz/data
+     Top level area for data shared between different study projects
+
+
+Project ara: PZ_PROJECT_AREA=/sdf/data/rubin/shared/pz/projects
+     Top level area for individual projects
+
+
+Dustmaps: PZ_DUSTMAP_DIR=/sdf/data/rubin/shared/pz/data/dustmaps
+    Maps used for redenning / de reddening.  (Just SFD so far)
+
+
+Original input data:   ${PZ_DATA_AREA}/roman_rubin_2023_v1.1.3_parquet/{healpix}/part-0.parquet
+
+
+Reduced samples:  ${PZ_DATA_AREA}/{project}_{selection}/{healpix}/part-0.parquet
+These are made by running `rail_pipe reduce roman_rubin --selection <selection> <project_file.yaml>`
+
+        eac_test_v1.1.3_blend: i_mag > 28.0                
+        eac_gold_v1.1.3_gold: i_mag > 25.5
+        eac_test_v1.1.3_maglim_25.5: i_mag > 25.5
+	eac_test_v1.1.3_nosel:  no selection, (but columns reduced)
+       roman_rubin_2023_v1.1.3_maglim_25.5: i_mag > 25.5
+
+
+Ddegraded samples:  ${PZ_DATA_AREA}/{project}_{version}_{selection}_{flavor}/{healpix}/{basename}.pq  or .hdf5
+These are made by running `rail_pipe run truth-to-observed --selection <selection> --flavor <flavor> <project_file.yaml>
+
+       eac_test_v1.1.3_blend_baseline/{healpix}/output_reddener.pq
+       eac_test_v1.1.3_blend_baseline/{healpix}/output_unrec_bl.pq
+       eac_test_v1.1.3_blend_baseline/{healpix}/output_error_model_lsst.pq
+       eac_test_v1.1.3_blend_baseline/{healpix}/output_dereddener_errors_lsst.pq
+   
+       eac_test_v1.1.3_gold_baseline/{healpix}/output_reddener.pq
+       eac_test_v1.1.3_gold_baseline/{healpix}/output_phot_errors.pq
+       eac_test_v1.1.3_gold_baseline/{healpix}/output_dereddener_errors.pq  = output.hdf5       
+       eac_test_v1.1.3_gold_baseline/{healpix}/output_select_{spec-sel}.pq
+
+       roman_plus_rubin_v1.1.3_maglim_25.5_baseline/{healpix}/output_reddener.pq
+       roman_plus_rubin_v1.1.3_maglim_25.5_baseline/{healpix}/output_error_model_lsst.pq
+       roman_plus_rubin_v1.1.3_maglim_25.5_baseline/{healpix}/output_error_model_roman.pq
+       roman_plus_rubin_v1.1.3_maglim_25.5_baseline/{healpix}/output_dereddener_errors.pq
+       roman_plus_rubin_v1.1.3_maglim_25.5_baseline/{healpix}/output_select_{spec-sel}.pq
+
+
+ Training data sets:  ${PZ_DATA_AREA}/train/{project}_{selection}_{flavor}_100k.hdf5
+These are made by running `rail_pipe subsample --selection <selection> --flavor <flavor> --label <label>  <project_file.yaml>
+<label> is typicall something like "train" or "train_zCosmos" 
+
+        train/eac_test_gold_baseline_100k.hdf5
+        train/eac_test_gold_zCOSMOS_100k.hdf5
+        train_zCOSMOS/eac_test_gold_baseline_zCOSMOS_100k.hdf6	
+        train/roman_plus_rubin_maglim_25.5_baseline_100k.hdf5 
+        train/roman_plus_rubin_maglim_25.5_HSC_100k.hdf5
+        train/roman_plus_rubin_maglim_25.5_zCOSMOS_100k.hdf5
+        train/roman_rubin_2023_maglim_25.5_baseline_100k.hdf5
+        train/roman_rubin_2023_maglim_25.5_HSC_100k.hdf5
+        train/roman_rubin_2023_maglim_25.5_zCOSMOS_100k.hdf5
+
+
+ Test data sets:  ${PZ_DATA_AREA}/test/{project}_{selection}_{flavor}_100k.hdf5
+These are made by running `rail_pipe subsample --selection <selection> --flavor <flavor> --label <label>  <project_file.yaml>
+<label> is typicall something like "test" or "test_zCosmos"
+
+       test/eac_test_gold_baseline_100k.hdf5
+       test/roman_plus_rubin_maglim_25.5_baseline_100k.hdf5
+       test/roman_rubin_2023_maglim_25.5_baseline_100k.hdf5
+
+
+Study data sets:  ${PZ_PROJECT_AREA}/{project}/data/{selection}_{flavor}/
+     
+
+
+     
+
