@@ -1,5 +1,6 @@
 # Includes
-    - roman_rubin_common.yaml
+Includes:
+    - rail_projects/roman_rubin/aoman_rubin_common.yaml
 
 # These are used to make all the other paths
 CommonPaths:  

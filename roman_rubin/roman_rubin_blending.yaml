@@ -1,0 +1,26 @@
+# Includes
+Includes:
+    - rail_projects/roman_rubin/roman_rubin_common.yaml
+
+# These are used to make all the other paths
+CommonPaths:
+    project: roman_rubin_2023_blending
+    sim_version: v1.1.3
+    parent: roman_rubin_2023
+
+
+# Override the catalog confifugation
+Catalogs:
+    truth:
+	PathTemplate: "{catalogs_dir}/{parent}_{sim_version}/{healpix}/part-0.parquet"
+	IterationVars: ['healpix']
+    reduced:
+	PathTemplate: "{catalogs_dir}/{parent}_{sim_version}_{selection}/{healpix}/part-0.pq"
+	IterationVars: ['healpix']
+    degraded:
+	PathTemplate: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
+	IterationVars: ['healpix']
+
+
+# We can use this to override the pipeline configurations
+# Flavors:

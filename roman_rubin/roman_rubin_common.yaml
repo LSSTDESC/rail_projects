@@ -40,7 +40,7 @@ Files:
         PathTemplate: "{catalogs_dir}/train/{project}_{selection}_HSC_100k.hdf5"
 
 # These are ceci pipelines that we will be running
-Pipelines: 
+Pipelines:
     truth_to_observed:
         # redenning + blending + photometric errors + deredding + spectroscopic selection
         PipelineClass: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
@@ -62,7 +62,7 @@ Pipelines:
         PipelineClass: rail.pipelines.degradation.blending.BlendingPipeline
         CatalogTag: roman_rubin
         InputCatalogTag: reduced
-        kwargs: {}	    
+        kwargs: {}
     spec_selection:
         # spectroscopic selection only
         PipelineClass: rail.pipelines.utility.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
@@ -76,7 +76,7 @@ Pipelines:
         CatalogTag: roman_rubin
         kwargs:
             algorithms: PZAlgorithms
-        InputFileTags: 
+        InputFileTags:
             input:
                 flavor: baseline
                 tag: train
@@ -158,7 +158,7 @@ PZAlgorithms:
     gpz:
         Estimate: GPzEstimator
         Inform: GPzInformer
-        Module: rail.estimation.algos.gpz        
+        Module: rail.estimation.algos.gpz
     bpz:
         Estimate: BPZliteEstimator
         Inform: BPZliteInformer
@@ -184,7 +184,7 @@ Selections:
     all:
         maglim_i: [null, null]
 
-# These	describe all the algorithms that emulate spectroscopic selections
+# These describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
 #  GAMA:
 #    Select: SpecSelection_GAMA
