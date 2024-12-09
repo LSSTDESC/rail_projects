@@ -1,0 +1,33 @@
+[project]
+name = "pz-rail-projects"
+description = "RAIL Project files"
+readme = "README.rst"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "The LSST DESC PZ WG", email = "echarles@slac.stanford.edu" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Natural Language :: English",
+    "Operating System :: POSIX"
+]
+dynamic = ["version"]
+dependencies = [
+    "pz-rail-pipelines",
+    "yamllint",
+]
+
+[build-system]
+requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/rail/projects/_version.py"
+
