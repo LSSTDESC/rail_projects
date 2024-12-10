@@ -16,8 +16,7 @@ Catalogs:
         PathTemplate: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
         IterationVars: ['healpix']
 
-# These are templates for specific files, such as testing and training files
-Files:
+
     test_file_100k:
         NumObjects: 100000
         Seed: 1234
@@ -65,7 +64,7 @@ Pipelines:
         kwargs: {}
     spec_selection:
         # spectroscopic selection only
-        PipelineClass: rail.pipelines.utility.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
+        PipelineClass: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
         CatalogTag: roman_rubin
         kwargs:
             selectors: SpecSelections
@@ -113,15 +112,15 @@ Pipelines:
                 tag: train
             input_test:
                 tag: test
-    som_pz:
-        # SOM PZ pipeline
-        PipelineClass: rail.pipelines.estimation.sompz_pipeline.SOMPZPipeline
-        CatalogTag: roman_rubin
-        InputFileTags:
-            input_train:
-                tag: train
-            input_test:
-                tag: test
+#    som_pz:
+#        # SOM PZ pipeline
+#        PipelineClass: rail.pipelines.estimation.sompz_pipeline.SOMPZPipeline
+#        CatalogTag: roman_rubin
+#        InputFileTags:
+#            input_train:
+#               tag: train
+#            input_test:
+#                tag: test
     tomography:
         # Classify into tomographic bins -> Summarize n(z) in each bin -> get true n(z)
         PipelineClass: rail.pipelines.estimation.tomography.TomographyPipeline
@@ -221,6 +220,13 @@ Summarizers:
     point_est_hist:
         Summarize: PointEstHistMaskedSummarizer
         Module: rail.estimation.algos.point_est_hist
+
+
+# The describe the error models we use in the truth_to_observed pipeline
+ErrorModels:
+    lsst:
+        ErrorModel: LSSTErrorModel
+        Module: rail.creation.degraders.photometric_errors
 
 
 # These are variables that we iterate over when running over entire catalogs

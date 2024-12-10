@@ -12,14 +12,14 @@ CommonPaths:
 # Override the catalog confifugation
 Catalogs:
     truth:
-	PathTemplate: "{catalogs_dir}/{parent}_{sim_version}/{healpix}/part-0.parquet"
-	IterationVars: ['healpix']
+        PathTemplate: "{catalogs_dir}/{parent}_{sim_version}/{healpix}/part-0.parquet"
+        IterationVars: ['healpix']
     reduced:
-	PathTemplate: "{catalogs_dir}/{parent}_{sim_version}_{selection}/{healpix}/part-0.pq"
-	IterationVars: ['healpix']
+        PathTemplate: "{catalogs_dir}/{parent}_{sim_version}_{selection}/{healpix}/part-0.pq"
+        IterationVars: ['healpix']
     degraded:
-	PathTemplate: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
-	IterationVars: ['healpix']
+        PathTemplate: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
+        IterationVars: ['healpix']
 
 
 # We can use this to override the pipeline configurations
