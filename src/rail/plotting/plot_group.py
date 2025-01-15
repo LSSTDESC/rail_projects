@@ -132,9 +132,9 @@ class RailPlotGroup:
         -----
         The yaml file should look something like this:
 
-        - PlotterYaml: 
+        - PlotterYaml:
               path: <path_to_yaml_file_defining_plotter_lists>
-        - DatasetYaml: 
+        - DatasetYaml:
               path: <path_to_yaml_file defining_dataset_lists>
         - PlotGroup:
               name: some_name
@@ -167,7 +167,7 @@ class RailPlotGroup:
                 except KeyError as msg:  # pragma: no cover
                     raise KeyError(
                         "PlotterYamlDatasetYaml yaml block does not contain path: "
-                        f"{list(dataset_yaml_path.keys())}"
+                        f"{list(dataset_yaml_config.keys())}"
                     ) from msg
                 RailDatasetFactory.load_yaml(dataset_yaml_path)
             elif "PlotGroup" in group_item:
@@ -183,7 +183,7 @@ class RailPlotGroup:
             else:  # pragma: no cover
                 good_keys = ["PlotterYaml", "DatasetYaml", "PlotGroup"]
                 raise KeyError(
-                    f"Expecting one of {good_keys} not: {plotter_data.keys()})"
+                    f"Expecting one of {good_keys} not: {group_item.keys()})"
                 )
-            
+
         return out_dict

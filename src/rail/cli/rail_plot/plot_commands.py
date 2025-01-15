@@ -25,6 +25,22 @@ def plot_cli() -> None:
 @options.outdir()
 def run_command(config_file: str, **kwargs: Any) -> int:
     """Make a bunch of plots"""
-    print(kwargs)
+    control.clear()
     control.run(config_file, **kwargs)
+    return 0
+
+
+@plot_cli.command(name="inspect")
+@project_options.config_file()
+def inspect_command(config_file: str) -> int:
+    """Make a bunch of plots"""
+    control.clear()
+    plot_groups = control.load_plot_group_yaml(config_file)
+    control.print_contents()
+    print("----------------")
+    print("Plot groups:")
+    for key, val in plot_groups.items():
+        print(f"  {key}:")
+        print(f"    PlotterList: {val.plotter_list_name}")
+        print(f"    DatasetList: {val.dataset_dict_name}")
     return 0

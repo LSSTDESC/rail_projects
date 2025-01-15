@@ -1,6 +1,3 @@
-import os
-import pytest
-
 from click.testing import CliRunner, Result
 
 from rail.cli.rail_plot.plot_commands import plot_cli
@@ -28,5 +25,16 @@ def test_cli_run() -> None:
     result = runner.invoke(
         plot_cli,
         "run --outdir test/temp_dir/plots/ tests/ci_plot_groups.yaml"
+    )
+    check_result(result)
+
+
+def test_cli_inspect() -> None:
+
+    runner = CliRunner()
+
+    result = runner.invoke(
+        plot_cli,
+        "inspect tests/ci_plot_groups.yaml"
     )
     check_result(result)

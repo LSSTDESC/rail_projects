@@ -209,6 +209,46 @@ class RailPlotterFactory:
         self._plotter_list_dict[name] = plotters
         return plotters
 
+    def load_plotter_from_yaml_tag(self, plotter_config: dict[str, Any]) -> None:
+        """Load a RailPlotter from a Plotter tag in yaml
+
+        Paramters
+        ---------
+        plotter_config: dict[str, Any]
+            Yaml data in question
+        """
+        try:
+            name = plotter_config.pop("name")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "Plotter yaml block does not contain name for plotter: "
+                f"{list(plotter_config.keys())}"
+            ) from msg
+        self._make_plotter(name, plotter_config)
+
+    def load_plotter_list_from_yaml_tag(self, plotter_list_config: dict[str, Any]) -> None:
+        """Load a list of RailPlotters from a PlotterList tag in yaml
+
+        Paramters
+        ---------
+        plotter_list_config: dict[str, Any]
+            Yaml data in question
+        """
+        try:
+            name = plotter_list_config.pop("name")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "PlotterList yaml block does not contain name for plotter: "
+                f"{list(plotter_list_config.keys())}"
+            ) from msg
+        try:
+            plotters = plotter_list_config.pop("plotters")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                f"PlotterList yaml block does not contain plotter: {list(plotter_list_config.keys())}"
+            ) from msg
+        self._make_plotter_list(name, plotters)
+
     def load_instance_yaml(self, yaml_file: str) -> None:
         """Read a yaml file and load the factory accordingly
 
@@ -227,30 +267,10 @@ class RailPlotterFactory:
         for plotter_item in plotter_data:
             if "Plotter" in plotter_item:
                 plotter_config = plotter_item["Plotter"]
-                try:
-                    name = plotter_config.pop("name")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "Plotter yaml block does not contain name for plotter: "
-                        f"{list(plotter_config.keys())}"
-                    ) from msg
-                self._make_plotter(name, plotter_config)
+                self.load_plotter_from_yaml_tag(plotter_config)
             elif "PlotterList" in plotter_item:  # pragma: no cover
                 plotter_list_config = plotter_item["PlotterList"]
-                try:
-                    name = plotter_list_config.pop("name")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "PlotterList yaml block does not contain name for plotter: "
-                        f"{list(plotter_list_config.keys())}"
-                    ) from msg
-                try:
-                    plotters = plotter_list_config.pop("plotters")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        f"PlotterList yaml block does not contain plotter: {list(plotter_list_config.keys())}"
-                    ) from msg
-                self._make_plotter_list(name, plotters)
+                self.load_plotter_list_from_yaml_tag(plotter_list_config)
             else:  # pragma: no cover
                 good_keys = ["Plotter", "PlotterList"]
                 raise KeyError(

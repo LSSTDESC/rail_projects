@@ -259,6 +259,78 @@ class RailDatasetFactory:
         self._dataset_dicts[name] = datasets
         return datasets
 
+    def load_dataset_from_yaml_tag(self, dataset_config: dict[str, Any]) -> None:
+        """Load a dataset from a Dataset tag in yaml
+
+        Paramters
+        ---------
+        dataset_config: dict[str, Any]
+            Yaml data in question
+        """
+        try:
+            name = dataset_config.pop("name")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "Dataset yaml block does not contain name for dataset: "
+                f"{list(dataset_config.keys())}"
+            ) from msg
+        try:
+            extractor = dataset_config.pop("extractor")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "Dataset yaml block does not contain extractor for dataset: "
+                f"{list(dataset_config.keys())}"
+            ) from msg
+        self._make_dataset(name, extractor, **dataset_config)
+
+    def load_dataset_list_from_yaml_tag(self, dataset_list_config: dict[str, Any]) -> None:
+        """Load a list of datasets from a DatasetList tag in yaml
+
+        Paramters
+        ---------
+        dataset_list_config: dict[str, Any]
+            Yaml data in question
+        """
+        try:
+            name = dataset_list_config.pop("name")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "DatasetList yaml block does not contain name for dataset: "
+                f"{list(dataset_list_config.keys())}"
+            ) from msg
+        try:
+            dataset_names = dataset_list_config.pop("datasets")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "DatasetList yaml block does not contain dataset: "
+                f"{list(dataset_list_config.keys())}"
+            ) from msg
+        self._make_dataset_dict(name, dataset_names)
+
+    def load_project_from_yaml_tag(self, project_config: dict[str, Any]) -> None:
+        """Load a RailProject from a Project tag in yaml
+
+        Paramters
+        ---------
+        project_config: dict[str, Any]
+            Yaml data in question
+        """
+        try:
+            name = project_config.pop("name")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "Project yaml block does not contain name for project: "
+                f"{list(project_config.keys())}"
+            ) from msg
+        try:
+            project_yaml = project_config.pop("yaml_file")
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "Project yaml block does not contain yaml_file: "
+                f"{list(project_config.keys())}"
+            ) from msg
+        self._projects[name] = RailProject.load_config(project_yaml)
+
     def load_instance_yaml(self, yaml_file: str) -> None:
         """Read a yaml file and load the factory accordingly
 
@@ -277,56 +349,13 @@ class RailDatasetFactory:
         for dataset_item in dataset_data:
             if "Dataset" in dataset_item:
                 dataset_config = dataset_item["Dataset"]
-                try:
-                    name = dataset_config.pop("name")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "Dataset yaml block does not contain name for dataset: "
-                        f"{list(dataset_config.keys())}"
-                    ) from msg
-                try:
-                    extractor = dataset_config.pop("extractor")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "Dataset yaml block does not contain extractor for dataset: "
-                        f"{list(dataset_config.keys())}"
-                    ) from msg
-
-                self._make_dataset(name, extractor, **dataset_config)
+                self.load_dataset_from_yaml_tag(dataset_config)
             elif "DatasetList" in dataset_item:
                 dataset_list_config = dataset_item["DatasetList"]
-                try:
-                    name = dataset_list_config.pop("name")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "DatasetList yaml block does not contain name for dataset: "
-                        f"{list(dataset_list_config.keys())}"
-                    ) from msg
-                try:
-                    dataset_names = dataset_list_config.pop("datasets")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "DatasetList yaml block does not contain dataset: "
-                        f"{list(dataset_list_config.keys())}"
-                    ) from msg
-                self._make_dataset_dict(name, dataset_names)
+                self.load_dataset_list_from_yaml_tag(dataset_list_config)
             elif "Project" in dataset_item:
                 project_config = dataset_item["Project"]
-                try:
-                    name = project_config.pop("name")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "Project yaml block does not contain name for project: "
-                        f"{list(project_config.keys())}"
-                    ) from msg
-                try:
-                    project_yaml = project_config.pop("yaml_file")
-                except KeyError as msg:  # pragma: no cover
-                    raise KeyError(
-                        "Project yaml block does not contain yaml_file: "
-                        f"{list(project_config.keys())}"
-                    ) from msg
-                self._projects[name] = RailProject.load_config(project_yaml)
+                self.load_project_from_yaml_tag(project_config)
             else:  # pragma: no cover
                 good_keys = ["Dataset", "DatasetList", "Project"]
                 raise KeyError(

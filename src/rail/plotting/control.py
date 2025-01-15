@@ -68,7 +68,9 @@ def clear() -> None:
 
 def print_contents() -> None:
     """Print the contents of the factories """
+    print("----------------")
     RailPlotterFactory.print_contents()
+    print("----------------")
     RailDatasetFactory.print_contents()
 
 
