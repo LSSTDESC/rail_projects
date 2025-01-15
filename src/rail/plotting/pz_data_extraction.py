@@ -62,7 +62,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                 algos = ['all']
             for selection_ in selections:
                 dataset_dict = dict(
-                    name=f"{selection_}_{flavor}",
+                    name=f"{selection_}_{key}",
                     extractor="rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor",
                     project=project_namem,
                     flavor=key,
