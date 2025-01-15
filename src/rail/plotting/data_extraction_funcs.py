@@ -156,9 +156,9 @@ def get_ceci_pz_output_paths(
     project: RailProject,
     selection: str,
     flavor: str,
-    algos: list[str] = ['all'],
+    algos: list[str] | None = None,
 ) -> dict[str, str]:
-    """Get the paths to the the file with redshfit estimates
+    """Get the paths to the file with redshfit estimates
     for a particualar analysis selection and flavor
 
     Parameters
@@ -180,6 +180,8 @@ def get_ceci_pz_output_paths(
     paths: dict[str, str]
         Paths to the file in question
     """
+    if algos is None:  # pragma: no cover
+        algos = ['all']
     if 'all' in algos:
         algos = list(project.get_pzalgorithms().keys())
 
@@ -198,7 +200,7 @@ def get_pz_point_estimate_data(
     selection: str,
     flavor: str,
     tag: str,
-    algos: list[str] = ['all'],
+    algos: list[str] | None = None,
 ) -> dict[str, Any]:
     """Get the true redshifts and point estimates
     for a particualar analysis selection and flavor

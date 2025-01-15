@@ -169,7 +169,7 @@ def reduce_roman_rubin_data(
         selection_dict = {}
 
 
-    # FIXME
+    # FIXME is this how we want to get the Iteration variables
     iteration_vars = list(project.config.get("IterationVars", {}).keys())
     if iteration_vars is not None:
         iterations = itertools.product(
@@ -194,7 +194,7 @@ def reduce_roman_rubin_data(
             if not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run:  # pragma: no cover
                 raise ValueError(f"Input file {source_catalog} not found")
 
-            # FIXME properly warn
+            # FIXME properly warn about or protect pre-existing output files
             if os.path.isfile(sink_catalog):  # pragma: no cover
                 # raise ValueError(f"Input file {source_catalog} not found")
                 print(f"Warning: output file {sink_catalog} found; may be rewritten...")

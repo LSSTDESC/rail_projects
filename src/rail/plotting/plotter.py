@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from types import GenericAlias
 from typing import Any
 from matplotlib.figure import Figure
 
@@ -289,15 +290,17 @@ class RailPlotter:
                 raise KeyError(
                     f"{key} not provided to RailPlotter {cls} in {list(kwargs.keys())}"
                 ) from msg
-            try:
-                if not isinstance(data, expected_type):  # pragma: no cover
+            if isinstance(expected_type, GenericAlias):
+                if not isinstance(data, expected_type.__origin__):  # pragma: no cover
                     raise TypeError(
-                        f"{key} provided to RailPlotter was {type(data)}, expected {expected_type}"
+                        f"{key} provided to RailPlotter was "
+                        f"{type(data)}, not {expected_type.__origin__}"
                     )
-            # FIXME
-            # if expected_type is a "Parameterized generic" (e.g., dict[str, np.array]) this will be raised
-            except TypeError:
-                pass
+                continue
+            if not isinstance(data, expected_type):  # pragma: no cover
+                raise TypeError(
+                    f"{key} provided to RailPlotter was {type(data)}, expected {expected_type}"
+                )
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, Figure]:
         raise NotImplementedError()
