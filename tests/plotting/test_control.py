@@ -7,14 +7,17 @@ def setup_project_area() -> None:
 
     if not os.path.exists('tests/temp_data/projects/ci_test/data'):
         os.makedirs('tests/temp_data/projects/ci_test/data')
+        # FIXME, replace with a curl command
         os.system('cp ~/xfer/ci_test.tgz tests/temp_data/projects')
         os.system('tar zxvf tests/temp_data/projects/ci_test.tgz -C tests/temp_data/projects')
 
     if not os.path.exists('tests/temp_data/data/test'):
         os.makedirs('tests/temp_data/data/test')
+        # FIXME, replace with a curl command
         os.system(
             'cp ~/xfer/roman_rubin_2023_maglim_25.5_baseline_100k.hdf5 '
-            'tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5')
+            'tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5'
+        )
 
 
 def test_load_yaml() -> None:

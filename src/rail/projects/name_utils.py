@@ -45,7 +45,7 @@ def update_include_dict(
             orig_dict[key] = val
 
 
-def _get_required_interpolants(template: str) -> list[str]:
+def get_required_interpolants(template: str) -> list[str]:
     """ Get the list of interpolants required to format a template string
 
     Notes
@@ -56,7 +56,7 @@ def _get_required_interpolants(template: str) -> list[str]:
     return re.findall('{.*?}', template)
 
 
-def _format_template(template: str, **kwargs: Any) -> str:
+def format_template(template: str, **kwargs: Any) -> str:
     """ Resolve a specific template
 
     This is fault-tolerant and will not raise KeyError if some
@@ -72,7 +72,7 @@ def _format_template(template: str, **kwargs: Any) -> str:
     return template.format(**interpolants)
 
 
-def _resolve_dict(source: dict, interpolants: dict) -> dict:
+def resolve_dict(source: dict, interpolants: dict) -> dict:
     """ Recursively resolve a dictionary using interpolants
 
     Parameters
@@ -94,10 +94,10 @@ def _resolve_dict(source: dict, interpolants: dict) -> dict:
             v_interpolated: list | dict | str = ""
             match v:
                 case dict():
-                    v_interpolated = _resolve_dict(source[k], interpolants)
+                    v_interpolated = resolve_dict(source[k], interpolants)
                 # Lists are not being used yet
                 case list():  # pragma: no cover
-                    v_interpolated = [_resolve_dict(_v, interpolants) for _v in v]
+                    v_interpolated = [resolve_dict(_v, interpolants) for _v in v]
                 case str():
                     v_interpolated = v.format(**interpolants)
                 case _:
@@ -142,7 +142,7 @@ def _resolve(templates: dict, source: dict, interpolants: dict) -> dict:
                 sink[k] = v(**sink)
             case _:
                 continue
-    sink = _resolve_dict(sink, interpolants)
+    sink = resolve_dict(sink, interpolants)
     return sink
 
 
@@ -248,7 +248,7 @@ class NameFactory:
             Resolved version of the template
         """
         if (path_value := config.get(path_key)) is not None:
-            formatted = _format_template(path_value, **kwargs, **self.interpolants)
+            formatted = format_template(path_value, **kwargs, **self.interpolants)
         else:
             raise KeyError(f"Path '{path_key}' not found in {config}")
         return formatted
@@ -304,7 +304,7 @@ class NameFactory:
             Resolved path
         """
         template = self.get_template(section_key, path_key)
-        return _format_template(template, **self.interpolants, **kwargs)
+        return format_template(template, **self.interpolants, **kwargs)
 
     def resolve_path_template(self, path_key: str, **kwargs: Any) -> str:
         """ Return a particular path templated
@@ -322,7 +322,7 @@ class NameFactory:
         template = self.get_template('PathTemplates', path_key)
         interp_dict = self.interpolants.copy()
         interp_dict.update(**kwargs)
-        return _format_template(template, **interp_dict)
+        return format_template(template, **interp_dict)
 
 
     def resolve_common_path(self, path_key: str, **kwargs: Any) -> str:
@@ -341,4 +341,4 @@ class NameFactory:
         template = self.get_template('CommonPaths', path_key)
         interp_dict = self.interpolants.copy()
         interp_dict.update(**kwargs)
-        return _format_template(template, **interp_dict)
+        return format_template(template, **interp_dict)

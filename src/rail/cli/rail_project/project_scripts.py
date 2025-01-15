@@ -747,7 +747,10 @@ def subsample_data(
 
     if run_mode == RunMode.bash:  # pragma: no cover
         reduce_data(sources, seed, size, output_dir, output)
-        handle_command(run_mode, ["tables-io", "convert", "--input", f"{output}", "--output", f"{hdf5_output}"])
+        handle_command(
+            run_mode,
+            ["tables-io", "convert", "--input", f"{output}", "--output", f"{hdf5_output}"],
+        )
 
     return 0
 
