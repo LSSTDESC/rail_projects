@@ -1,0 +1,15 @@
+- Project:
+      name: ci_test
+      yaml_file: tests/ci_project.yaml
+- Dataset:
+      name: blend_baseline_test
+      extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+      project: ci_test
+      selection: blend
+      flavor: baseline
+      tag: test
+      algos: ['all']
+- DatasetList:
+      name: baseline_test
+      datasets:
+          - blend_baseline_test

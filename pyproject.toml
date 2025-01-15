@@ -18,16 +18,83 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: POSIX"
 ]
+
 dynamic = ["version"]
 dependencies = [
     "pz-rail-pipelines",
+    "matplotlib",
     "yamllint",
 ]
+# On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
+[project.optional-dependencies]
+full = [
+    "pz-rail-pipelines[full]",
+]
+
+dev = [
+    "pz-rail-pipelines",
+    "coverage",
+    "pytest",
+    "pytest-cov", # Used to report total code coverage
+    "pre-commit", # Used to run checks before finalizing a git commit
+    "pylint", # Used for static linting of files
+]
+
+[project.scripts]
+rail_project = "rail.cli.rail_project.project_commands:project_cli"
+rail_plot = "rail.cli.rail_plot.plot_commands:plot_cli"
 
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=62", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "src/rail/projects/_version.py"
 
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+addopts = [
+    "--cov=src/rail",
+    "--cov-report=html"
+]
+
+[tool.pylint]
+disable = [
+    "abstract-method",
+    "invalid-name",
+    "too-many-statements",
+    "too-many-instance-attributes",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "too-few-public-methods",
+    "duplicate-code",
+    "use-dict-literal",
+    "broad-exception-caught",
+]
+generated-members = ["add", "multiply", "subtract", "divide", "sqrt", "floor", "atan2"]
+max-line-length = 110
+max-locals = 50
+max-branches = 25
+max-public-methods = 50
+max-args = 7
+
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
+local_partial_types = true
+no_implicit_reexport = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_ignores = true
+
+[tool.coverage.report]
+exclude_also = [
+    "raise NotImplementedError",
+    ]

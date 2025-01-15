@@ -1,0 +1,32 @@
+# Include other configuration files
+Includes:
+    - tests/ci_project_common.yaml
+
+# These are used to make all the other paths
+CommonPaths:
+    project: ci_test
+    sim_version: v1.1.3
+
+# These define the variant configurations for the various parts of the analysis
+Flavors:
+    # Baseline configuraiton, included in others by default
+    baseline:
+        Pipelines: ['all']
+        FileAliases:  # Set the training and test files
+            test: test_file_100k
+            train: train_file_100k
+            train_zCOSMOS: train_file_zCOSMOS_100k
+    train_cosmos:
+        Pipelines: ['pz', 'tomography']
+        FileAliases:  # Set the training and test files
+            test: test_file_100k
+            train: train_file_zCOSMOS_100k
+    gpz_gl:
+        Pipelines: ['inform', 'estimate', 'evaluate', 'pz']
+        PipelineOverrides:  # Override specifics for particular pipelines
+            default:
+                kwargs:
+                    PZAlgorithms: ['gpz']
+            inform:
+                inform_gpz:
+                    gpz_method: GL
