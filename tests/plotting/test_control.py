@@ -1,6 +1,11 @@
 import os
 
+import pytest
+
 from rail.plotting import control
+
+
+missing_ci_data = not os.path.exists(os.path.expandvars(("$HOME/xfer/ci_test.tgz")))
 
 
 def setup_project_area() -> None:
@@ -20,6 +25,7 @@ def setup_project_area() -> None:
         )
 
 
+@pytest.mark.skipif(missing_ci_data, reason="no ci data")
 def test_load_yaml() -> None:
 
     control.clear()
@@ -32,6 +38,7 @@ def test_load_yaml() -> None:
     control.print_contents()
 
 
+@pytest.mark.skipif(missing_ci_data, reason="no ci data")
 def test_run() -> None:
 
     control.clear()
