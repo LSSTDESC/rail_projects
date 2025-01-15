@@ -32,3 +32,45 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any]:
         return get_pz_point_estimate_data(**kwargs)
+
+    @classmethod
+    def generate_dataset_dict(cls, project: RailProject) -> list[dict[str, Any]]:
+
+        output: list[dict[str, Any]] = []
+        flavors = project.get_flavors()
+
+        project_name = project.name
+
+        selections = list(project.get_selections().keys())
+        
+        project_block = dict(
+            Project=dict(
+                name=project_name,
+                yaml_file="dummy",
+            )
+        )
+        
+        output.append(project_block)
+
+        for key, val in flavors.items():
+            pipelines = val['Pipelines']
+            if not 'all' in pipelines and not 'pz' in pipelines:
+                continue
+            try:
+                algos = val['PipelineOverrides']['default']['kwargs']['PZAlgorithms']
+            except KeyError:
+                algos = ['all']
+            for selection_ in selections:
+                dataset_dict = dict(
+                    name: f"{selection_}_{flavor}",
+                    extractor="rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor",
+                    project=project_namem,
+                    flavor=key,
+                    algos=algos,
+                    selection=selection_
+                )
+                output.append(dict(Dataset=dataset_dict))
+        return output
+
+        
+        

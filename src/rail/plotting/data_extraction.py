@@ -166,3 +166,19 @@ class RailProjectDataExtractor:
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any]:
         raise NotImplementedError()
+
+    @classmethod
+    def generate_dataset_dict(cls, project: RailProject) -> list[dict[str, Any]]:
+        """Create a dict of the datasets that this extractor can extract
+
+        Parameters
+        ----------
+        project: RailProject
+            Project to inspect
+
+        Returns
+        -------
+        output: list[dict[str, Any]]
+            Dictionary of the extracted datasets        
+        """
+        raise NotImplementedError()
