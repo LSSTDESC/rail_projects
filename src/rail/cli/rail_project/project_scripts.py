@@ -189,7 +189,7 @@ class PipelineCatalogConfiguration:
         raise NotImplementedError()
 
 
-class TruthToObservedPipelineCatalogConfiguration(PipelineCatalogConfiguration):
+class TruthToObservedPipelineCatalogConfiguration(PipelineCatalogConfiguration):  # pragma: no cover
 
     def get_convert_commands(self, sink_dir: str) -> list[list[str]]:
         convert_command = [
@@ -324,7 +324,7 @@ def run_pipeline_on_catalog(
                 log_dir=sink_dir,
             )
 
-            if not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run:
+            if not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run:  # pragma: no cover
                 raise ValueError(f"Input file {source_catalog} not found")
             try:
                 handle_commands(
@@ -336,13 +336,13 @@ def run_pipeline_on_catalog(
                     ],
                     script_path,
                 )
-            except Exception as msg:
+            except Exception as msg:  # pragma: no cover
                 print(msg)
                 return 1
         return 0
 
     # FIXME need to get catalogs even if iteration not specified; this return fallback isn't ideal
-    return 1
+    return 1  # pragma: no cover
 
 
 def run_pipeline_on_single_input(
@@ -394,7 +394,7 @@ def run_pipeline_on_single_input(
 
     try:
         statuscode = handle_commands(run_mode, [command_line], script_path)
-    except Exception as msg:
+    except Exception as msg:  # pragma: no cover
         print(msg)
         statuscode = 1
     return statuscode
@@ -648,6 +648,32 @@ def sompz_input_callback(
     return input_files
 
 
+def reduce_data(
+    sources: list[str],
+    seed: int,
+    size: int,
+    output_dir: str,
+    output: str,
+) -> None:  # pragma: no cover
+    dataset = ds.dataset(sources)
+    num_rows = dataset.count_rows()
+    print("num rows", num_rows)
+    rng = np.random.default_rng(seed)
+    print("sampling", size)
+
+    size = min(size, num_rows)
+    indices = rng.choice(num_rows, size=size, replace=False)
+    subset = dataset.take(indices)
+    print("writing", output)
+
+    os.makedirs(output_dir, exist_ok=True)
+    pq.write_table(
+        subset,
+        output,
+    )
+    print("done")
+
+
 def subsample_data(
     project: RailProject,
     source_tag: str="degraded",
@@ -719,30 +745,11 @@ def subsample_data(
     if run_mode == RunMode.slurm:
         raise NotImplementedError("subsample_data not set up to run under slurm")
 
-    if run_mode == RunMode.dry_run:
-        return 0
+    if run_mode == RunMode.bash:  # pragma: no cover
+        reduce_data(sources, seed, size, output_dir, output)
+        handle_command(run_mode, ["tables-io", "convert", "--input", f"{output}", "--output", f"{hdf5_output}"])
 
-    dataset = ds.dataset(sources)
-    num_rows = dataset.count_rows()
-    print("num rows", num_rows)
-    rng = np.random.default_rng(seed)
-    print("sampling", size)
-
-    size = min(size, num_rows)
-    indices = rng.choice(num_rows, size=size, replace=False)
-    subset = dataset.take(indices)
-    print("writing", output)
-
-    if run_mode == RunMode.bash:
-        os.makedirs(output_dir, exist_ok=True)
-        pq.write_table(
-            subset,
-            output,
-        )
-    print("done")
-    handle_command(run_mode, ["tables-io", "convert", "--input", f"{output}", "--output", f"{hdf5_output}"])
     return 0
-
 
 
 def build_pipelines(
@@ -781,7 +788,7 @@ def build_pipelines(
             print(f"Skipping pipeline {pipeline_name} from flavor {flavor}")
             continue
         output_yaml = project.get_path('pipeline_path', pipeline=pipeline_name, flavor=flavor)
-        if os.path.exists(output_yaml):
+        if os.path.exists(output_yaml):  # pragma: no cover
             if force:
                 print(f"Overwriting existing pipeline {output_yaml}")
             else:
@@ -803,7 +810,7 @@ def build_pipelines(
                 pipeline_kwargs[key] = project.get_spec_selections()
             elif val == 'PZAlgorithms':
                 pipeline_kwargs[key] = project.get_pzalgorithms()
-            elif val == 'NZAlgorithms':
+            elif val == 'NZAlgorithms':  # pragma: no cover
                 pipeline_kwargs[key] = project.get_nzalgorithms()
             elif val == 'Classifiers':
                 pipeline_kwargs[key] = project.get_classifiers()

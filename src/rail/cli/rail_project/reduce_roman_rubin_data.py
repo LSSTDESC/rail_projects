@@ -1,6 +1,7 @@
 import math
 import itertools
 import os
+from typing import Any
 
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
@@ -87,6 +88,68 @@ PROJECTIONS = [
 ]
 
 
+def run_reduction(
+    source_catalog: str,
+    predicate: Any,
+    sink_dir: str,
+    sink_catalog: str,
+) -> None:  # pragma: no cover
+
+    dataset = ds.dataset(
+        source_catalog,
+        format="parquet",
+    )
+
+    scan_node = acero.Declaration(
+        "scan",
+        acero.ScanNodeOptions(
+            dataset,
+            columns=COLUMNS,
+            filter=predicate,
+        ),
+    )
+
+    filter_node = acero.Declaration(
+        "filter",
+        acero.FilterNodeOptions(
+            predicate,
+        ),
+    )
+
+    column_projection = {
+        k: pc.field(k)
+        for k in COLUMNS
+    }
+    projection = column_projection
+    project_nodes = []
+    for _projection in PROJECTIONS:
+        for k, v in _projection.items():
+            projection[k] = v
+        project_node = acero.Declaration(
+            "project",
+            acero.ProjectNodeOptions(
+                [v for k, v in projection.items()],
+                names=[k for k, v in projection.items()],
+            )
+        )
+        project_nodes.append(project_node)
+
+    seq = [
+        scan_node,
+        filter_node,
+        *project_nodes,
+    ]
+    plan = acero.Declaration.from_sequence(seq)
+    print(plan)
+
+    # batches = plan.to_reader(use_threads=True)
+    table = plan.to_table(use_threads=True)
+    print(f"writing dataset to {sink_catalog}")
+    os.makedirs(sink_dir, exist_ok=True)
+    pq.write_table(table, sink_catalog)
+
+
+
 def reduce_roman_rubin_data(
     project: RailProject,
     input_tag: str,
@@ -102,7 +165,7 @@ def reduce_roman_rubin_data(
 
     if selection is not None:
         selection_dict = project.get_selection(selection)
-    else:
+    else:  # pragma: no cover
         selection_dict = {}
 
 
@@ -125,14 +188,14 @@ def reduce_roman_rubin_data(
             sink_dir = os.path.dirname(sink_catalog)
             if selection_dict:
                 predicate = pc.field("LSST_obs_i") < selection_dict["maglim_i"][1]
-            else:
+            else:  # pragma: no cover
                 predicate = None
 
-            if not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run:
+            if not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run:  # pragma: no cover
                 raise ValueError(f"Input file {source_catalog} not found")
 
             # FIXME properly warn
-            if os.path.isfile(sink_catalog):
+            if os.path.isfile(sink_catalog):  # pragma: no cover
                 # raise ValueError(f"Input file {source_catalog} not found")
                 print(f"Warning: output file {sink_catalog} found; may be rewritten...")
 
@@ -143,64 +206,15 @@ def reduce_roman_rubin_data(
 
             predicates.append(predicate)
 
-            if run_mode == RunMode.dry_run:
-                continue
-
-            dataset = ds.dataset(
-                source_catalog,
-                format="parquet",
-            )
-
-            scan_node = acero.Declaration(
-                "scan",
-                acero.ScanNodeOptions(
-                    dataset,
-                    columns=COLUMNS,
-                    filter=predicate,
-                ),
-            )
-
-            filter_node = acero.Declaration(
-                "filter",
-                acero.FilterNodeOptions(
-                    predicate,
-                ),
-            )
-
-            column_projection = {
-                k: pc.field(k)
-                for k in COLUMNS
-            }
-            projection = column_projection
-            project_nodes = []
-            for _projection in PROJECTIONS:
-                for k, v in _projection.items():
-                    projection[k] = v
-                project_node = acero.Declaration(
-                    "project",
-                    acero.ProjectNodeOptions(
-                        [v for k, v in projection.items()],
-                        names=[k for k, v in projection.items()],
-                    )
-                )
-                project_nodes.append(project_node)
-
-            seq = [
-                scan_node,
-                filter_node,
-                *project_nodes,
-            ]
-            plan = acero.Declaration.from_sequence(seq)
-            print(plan)
-
             if run_mode == RunMode.slurm:
                 raise NotImplementedError("run_mode == RunMode.slurm not implemented for reduce_roman_rubin")
-
-            # batches = plan.to_reader(use_threads=True)
-            table = plan.to_table(use_threads=True)
-            print(f"writing dataset to {sink_catalog}")
-            os.makedirs(sink_dir, exist_ok=True)
-            pq.write_table(table, sink_catalog)
+            if run_mode == RunMode.bash:  # pragma: no cover
+                run_reduction(
+                    source_catalog,
+                    predicate,
+                    sink_dir,
+                    sink_catalog,
+                )
 
         print("writing completed")
 

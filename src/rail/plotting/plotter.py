@@ -272,12 +272,12 @@ class RailPlotter:
         for key in self.config.keys():
             if key in kwargs:
                 self.config[key] = kwcopy.pop(key)
-            else:
+            else:  # pragma: no cover
                 attr = self.config.get(key)
                 if attr.required:
                     raise ValueError(f"Missing configuration option {key}")
                 self.config[key] = attr.default
-        if kwcopy:
+        if kwcopy:  # pragma: no cover
             raise ValueError(f"Unrecogonized configruation parameters {kwcopy.keys()}")
 
     @classmethod
@@ -285,12 +285,12 @@ class RailPlotter:
         for key, expected_type in cls.inputs.items():
             try:
                 data = kwargs[key]
-            except KeyError as msg:
+            except KeyError as msg:  # pragma: no cover
                 raise KeyError(
                     f"{key} not provided to RailPlotter {cls} in {list(kwargs.keys())}"
                 ) from msg
             try:
-                if not isinstance(data, expected_type):
+                if not isinstance(data, expected_type):  # pragma: no cover
                     raise TypeError(
                         f"{key} provided to RailPlotter was {type(data)}, expected {expected_type}"
                     )

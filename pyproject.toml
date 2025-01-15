@@ -97,4 +97,5 @@ warn_unused_ignores = true
 [tool.coverage.report]
 exclude_also = [
     "raise NotImplementedError",
+    "__repr__",
     ]

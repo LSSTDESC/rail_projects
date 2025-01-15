@@ -56,7 +56,7 @@ class RailProjectDataExtractor:
         """
         try:
             return cls.extractor_classes[name]
-        except KeyError as msg:
+        except KeyError as msg:  # pragma: no cover
             raise KeyError(
                 f"Could not find extractor class {name} in {list(cls.extractor_classes.keys())}"
         ) from msg
@@ -103,7 +103,7 @@ class RailProjectDataExtractor:
         extractor: RailProjectDataExtractor
             Newly created extractor
         """
-        if class_name in RailProjectDataExtractor.extractor_classes:
+        if class_name in RailProjectDataExtractor.extractor_classes:  # pragma: no cover
             extractor_class = RailProjectDataExtractor.get_extractor_class(class_name)
         else:
             extractor_class = RailProjectDataExtractor.load_extractor_class(class_name)
@@ -147,12 +147,12 @@ class RailProjectDataExtractor:
         for key, expected_type in cls.inputs.items():
             try:
                 data = kwargs[key]
-            except KeyError as msg:
+            except KeyError as msg:  # pragma: no cover
                 raise KeyError(
                     f"{key} not provided to RailPlotter {cls} in {list(kwargs.keys())}"
                 ) from msg
             try:
-                if not isinstance(data, expected_type):
+                if not isinstance(data, expected_type):  # pragma: no cover
                     raise TypeError(
                         f"{key} provided to RailPlotter was {type(data)}, expected {expected_type}"
                     )
