@@ -64,7 +64,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                 dataset_dict = dict(
                     name=f"{selection_}_{key}",
                     extractor="rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor",
-                    project=project_namem,
+                    project=project_name,
                     flavor=key,
                     algos=algos,
                     selection=selection_,
