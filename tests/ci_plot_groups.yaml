@@ -1,7 +1,8 @@
-PlotterYaml: tests/ci_plots.yaml
-DatasetYaml: tests/ci_datasets.yaml
-PlotGroups: 
-    - PlotGroup: 
-          name: zestimate_v_ztrue_test_plots
-          plotter_list_name: zestimate_v_ztrue 
-          dataset_dict_name: baseline_test 
+- PlotterYaml:
+      path: tests/ci_plots.yaml
+- DatasetYaml:
+      path: tests/ci_datasets.yaml
+- PlotGroup: 
+      name: zestimate_v_ztrue_test_plots
+      plotter_list_name: zestimate_v_ztrue 
+      dataset_dict_name: baseline_test 

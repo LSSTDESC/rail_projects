@@ -132,63 +132,58 @@ class RailPlotGroup:
         -----
         The yaml file should look something like this:
 
-        PlotterYaml: <path_to_yaml_file_defining_plotter_lists>
-        DatasetYaml: <path_to_yaml_file defining_dataset_lists>
-        PlotGroups:
-            - PlotGroup:
-                  name: some_name
-                  plotter_list_name: nice_plots
-                  dataset_dict_name: nice_data
-            - PlotGroup:
-                  name: some_other_name
-                  plotter_list_name: janky_plots
-                  dataset_dict_name: janky_data
+        - PlotterYaml: 
+              path: <path_to_yaml_file_defining_plotter_lists>
+        - DatasetYaml: 
+              path: <path_to_yaml_file defining_dataset_lists>
+        - PlotGroup:
+              name: some_name
+              plotter_list_name: nice_plots
+              dataset_dict_name: nice_data
+        - PlotGroup:
+              name: some_other_name
+              plotter_list_name: janky_plots
+              dataset_dict_name: janky_data
         """
         out_dict: dict[str, RailPlotGroup] = {}
         with open(yaml_file, encoding="utf-8") as fin:
             all_data = yaml.safe_load(fin)
 
-        try:
-            plotter_yaml = all_data['PlotterYaml']
-        except KeyError as msg:  # pragma: no cover
-            raise KeyError(
-                "yaml file does not contain PlotterYaml key "
-                f"{list(all_data.keys())}"
-            ) from msg
-        RailPlotterFactory.load_yaml(plotter_yaml)
-
-        try:
-            dataset_yaml = all_data['DatasetYaml']
-        except KeyError as msg:  # pragma: no cover
-            raise KeyError(
-                "yaml file does not contain DatasetYaml key "
-                f"{list(all_data.keys())}"
-            ) from msg
-
-        try:
-            group_data = all_data['PlotGroups']
-        except KeyError as msg:  # pragma: no cover
-            raise KeyError(
-                "yaml file does not contain PlotGroups key "
-                f"{list(all_data.keys())}"
-            ) from msg
-        RailDatasetFactory.load_yaml(dataset_yaml)
-
-        for group_item in group_data:
-            try:
+        for group_item in all_data:
+            if "PlotterYaml" in group_item:
+                plotter_yaml_config = group_item["PlotterYaml"]
+                try:
+                    plotter_yaml_path = plotter_yaml_config.pop("path")
+                except KeyError as msg:  # pragma: no cover
+                    raise KeyError(
+                        "PlotterYaml yaml block does not contain path: "
+                        f"{list(plotter_yaml_config.keys())}"
+                    ) from msg
+                RailPlotterFactory.load_yaml(plotter_yaml_path)
+            elif "DatasetYaml" in group_item:
+                dataset_yaml_config = group_item["DatasetYaml"]
+                try:
+                    dataset_yaml_path = dataset_yaml_config.pop("path")
+                except KeyError as msg:  # pragma: no cover
+                    raise KeyError(
+                        "PlotterYamlDatasetYaml yaml block does not contain path: "
+                        f"{list(dataset_yaml_path.keys())}"
+                    ) from msg
+                RailDatasetFactory.load_yaml(dataset_yaml_path)
+            elif "PlotGroup" in group_item:
                 plot_group_config = group_item["PlotGroup"]
-            except KeyError as msg:  # pragma: no cover
+                try:
+                    name = plot_group_config.pop("name")
+                except KeyError as msg:  # pragma: no cover
+                    raise KeyError(
+                        "PlotGroup yaml block does not contain name for plot group: "
+                        f"{list(plot_group_config.keys())}"
+                    ) from msg
+                out_dict[name] = cls.create(plot_group_config)
+            else:  # pragma: no cover
+                good_keys = ["PlotterYaml", "DatasetYaml", "PlotGroup"]
                 raise KeyError(
-                    "expected PlotGroup yaml block. "
-                    f"{list(group_item.keys())}"
-                ) from msg
-            try:
-                name = plot_group_config.pop("name")
-            except KeyError as msg:  # pragma: no cover
-                raise KeyError(
-                    "PlotGroup yaml block does not contain name for plot group: "
-                    f"{list(plot_group_config.keys())}"
-                ) from msg
-            out_dict[name] = cls.create(plot_group_config)
-
+                    f"Expecting one of {good_keys} not: {plotter_data.keys()})"
+                )
+            
         return out_dict

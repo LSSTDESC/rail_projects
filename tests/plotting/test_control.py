@@ -22,6 +22,7 @@ def setup_project_area() -> None:
 
 def test_load_yaml() -> None:
 
+    control.clear()
     setup_project_area()
 
     # Load the testing yaml file
@@ -33,6 +34,7 @@ def test_load_yaml() -> None:
 
 def test_run() -> None:
 
+    control.clear()
     setup_project_area()
 
     _out_dict = control.run('tests/ci_plot_groups.yaml', outdir='tests/temp_data/plots')
