@@ -33,7 +33,7 @@ def run_command(config_file: str, **kwargs: Any) -> int:
 @plot_cli.command(name="inspect")
 @project_options.config_file()
 def inspect_command(config_file: str) -> int:
-    """Make a bunch of plots"""
+    """Inspect a configuration yaml file"""
     control.clear()
     plot_groups = control.load_plot_group_yaml(config_file)
     control.print_contents()
@@ -43,4 +43,32 @@ def inspect_command(config_file: str) -> int:
         print(f"  {key}:")
         print(f"    PlotterList: {val.plotter_list_name}")
         print(f"    DatasetList: {val.dataset_dict_name}")
+    return 0
+
+
+@plot_cli.command(name="extract-datasets")
+@project_options.config_file()
+@plot_options.dataset_list_name()
+@plot_options.extractor_class()
+@project_options.flavor()
+@project_options.selection()
+@options.output_yaml()
+def extract_datasets_command(
+    config_file: str,
+    dataset_list_name: str,
+    extractor_class: str,
+    flavor: list[str],
+    selection: list[str],
+    output_yaml: str,
+) -> int:
+    """Create a yaml file with the datasets in a project"""
+    control.clear()
+    control.extract_datasets(
+        config_file,
+        dataset_list_name,
+        extractor_class,        
+        flavors=flavor,
+        selections=selection,
+        output_yaml=output_yaml,
+    )    
     return 0
