@@ -144,7 +144,7 @@ def handle_commands(
     return ret_val
 
 
-def sbatch_wrap(run_mode: RunMode, site: str, args: list[str]) -> int:
+def sbatch_wrap(run_mode: RunMode, site: str, args: list[str]) -> int:  # pragma: no cover
     """ Wrap a rail_pipe command with site-based arguements
     Parameters
     ----------
