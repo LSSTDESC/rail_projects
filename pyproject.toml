@@ -21,7 +21,7 @@ classifiers = [
 
 dynamic = ["version"]
 dependencies = [
-    "pz-rail-pipelines",
+    "pz-rail-pipelines[algos]",
     "matplotlib",
     "yamllint",
     "pyarrow",
