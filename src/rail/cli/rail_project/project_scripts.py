@@ -16,6 +16,29 @@ from rail.projects import RailProject
 
 from .project_options import RunMode
 
+S3DF_SLURM_OPTIONS: list[str] = [
+    "-p",
+    "milano",
+    "--account",
+    "rubin:commissioning@milano",
+    "--mem",
+    "16G",
+    "--parsable",
+]
+PERLMUTTER_SLURM_OPTIONS: list[str] = [
+    "--account",
+    "m1727",
+    "--constraint",
+    "cpu",
+    "--qos",
+    "regular"
+    "--parsable",
+]
+
+SLURM_OPTIONS = {
+    "s3df":S3DF_SLURM_OPTIONS,
+    "perlmutter":PERLMUTTER_SLURM_OPTIONS,
+}
 
 def handle_command(
     run_mode: RunMode,
@@ -104,19 +127,45 @@ def handle_commands(
             com_line = ' '.join(command_)
             fout.write(f"{com_line}\n")
 
-    script_log = script_path.replace('.sh', '.log')
+    script_out = script_path.replace('.sh', '.out')
+
+    command_line = ["srun", "--output", script_out, "--error", script_path]
     try:
         with subprocess.Popen(
-                ["sbatch", "-o", script_log, "--mem", "16448", "-p", "milano", "--parsable", script_path],
-                stdout=subprocess.PIPE,
-        ) as sbatch:
-            assert sbatch.stdout
-            line = sbatch.stdout.read().decode().strip()
+            command_line,
+            stdout=subprocess.PIPE,
+        ) as srun:
+            assert srun.stdout
+            line = srun.stdout.read().decode().strip()
             ret_val = int(line.split("|")[0])
     except TypeError as msg:
         raise TypeError(f"Bad slurm submit: {msg}") from msg
 
     return ret_val
+
+
+def sbatch_wrap(run_mode: RunMode, site: str, args: list[str]) -> int:
+    """ Wrap a rail_pipe command with site-based arguements
+    Parameters
+    ----------
+    run_mode: RunMode
+        How to run the command, e.g., dry_run, bash or slurm
+    site: str
+        Execution site, used to set sbatch options
+
+    args: list[str]
+        Additional arguments
+    Returns
+    -------
+    returncode: int
+        Status.  0 for success, exit code otherwise
+    """
+    try:
+        slurm_options = SLURM_OPTIONS[site]
+    except KeyError as msg:
+        raise KeyError(f"{site} is not a recognized site, options are {SLURM_OPTIONS.keys()}") from msg
+    command_line = ['sbatch'] + slurm_options + ["rail_pipe", "--run_mode", "slurm"] + list(args)
+    return handle_command(run_mode, command_line)
 
 
 def inspect(config_file: str) -> int:
@@ -378,7 +427,7 @@ def run_pipeline_on_single_input(
         Status returned by the command.  0 for success, exit code otherwise
     """
     pipeline_path = project.get_path('pipeline_path', pipeline=pipeline_name, **kwargs)
-    pipeline_config = pipeline_path.replace('.yaml', '_config.yaml')
+    pipeline_config = pipeline_path.replace('.yaml', '_config.yml')
     sink_dir = project.get_path('ceci_output_dir', **kwargs)
     script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
 
