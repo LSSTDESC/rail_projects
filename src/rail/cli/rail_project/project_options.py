@@ -11,6 +11,7 @@ from rail.cli.rail.options import (
 
 __all__: list[str] = [
     "RunMode",
+    "args",
     "config_path",
     "force",
     "flavor",
@@ -28,6 +29,7 @@ __all__: list[str] = [
     "pdf_path",
     "run_mode",
     "selection",
+    "site",
     "output_dir",
     "output_file",
     "truth_path",
@@ -41,6 +43,14 @@ class RunMode(enum.Enum):
     dry_run = 0
     bash = 1
     slurm = 2
+
+
+
+args = PartialArgument(
+    "args",
+    type=str,
+    nargs=-1,
+)
 
 
 config_file = PartialArgument(
@@ -81,6 +91,13 @@ selection = PartialOption(
     help="Data selection",
     multiple=True,
     default=["gold"],
+)
+
+
+site = PartialOption(
+    "--site",
+    help="site for slurm submission",
+    default="s3df",
 )
 
 

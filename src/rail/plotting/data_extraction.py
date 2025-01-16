@@ -3,6 +3,8 @@ from __future__ import annotations
 from types import GenericAlias
 from typing import Any
 
+from rail.projects import RailProject
+
 
 class RailProjectDataExtractor:
     """ Base class for extracting data from a RailProject
@@ -11,21 +13,21 @@ class RailProjectDataExtractor:
     __call__(kwargs**: Any) -> dict[str, Any]
 
     This function will extract data and return them in a dict.
-    
-    Parameters to specify the data are passed vie the kwargs.
-    
 
-    Sub-classes should implement 
-    
+    Parameters to specify the data are passed vie the kwargs.
+
+
+    Sub-classes should implement
+
     _inputs: a dict [str, type] that specifics the inputs
     that the sub-classes expect, this is used the check the kwargs
     that are passed to the __call__ function.
 
     A function:
     _get_data(self,**kwargs: Any) -> dict[str, Any]:
-    
+
     That actually gets the data.  It does not need to do the checking
-    that the correct kwargs have been given.      
+    that the correct kwargs have been given.
     """
 
     inputs: dict = {}
@@ -42,7 +44,7 @@ class RailProjectDataExtractor:
             print(f"{key} {val}")
 
     @classmethod
-    def get_extractor_class(cls, name: str) -> type:
+    def get_extractor_class(cls, name: str) -> type[RailProjectDataExtractor]:
         """Get a particular sub-class of RailProjectDataExtractor by name
 
         Parameters
@@ -63,7 +65,7 @@ class RailProjectDataExtractor:
         ) from msg
 
     @staticmethod
-    def load_extractor_class(class_name: str) -> type:
+    def load_extractor_class(class_name: str) -> type[RailProjectDataExtractor]:
         """Import a particular sub-class of RailProjectDataExtractor by name
 
         Parameters
@@ -165,4 +167,35 @@ class RailProjectDataExtractor:
                 )
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any]:
+        raise NotImplementedError()
+
+    @classmethod
+    def generate_dataset_dict(
+        cls,
+        dataset_list_name: str,
+        project: RailProject,
+        selections: list[str] | None=None,
+        flavors: list[str] | None=None,
+    ) -> list[dict[str, Any]]:
+        """Create a dict of the datasets that this extractor can extract
+
+        Parameters
+        ----------
+        dataset_list_name: str
+            Name for the resulting DatasetList
+
+        project: RailProject
+            Project to inspect
+
+        selections: list[str]
+            Selections to use
+
+        flavors: list[str]
+            Flavors to use
+
+        Returns
+        -------
+        output: list[dict[str, Any]]
+            Dictionary of the extracted datasets
+        """
         raise NotImplementedError()

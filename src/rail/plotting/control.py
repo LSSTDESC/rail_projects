@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import yaml
 from matplotlib.figure import Figure
+
+from rail.projects import RailProject
 
 from .dataset_factory import RailDatasetFactory
 from .plotter_factory import RailPlotterFactory
+from .data_extraction import RailProjectDataExtractor
 from .plotter import RailPlotter
 from .plot_group import RailPlotGroup
 
@@ -125,3 +129,46 @@ def run(
         plot_group = group_dict[group_]
         out_dict.update(plot_group(save_plots, purge_plots, outdir=outdir))
     return out_dict
+
+
+def extract_datasets(
+    config_file: str,
+    dataset_list_name: str,
+    extractor_class: str,
+    flavors: list[str],
+    selections: list[str],
+    output_yaml: str,
+) -> None:
+
+    """Extract datasets into a yaml file
+
+    Parameters
+    ----------
+    config_file: str
+        Yaml project configuration file
+
+    dataset_list_name: str
+        Name for the resulting DatasetList
+
+    extractor_class: str
+        Class used to extract Datasets
+
+    selections: list[str]
+        Selections to use
+
+    flavors: list[str]
+        Flavors to use
+
+    output_yaml: str
+        Path to output file
+    """
+    extractor_cls = RailProjectDataExtractor.load_extractor_class(extractor_class)
+    project = RailProject.load_config(config_file)
+    output_data = extractor_cls.generate_dataset_dict(
+        dataset_list_name,
+        project,
+        selections,
+        flavors,
+    )
+    with open(output_yaml, 'w', encoding="utf-8") as fout:
+        yaml.dump(output_data, fout)

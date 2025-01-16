@@ -24,6 +24,8 @@ dependencies = [
     "pz-rail-pipelines",
     "matplotlib",
     "yamllint",
+    "pyarrow",
+    "tables_io[full]",
 ]
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
@@ -32,7 +34,7 @@ full = [
 ]
 
 dev = [
-    "pz-rail-pipelines",
+    "pz-rail-pipelines[full]",
     "coverage",
     "pytest",
     "pytest-cov", # Used to report total code coverage

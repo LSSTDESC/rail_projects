@@ -55,6 +55,15 @@ def subsample_command(config_file: str, **kwargs: Any) -> int:
     return ok
 
 
+@project_cli.command(name="sbatch")
+@project_options.run_mode()
+@project_options.site()
+@project_options.args()
+def sbatch_command(run_mode: project_options.RunMode, site: str, args: list[str]) -> int:  # pragma: no cover
+    """Wrap a rail_pipe command with site-based arguements for slurm"""
+    return project_scripts.sbatch_wrap(run_mode, site, args)
+
+
 @project_cli.group(name="reduce")
 def reduce_group() -> None:
     """Reduce input data for PZ analysis"""
