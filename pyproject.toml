@@ -21,7 +21,7 @@ classifiers = [
 
 dynamic = ["version"]
 dependencies = [
-    "pz-rail-pipelines[algos]",
+    "pz-rail-pipelines",
     "matplotlib",
     "yamllint",
     "pyarrow",
@@ -34,7 +34,7 @@ full = [
 ]
 
 dev = [
-    "pz-rail-pipelines",
+    "pz-rail-pipelines[full]",
     "coverage",
     "pytest",
     "pytest-cov", # Used to report total code coverage
