@@ -66,9 +66,9 @@ def extract_datasets_command(
     control.extract_datasets(
         config_file,
         dataset_list_name,
-        extractor_class,        
+        extractor_class,
         flavors=flavor,
         selections=selection,
         output_yaml=output_yaml,
-    )    
+    )
     return 0

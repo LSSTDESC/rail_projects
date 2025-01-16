@@ -139,7 +139,7 @@ def extract_datasets(
     selections: list[str],
     output_yaml: str,
 ) -> None:
-    
+
     """Extract datasets into a yaml file
 
     Parameters
@@ -161,16 +161,14 @@ def extract_datasets(
 
     output_yaml: str
         Path to output file
-    """    
-    extractor_class = RailProjectDataExtractor.load_extractor_class(extractor_class)
+    """
+    extractor_cls = RailProjectDataExtractor.load_extractor_class(extractor_class)
     project = RailProject.load_config(config_file)
-    output_data = extractor_class.generate_dataset_dict(
-        dataset_list_name, 
+    output_data = extractor_cls.generate_dataset_dict(
+        dataset_list_name,
         project,
         selections,
         flavors,
     )
-    with open(output_yaml, 'w') as fout:
+    with open(output_yaml, 'w', encoding="utf-8") as fout:
         yaml.dump(output_data, fout)
-
-    

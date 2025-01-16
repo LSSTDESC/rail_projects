@@ -9,7 +9,7 @@ from .data_extraction_funcs import get_pz_point_estimate_data, get_ceci_pz_outpu
 
 
 class PZPointEstimateDataExtractor(RailProjectDataExtractor):
-    """ Class to extract true redshifts and p(z) point estimates 
+    """ Class to extract true redshifts and p(z) point estimates
     from a RailProject.
 
     This will return a dict:
@@ -18,7 +18,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         True redshifts
 
     pointEstimates: dict[str, np.ndarray]
-         Dict mapping from the names for the various point estimates to the 
+         Dict mapping from the names for the various point estimates to the
          estimates themselves
     """
 
@@ -39,7 +39,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         dataset_list_name: str,
         project: RailProject,
         selections: list[str] | None=None,
-        flavors: list[str] | None=None,    
+        flavors: list[str] | None=None,
     ) -> list[dict[str, Any]]:
         output: list[dict[str, Any]] = []
 
@@ -49,25 +49,25 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         if selections is None or 'all' in selections:
             selections = list(project.get_selections().keys())
 
-        project_name = project.name        
+        project_name = project.name
         if not dataset_list_name:
             dataset_list_name=f"{project_name}_pz_point"
-            
+
         project_block = dict(
             Project=dict(
                 name=project_name,
                 yaml_file="dummy",
             )
         )
-        
+
         output.append(project_block)
 
         datasets: list[str] = []
-        
+
         for key in flavors:
             val = flavor_dict[key]
             pipelines = val['Pipelines']
-            if not 'all' in pipelines and not 'pz' in pipelines:
+            if not 'all' in pipelines and not 'pz' in pipelines:  # pragma: no cover
                 continue
             try:
                 algos = val['PipelineOverrides']['default']['kwargs']['PZAlgorithms']
@@ -102,8 +102,5 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         )
 
         output.append(dict(DatasetList=dataset_list))
-            
-        return output
 
-        
-        
+        return output
