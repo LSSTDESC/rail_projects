@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt install libbz2-dev      
+        sudo apt install libbz2-dev
         python -m pip install --upgrade pip
         pip install build
     - name: Build package
