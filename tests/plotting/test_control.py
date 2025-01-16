@@ -9,8 +9,9 @@ missing_ci_data = not os.path.exists(os.path.expandvars(("$HOME/xfer/ci_test.tgz
 
 
 @pytest.mark.skipif(missing_ci_data, reason="no ci data")
-def test_load_yaml(setup_project_area) -> None:
+def test_load_yaml(setup_project_area: int) -> None:
 
+    assert setup_project_area == 0
     control.clear()
 
     # Load the testing yaml file
@@ -21,8 +22,9 @@ def test_load_yaml(setup_project_area) -> None:
 
 
 @pytest.mark.skipif(missing_ci_data, reason="no ci data")
-def test_run(setup_project_area) -> None:
+def test_run(setup_project_area: int) -> None:
 
+    assert setup_project_area == 0
     control.clear()
 
     _out_dict = control.run('tests/ci_plot_groups.yaml', outdir='tests/temp_data/plots')

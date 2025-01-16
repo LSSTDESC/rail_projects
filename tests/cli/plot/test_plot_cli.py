@@ -24,8 +24,9 @@ def test_cli_help() -> None:
 
 
 @pytest.mark.skipif(missing_ci_data, reason="NO CI data")
-def test_cli_run(setup_project_area) -> None:
+def test_cli_run(setup_project_area: int) -> None:
 
+    assert setup_project_area == 0
     runner = CliRunner()
 
     result = runner.invoke(
@@ -36,8 +37,9 @@ def test_cli_run(setup_project_area) -> None:
 
 
 @pytest.mark.skipif(missing_ci_data, reason="NO CI data")
-def test_cli_inspect(setup_project_area) -> None:
+def test_cli_inspect(setup_project_area: int) -> None:
 
+    assert setup_project_area == 0
     runner = CliRunner()
 
     result = runner.invoke(
@@ -48,8 +50,9 @@ def test_cli_inspect(setup_project_area) -> None:
 
 
 @pytest.mark.skipif(missing_ci_data, reason="NO CI data")
-def test_cli_extract_datasets(setup_project_area) -> None:
+def test_cli_extract_datasets(setup_project_area: int) -> None:
 
+    assert setup_project_area == 0
     runner = CliRunner()
 
     result = runner.invoke(
