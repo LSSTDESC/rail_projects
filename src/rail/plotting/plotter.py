@@ -3,24 +3,26 @@ from __future__ import annotations
 import os
 from types import GenericAlias
 from typing import Any
-from matplotlib.figure import Figure
 
 from ceci.config import StageConfig, StageParameter
 
+from .plot_holder import RailPlotHolder
+
+
 class RailPlotter:
-    """ Base class for making matplotlib plot 
+    """ Base class for making matplotlib plot
 
     The main function in this class is:
-    __call__(prefix: str, kwargs**: Any) -> dict[str, Figure]
+    __call__(prefix: str, kwargs**: Any) -> dict[str, RailPlotHolder]
 
     This function will make a set of plots and return them in a dict.
     prefix is string that gets prepended to plot names.
-    
-    The data to be plotted is passed in via the kwargs.
-    
 
-    Sub-classes should implement 
-    
+    The data to be plotted is passed in via the kwargs.
+
+
+    Sub-classes should implement
+
     config_options: a dict[str, `ceci.StageParameter`] that
     will be used to configure things like the axes binning, selection functions,
     and other plot-specfic options
@@ -30,10 +32,10 @@ class RailPlotter:
     that are passed to the __call__ function.
 
     A function:
-    _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, Figure]:
-    
+    _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
+
     That actually makes the plots.  It does not need to do the checking
-    that the correct kwargs have been given.      
+    that the correct kwargs have been given.
     """
 
     config_options: dict[str, StageParameter] = {}
@@ -128,7 +130,7 @@ class RailPlotter:
         plotters: list[RailPlotter],
         prefix: str,
         **kwargs: Any,
-    ) -> dict[str, Figure]:
+    ) -> dict[str, RailPlotHolder]:
         """ Utility function to several plotters on the same data
 
         Parameters
@@ -145,10 +147,10 @@ class RailPlotter:
 
         Returns
         -------
-        out_dict: dict[str, Figure]
+        out_dict: dict[str, RailPlotHolder]
             Dictionary of the newly created figures
         """
-        out_dict: dict[str, Figure] = {}
+        out_dict: dict[str, RailPlotHolder] = {}
         for plotter_ in plotters:
             out_dict.update(plotter_(prefix, **kwargs))
         return out_dict
@@ -157,7 +159,8 @@ class RailPlotter:
     def iterate(
         plotters: list[RailPlotter],
         data_dict: dict[str, dict],
-    ) -> dict[str, Figure]:
+        **kwargs: Any,
+    ) -> dict[str, RailPlotHolder]:
         """ Utility function to several plotters of several data sets
 
         Parameters
@@ -170,25 +173,26 @@ class RailPlotter:
 
         Returns
         -------
-        out_dict: dict[str, Figure]
+        out_dict: dict[str, RailPlotHolder]
             Dictionary of the newly created figures
         """
-        out_dict: dict[str, Figure] = {}
+        out_dict: dict[str, RailPlotHolder] = {}
         for key, val in data_dict.items():
-            out_dict.update(RailPlotter.iterate_plotters(plotters, key, **val))
+            out_dict.update(RailPlotter.iterate_plotters(plotters, key, **val, **kwargs))
         return out_dict
 
     @staticmethod
     def write_plots(
-        fig_dict: dict[str, Figure],
+        fig_dict: dict[str, RailPlotHolder],
         outdir: str=".",
         figtype: str="png",
+        purge: bool=False,
     ) -> None:
         """ Utility function to write several plots do disk
 
         Parameters
         ----------
-        fig_dict: dict[str, Figure]
+        fig_dict: dict[str, RailPlotHolder]
             Dictionary of figures to write
 
         outdir: str
@@ -196,6 +200,9 @@ class RailPlotter:
 
         figtype: str
             Type of figures to write, e.g., png, pdf...
+
+        purge: bool
+            Delete figure after saving
         """
         for key, val in fig_dict.items():
             try:
@@ -204,6 +211,8 @@ class RailPlotter:
                 pass
             out_path = os.path.join(outdir, f"{key}.{figtype}")
             val.savefig(out_path)
+            if purge:
+                val.set_figure(None)
 
     def __init__(self, name: str, **kwargs: Any):
         """ C'tor
@@ -229,7 +238,7 @@ class RailPlotter:
     def __repr__(self) -> str:
         return f"{self._name}"
 
-    def __call__(self, prefix: str, **kwargs: Any) -> dict[str, Figure]:
+    def __call__(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         """ Make all the plots given the data
 
         Parameters
@@ -243,7 +252,7 @@ class RailPlotter:
 
         Returns
         -------
-        out_dict: dict[str, Figure]
+        out_dict: dict[str, RailPlotHolder]
             Dictionary of the newly created figures
         """
         self._validate_inputs(**kwargs)
@@ -302,5 +311,9 @@ class RailPlotter:
                     f"{key} provided to RailPlotter was {type(data)}, expected {expected_type}"
                 )
 
-    def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, Figure]:
+    def _make_plots(
+        self,
+        prefix: str,
+        **kwargs: Any,
+    ) -> dict[str, RailPlotHolder]:
         raise NotImplementedError()

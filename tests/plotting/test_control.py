@@ -31,3 +31,14 @@ def test_run(setup_project_area: int) -> None:
     assert os.path.exists(
         'tests/temp_data/plots/zestimate_v_ztrue_hist2d_blend_baseline_test_fzboost_hist.png'
     )
+
+    control.clear()
+    out_dict2 = control.run(
+        'tests/ci_plot_groups.yaml',
+        outdir='tests/temp_data/plots',
+        find_only=True,
+        make_html=True,
+        output_html='tests/temp_data/plots/plot.html',
+    )
+
+    assert out_dict2

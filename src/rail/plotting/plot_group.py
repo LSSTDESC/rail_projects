@@ -7,6 +7,8 @@ from typing import Any
 import yaml
 from matplotlib.figure import Figure
 
+from jinja2 import Environment, FileSystemLoader, Template
+
 from .dataset_factory import RailDatasetFactory
 from .plotter_factory import RailPlotterFactory
 from .plotter import RailPlotter
@@ -16,6 +18,18 @@ class RailPlotGroup:
     """ Defining of a group on plots to make
     with a particular dataset
     """
+
+    jinja_env: Environment | None = None
+    jinja_template: Template | None = None
+
+    @classmethod
+    def _load_jinja(cls) -> None:
+        if cls.jinja_template is not None:  # pragma: no cover
+            return
+        cls.jinja_env = Environment(
+            loader=FileSystemLoader('src/rail/projects/html_templates')
+        )
+        cls.jinja_template = cls.jinja_env.get_template('plot_group_table.html')
 
     def __init__(
         self,
@@ -57,44 +71,112 @@ class RailPlotGroup:
         out_dict = RailPlotter.iterate(plotter_list, dataset_dict)
         return out_dict
 
-    def __call__(
-        self,
-        save: bool=True,
-        purge: bool=True,
-        outdir: str | None=None
+    @staticmethod
+    def find_plots(
+        plotter_list_name: str,
+        datatset_dict_name: str,
+        outdir: str='.',
+        figtype: str='png',
     ) -> dict[str, Figure]:
-        """ Make all the plots given the data
+        """ Make a set of plots
 
         Parameters
         ----------
-        save: bool
-            If true, save the plots to disk
+        plotter_list_name: str
+            Name of the plotter list to use to make the plots.
+           This needs to have been previous loaded.
 
-        purge: bool
-            If true, delete the plots after saving
-
-        outdir: str | None
-            If set, prepend this to the groups output dir
+        datatset_dict_name: str
+            Name of the dataset list to use to make the plots.
+            This needs to have been previous loaded.
 
         Returns
         -------
         out_dict: dict[str, Figure]
             Dictionary of the newly created figures
         """
-        self._plots.update(
-            self.make_plots(
-                self.plotter_list_name,
-                self.dataset_dict_name,
-            ),
+        plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
+        dataset_dict = RailDatasetFactory.get_dataset_dict(datatset_dict_name)
+        out_dict = RailPlotter.iterate(
+            plotter_list, dataset_dict, find_only=True, outdir=outdir, figtype=figtype,
         )
-        if save:
-            if outdir is not None:
-                output_dir = os.path.join(outdir, self.outdir)
-            else:  # pragma: no cover
-                output_dir = self.outdir
-            RailPlotter.write_plots(self._plots, output_dir, self.figtype)
-            if purge:
-                self._plots.clear()
+        return out_dict
+
+    def make_html(
+        self,
+        outfile: str,
+    ) -> None:
+        self._load_jinja()
+        assert self.jinja_template is not None
+
+        # Render template  data and save to HTML file
+        output = self.jinja_template.render(plot_dict=self._plots, os=os)
+        with open(outfile, 'w', encoding="utf-8") as file:
+            file.write(output)
+
+    def __call__(
+        self,
+        save_plots: bool=True,
+        purge_plots: bool=True,
+        find_only: bool=False,
+        outdir: str | None=None,
+        make_html: bool=False,
+        output_html: str | None=None,
+    ) -> dict[str, Figure]:
+        """ Make all the plots given the data
+
+        Parameters
+        ----------
+        save_plots: bool
+            If true, save the plots to disk
+
+        purge_plots: bool
+            If true, delete the plots after saving
+
+        find_only: bool
+            If true, only look for existing plots
+
+        make_html: bool
+            If true, make an html table to browse plots
+
+        outdir: str | None
+            If set, prepend this to the groups output dir
+
+        output_html: str | None
+            Path for output html file
+
+        Returns
+        -------
+        out_dict: dict[str, Figure]
+            Dictionary of the newly created figures
+        """
+        if outdir is not None:
+            output_dir = os.path.join(outdir, self.outdir)
+        else:  # pragma: no cover
+            output_dir = self.outdir
+
+        if find_only:
+            self._plots.update(
+                self.find_plots(
+                    self.plotter_list_name,
+                    self.dataset_dict_name,
+                    outdir=output_dir,
+                    figtype=self.figtype,
+                ),
+            )
+        else:
+            self._plots.update(
+                self.make_plots(
+                    self.plotter_list_name,
+                    self.dataset_dict_name,
+                ),
+            )
+            if save_plots:
+                RailPlotter.write_plots(self._plots, output_dir, self.figtype, purge=purge_plots)
+        if make_html:
+            if output_html is None:  # pragma: no cover
+                raise ValueError("RailPlotGroup, make_html is set, but not output_html path given")
+            self.make_html(output_html)
         return self._plots
 
     @classmethod

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
 import yaml
-from matplotlib.figure import Figure
 
 from rail.projects import RailProject
 
@@ -12,6 +12,7 @@ from .plotter_factory import RailPlotterFactory
 from .data_extraction import RailProjectDataExtractor
 from .plotter import RailPlotter
 from .plot_group import RailPlotGroup
+from .plot_holder import RailPlotHolder
 
 
 # Lift the RailDatasetFactory class methods
@@ -82,10 +83,8 @@ def run(
     yaml_file: str,
     include_groups: list[str] | None=None,
     exclude_groups: list[str] | None=None,
-    save_plots: bool=True,
-    purge_plots: bool=True,
-    outdir: str | None = None,
-) -> dict[str, Figure]:
+    **kwargs : Any,
+) -> dict[str, RailPlotHolder]:
     """Read a yaml file an make the corresponding plots
 
     Parameters
@@ -101,6 +100,11 @@ def run(
         PlotGroups to explicity exclude
         Use `None` to not exclude anything
 
+    Keywords
+    --------
+    find_only: bool=False
+        If true, only look for existing plots
+
     save_plots: bool=True
         Save plots to disk
 
@@ -110,14 +114,24 @@ def run(
     outdir: str | None
         If set, prepend this to the groups output dir
 
+    make_html: bool
+        If set, make an html page to browse plots
+
+    output_html: str | None=None,
+        Path to html page
+
     Returns
     -------
-    out_dict: dict[str, Figure]
+    out_dict: dict[str, RailPlotHolder]
         Newly created plots.   If purge=True this will be empty
     """
     clear()
-    out_dict: dict[str, Figure] = {}
+    out_dict: dict[str, RailPlotHolder] = {}
     group_dict = RailPlotGroup.load_yaml(yaml_file)
+
+    include_groups = kwargs.pop('include_groups', None)
+    exclude_groups = kwargs.pop('exclude_groups', None)
+
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
     if exclude_groups is None or not exclude_groups:
@@ -127,7 +141,7 @@ def run(
 
     for group_ in include_groups:
         plot_group = group_dict[group_]
-        out_dict.update(plot_group(save_plots, purge_plots, outdir=outdir))
+        out_dict.update(plot_group(**kwargs))
     return out_dict
 
 
