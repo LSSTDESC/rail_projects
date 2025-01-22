@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import yaml
 
 from .dataset_factory import RailDatasetFactory
@@ -54,6 +56,49 @@ class RailPlotGroupFactory:
         cls._instance.print_instance_contents()
 
     @classmethod
+    def make_yaml(
+        cls,
+        output_yaml: str,
+        plotter_yaml_path: str,
+        dataset_yaml_path: str,
+        plotter_list_name: str,
+        output_prefix: str = "",
+        dataset_list_names: list[str] | None = None,
+    ) -> None:
+        """Construct a yaml file defining plot groups
+
+        Parameters
+        ----------
+        output_yaml: str
+            Path to the output file
+
+        plotter_yaml_path: str
+            Path to the yaml file defining the plotter_lists
+
+        dataset_yaml_path: str
+            Path to the yaml file defining the datasets
+
+        plotter_list_name: str
+            Name of plotter list to use
+
+        output_prefix: str=""
+            Prefix for PlotGroup names we construct
+
+        dataset_list_names: list[str] | None=None
+            Names of dataset lists to use
+        """
+        if cls._instance is None:
+            cls._instance = RailPlotGroupFactory()
+        cls._instance.make_instance_yaml(
+            output_yaml=output_yaml,
+            plotter_yaml_path=plotter_yaml_path,
+            dataset_yaml_path=dataset_yaml_path,
+            plotter_list_name=plotter_list_name,
+            output_prefix=output_prefix,
+            dataset_list_names=dataset_list_names,
+        )
+
+    @classmethod
     def load_yaml(cls, yaml_file: str) -> dict[str, RailPlotGroup]:
         """Load a yaml file
 
@@ -96,6 +141,68 @@ class RailPlotGroupFactory:
         for plot_group_name, plot_group in self.plot_groups.items():
             print(f"  {plot_group_name}: {plot_group}")
         print("----------------")
+
+    def make_instance_yaml(
+        self,
+        output_yaml: str,
+        plotter_yaml_path: str,
+        dataset_yaml_path: str,
+        plotter_list_name: str,
+        output_prefix: str = "",
+        dataset_list_names: list[str] | None = None,
+    ) -> None:
+        """Construct a yaml file defining plot groups
+
+        Parameters
+        ----------
+        output_yaml: str
+            Path to the output file
+
+        plotter_yaml_path: str
+            Path to the yaml file defining the plotter_lists
+
+        dataset_yaml_path: str
+            Path to the yaml file defining the datasets
+
+        plotter_list_name: str
+            Name of plotter list to use
+
+        output_prefix: str=""
+            Prefix for PlotGroup names we construct
+
+        dataset_list_names: list[str] | None=None
+            Names of dataset lists to use
+        """
+        RailPlotterFactory.clear()
+        RailPlotterFactory.load_yaml(plotter_yaml_path)
+        RailDatasetFactory.clear()
+        RailDatasetFactory.load_yaml(dataset_yaml_path)
+
+        plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
+        assert plotter_list
+        if dataset_list_names is None:
+            dataset_list_names = RailDatasetFactory.get_dataset_dict_names()
+
+        output: list[dict[str, Any]] = []
+        output.append(
+            dict(PlotterYaml=dict(path=plotter_yaml_path)),
+        )
+        output.append(
+            dict(DatasetYaml=dict(path=dataset_yaml_path)),
+        )
+        for ds_name in dataset_list_names:
+            group_name = f"{output_prefix}{ds_name}_{plotter_list_name}"
+            output.append(
+                dict(
+                    PlotGroup=dict(
+                        name=group_name,
+                        plotter_list_name=plotter_list_name,
+                        dataset_dict_name=ds_name,
+                    )
+                )
+            )
+        with open(output_yaml, "w", encoding="utf-8") as fout:
+            yaml.dump(output, fout)
 
     def load_instance_yaml(
         self,

@@ -43,7 +43,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         project: RailProject,
         selections: list[str] | None = None,
         flavors: list[str] | None = None,
-        split_by_flavor: bool=False,
+        split_by_flavor: bool = False,
     ) -> list[dict[str, Any]]:
         output: list[dict[str, Any]] = []
 
@@ -70,7 +70,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         dataset_key = dataset_list_name
         if not split_by_flavor:
             dataset_list_dict[dataset_key] = []
-        
+
         for key in flavors:
             val = flavor_dict[key]
             pipelines = val["Pipelines"]
@@ -82,11 +82,10 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                 algos = list(project.get_pzalgorithms().keys())
 
             for selection_ in selections:
-                
                 if split_by_flavor:
-                    dataset_key = f"{dataset_list_name}_{selection_}_{key}"                
+                    dataset_key = f"{dataset_list_name}_{selection_}_{key}"
                     dataset_list_dict[dataset_key] = []
-                    
+
                 for algo_ in algos:
                     path = get_ceci_pz_output_path(
                         project,

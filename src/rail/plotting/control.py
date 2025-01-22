@@ -59,6 +59,8 @@ get_plotter_list = RailPlotterFactory.get_plotter_list
 
 load_plot_group_yaml = RailPlotGroupFactory.load_yaml
 
+make_plot_group_yaml = RailPlotGroupFactory.make_yaml
+
 print_plot_group_contents = RailPlotGroupFactory.print_contents
 
 get_plot_group_dict = RailPlotGroupFactory.get_plot_groups

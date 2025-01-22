@@ -75,3 +75,17 @@ def extract_datasets_command(
         split_by_flavor=split_by_flavor,
     )
     return 0
+
+
+@plot_cli.command(name="make-plot-groups")
+@options.output_yaml()
+@plot_options.plotter_yaml_path()
+@plot_options.dataset_yaml_path()
+@plot_options.plotter_list_name()
+@plot_options.output_prefix()
+@plot_options.dataset_list_names(multiple=True)
+def make_plot_groups(output_yaml: str, **kwargs: dict[str, Any]) -> int:
+    """Create a yaml file with the datasets in a project"""
+    control.clear()
+    control.make_plot_group_yaml(output_yaml, **kwargs)
+    return 0

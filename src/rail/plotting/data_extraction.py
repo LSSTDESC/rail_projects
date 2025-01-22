@@ -79,6 +79,7 @@ class RailProjectDataExtractor(Configurable, DynamicClass):
         project: RailProject,
         selections: list[str] | None = None,
         flavors: list[str] | None = None,
+        split_by_flavor: bool=False,
     ) -> list[dict[str, Any]]:
         """Create a dict of the datasets that this extractor can extract
 

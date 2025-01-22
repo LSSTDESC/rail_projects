@@ -7,6 +7,10 @@ __all__: list[str] = [
     "purge_plots",
     "save_plots",
     "dataset_list_name",
+    "plotter_list_name",
+    "output_prefix",
+    "dataset_yaml_path",
+    "plotter_yaml_path",
     "include_groups",
     "exclude_groups",
     "extractor_class",
@@ -40,6 +44,36 @@ dataset_list_name = PartialOption(
     help="Name for dataset list",
     type=str,
 )
+
+
+dataset_yaml_path = PartialOption(
+    "--dataset_yaml_path",
+    help="Name for dataset list",
+    type=str,
+)
+
+
+output_prefix = PartialOption(
+    "--output_prefix",
+    help="Name for dataset list",
+    default="",
+    type=str,
+)
+
+
+plotter_list_name = PartialOption(
+    "--plotter_list_name",
+    help="Name for plotter list",
+    type=str,
+)
+
+
+plotter_yaml_path = PartialOption(
+    "--plotter_yaml_path",
+    help="Name for plotter list",
+    type=str,
+)
+
 
 
 purge_plots = PartialOption(
