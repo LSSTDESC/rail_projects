@@ -13,7 +13,7 @@ __all__: list[str] = [
 ]
 
 
-extractor_class =  PartialOption(
+extractor_class = PartialOption(
     "--extractor_class",
     type=str,
     help="Class name for data extractor, e.g., PZPointEstimateDataExtractor",

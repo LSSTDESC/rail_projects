@@ -2,14 +2,47 @@
       name: ci_test
       yaml_file: tests/ci_project.yaml
 - Dataset:
-      name: blend_baseline_test
+      name: blend_baseline_trainz
+      class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
       extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
       project: ci_test
       selection: blend
       flavor: baseline
       tag: test
-      algos: ['all']
+      algo: trainz
+- Dataset:
+      name: blend_baseline_knn
+      class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
+      extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+      project: ci_test
+      selection: blend
+      flavor: baseline
+      tag: test
+      algo: knn
+- Dataset:
+      name: blend_baseline_fzboost
+      class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
+      extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+      project: ci_test
+      selection: blend
+      flavor: baseline
+      tag: test
+      algo: fzboost
 - DatasetList:
       name: baseline_test
       datasets:
-          - blend_baseline_test
+          - blend_baseline_trainz
+          - blend_baseline_knn
+          - blend_baseline_fzboost
+- Dataset:
+      name: blend_baseline_all
+      class_name: rail.plotting.project_dataset_holder.RailProjectMultiDatasetHolder
+      extractor: rail.plotting.pz_data_extraction.PZMultiPointEstimateDataExtractor
+      datasets:
+          - blend_baseline_trainz
+          - blend_baseline_knn
+          - blend_baseline_fzboost
+- DatasetList:
+      name: baseline_merged
+      datasets:
+          - blend_baseline_all

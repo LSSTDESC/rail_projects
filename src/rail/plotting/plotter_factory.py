@@ -34,6 +34,7 @@ class RailPlotterFactory:
               - zestimate_v_ztrue_hist2d
               - zestimate_v_ztrue_profile
     """
+
     _instance: RailPlotterFactory | None = None
 
     def __init__(self) -> None:
@@ -59,7 +60,7 @@ class RailPlotterFactory:
 
     @classmethod
     def print_contents(cls) -> None:
-        """Print the contents of the factory """
+        """Print the contents of the factory"""
         if cls._instance is None:  # pragma: no cover
             cls._instance = RailPlotterFactory()
         cls._instance.print_instance_contents()
@@ -184,10 +185,17 @@ class RailPlotterFactory:
         for plotter_list_name, plotter_list in self.plotter_list_dict.items():
             print(f"  {plotter_list_name}: {plotter_list}")
 
-    def _make_plotter(self, name: str, config_dict: dict[str, Any]) -> RailPlotter:
+    def _make_plotter(self, config_dict: dict[str, Any]) -> RailPlotter:
+        try:
+            name = config_dict["name"]
+        except KeyError as msg:  # pragma: no cover
+            raise KeyError(
+                "Plotter yaml block does not contain name for plotter: "
+                f"{list(config_dict.keys())}"
+            ) from msg
         if name in self._plotter_dict:  # pragma: no cover
             raise KeyError(f"Plotter {name} is already defined")
-        plotter = RailPlotter.create_from_dict(name, config_dict)
+        plotter = RailPlotter.create_from_dict(config_dict)
         self._plotter_dict[name] = plotter
         return plotter
 
@@ -217,16 +225,11 @@ class RailPlotterFactory:
         plotter_config: dict[str, Any]
             Yaml data in question
         """
-        try:
-            name = plotter_config.pop("name")
-        except KeyError as msg:  # pragma: no cover
-            raise KeyError(
-                "Plotter yaml block does not contain name for plotter: "
-                f"{list(plotter_config.keys())}"
-            ) from msg
-        self._make_plotter(name, plotter_config)
+        self._make_plotter(plotter_config)
 
-    def load_plotter_list_from_yaml_tag(self, plotter_list_config: dict[str, Any]) -> None:
+    def load_plotter_list_from_yaml_tag(
+        self, plotter_list_config: dict[str, Any]
+    ) -> None:
         """Load a list of RailPlotters from a PlotterList tag in yaml
 
         Paramters

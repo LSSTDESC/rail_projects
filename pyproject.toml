@@ -25,6 +25,7 @@ dependencies = [
     "matplotlib",
     "yamllint",
     "pyarrow",
+    "jinja2",
     "tables_io[full]",
 ]
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
@@ -105,4 +106,5 @@ omit = [
 exclude_also = [
     "raise NotImplementedError",
     "__repr__",
+    "TYPE_CHECKING",
     ]

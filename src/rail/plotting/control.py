@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+from typing import Any
 import yaml
-from matplotlib.figure import Figure
 
 from rail.projects import RailProject
 
 from .dataset_factory import RailDatasetFactory
 from .plotter_factory import RailPlotterFactory
+from .plot_group_factory import RailPlotGroupFactory
 from .data_extraction import RailProjectDataExtractor
+from .dataset_holder import RailDatasetHolder
 from .plotter import RailPlotter
 from .plot_group import RailPlotGroup
+from .plot_holder import RailPlotDict
 
 
 # Lift the RailDatasetFactory class methods
@@ -52,14 +55,53 @@ get_plotter = RailPlotterFactory.get_plotter
 get_plotter_list = RailPlotterFactory.get_plotter_list
 
 
+# Lift methods from the RailPlotGroupFactory
+
+load_plot_group_yaml = RailPlotGroupFactory.load_yaml
+
+print_plot_group_contents = RailPlotGroupFactory.print_contents
+
+get_plot_group_dict = RailPlotGroupFactory.get_plot_groups
+
+get_plot_group_names = RailPlotGroupFactory.get_plot_group_names
+
+get_plot_group = RailPlotGroupFactory.get_plot_group
+
+
+# Lift methods from RailProjectDataExtractor
+
+print_extractor_classes = RailProjectDataExtractor.print_classes
+
+get_extractor_class = RailProjectDataExtractor.get_sub_class
+
+load_extractor_class = RailProjectDataExtractor.load_sub_class
+
+create_extractor_class_from_dict = RailProjectDataExtractor.create_from_dict
+
+
+# Lift methods from RailDatasetHolder
+
+print_dataset_holder_classes = RailDatasetHolder.print_classes
+
+get_dataset_holder_class = RailDatasetHolder.get_sub_class
+
+load_dataset_holder_class = RailDatasetHolder.load_sub_class
+
+create_dataset_holder_from_dict = RailDatasetHolder.create_from_dict
+
+
 # Lift methods from RailPlotter
+
+print_plotter_classes = RailPlotter.print_classes
+
+get_plotter_class = RailPlotter.get_sub_class
+
+load_plotter_class = RailPlotter.load_sub_class
 
 write_plots = RailPlotter.write_plots
 
 
 # Lift methods from RailPlotGroup
-
-load_plot_group_yaml = RailPlotGroup.load_yaml
 
 make_plots = RailPlotGroup.make_plots
 
@@ -71,21 +113,29 @@ def clear() -> None:
 
 
 def print_contents() -> None:
-    """Print the contents of the factories """
+    """Print the contents of the factories"""
     print("----------------")
     RailPlotterFactory.print_contents()
     print("----------------")
     RailDatasetFactory.print_contents()
 
 
+def print_classes() -> None:
+    """Print the loaded classes"""
+    print("----------------")
+    RailPlotter.print_classes()
+    print("----------------")
+    RailDatasetHolder.print_classes()
+    print("----------------")
+    RailProjectDataExtractor.print_classes()
+
+
 def run(
     yaml_file: str,
-    include_groups: list[str] | None=None,
-    exclude_groups: list[str] | None=None,
-    save_plots: bool=True,
-    purge_plots: bool=True,
-    outdir: str | None = None,
-) -> dict[str, Figure]:
+    include_groups: list[str] | None = None,
+    exclude_groups: list[str] | None = None,
+    **kwargs: Any,
+) -> dict[str, RailPlotDict]:
     """Read a yaml file an make the corresponding plots
 
     Parameters
@@ -101,6 +151,11 @@ def run(
         PlotGroups to explicity exclude
         Use `None` to not exclude anything
 
+    Keywords
+    --------
+    find_only: bool=False
+        If true, only look for existing plots
+
     save_plots: bool=True
         Save plots to disk
 
@@ -110,14 +165,21 @@ def run(
     outdir: str | None
         If set, prepend this to the groups output dir
 
+    make_html: bool
+        If set, make an html page to browse plots
+
     Returns
     -------
-    out_dict: dict[str, Figure]
+    out_dict: dict[str, RailPlotDict]
         Newly created plots.   If purge=True this will be empty
     """
     clear()
-    out_dict: dict[str, Figure] = {}
-    group_dict = RailPlotGroup.load_yaml(yaml_file)
+    out_dict: dict[str, RailPlotDict] = {}
+    group_dict = load_plot_group_yaml(yaml_file)
+
+    include_groups = kwargs.pop("include_groups", None)
+    exclude_groups = kwargs.pop("exclude_groups", None)
+
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
     if exclude_groups is None or not exclude_groups:
@@ -127,7 +189,7 @@ def run(
 
     for group_ in include_groups:
         plot_group = group_dict[group_]
-        out_dict.update(plot_group(save_plots, purge_plots, outdir=outdir))
+        out_dict.update(plot_group(**kwargs))
     return out_dict
 
 
@@ -139,7 +201,6 @@ def extract_datasets(
     selections: list[str],
     output_yaml: str,
 ) -> None:
-
     """Extract datasets into a yaml file
 
     Parameters
@@ -162,7 +223,7 @@ def extract_datasets(
     output_yaml: str
         Path to output file
     """
-    extractor_cls = RailProjectDataExtractor.load_extractor_class(extractor_class)
+    extractor_cls = load_extractor_class(extractor_class)
     project = RailProject.load_config(config_file)
     output_data = extractor_cls.generate_dataset_dict(
         dataset_list_name,
@@ -170,5 +231,5 @@ def extract_datasets(
         selections,
         flavors,
     )
-    with open(output_yaml, 'w', encoding="utf-8") as fout:
+    with open(output_yaml, "w", encoding="utf-8") as fout:
         yaml.dump(output_data, fout)
