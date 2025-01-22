@@ -170,7 +170,7 @@ class RailPlotGroupFactory:
         output_prefix: str=""
             Prefix for PlotGroup names we construct
 
-        dataset_list_name: list[str] | None=None
+        dataset_list_name: list[str]
             Names of dataset lists to use
         """
         RailPlotterFactory.clear()
@@ -180,7 +180,7 @@ class RailPlotGroupFactory:
 
         plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
         assert plotter_list
-        if dataset_list_name is None:
+        if not dataset_list_name:
             dataset_list_name = RailDatasetFactory.get_dataset_dict_names()
 
         output: list[dict[str, Any]] = []
