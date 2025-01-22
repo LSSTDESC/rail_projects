@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 import yaml
+import os
 
 from rail.projects import RailProject
 
