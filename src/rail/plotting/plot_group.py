@@ -12,6 +12,8 @@ from .plotter import RailPlotter
 from .plot_holder import RailPlotDict, RailPlotHolder
 from .dataset_holder import RailDatasetHolder
 
+HTML_TEMPLATE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'html_templates')
+
 
 class RailPlotGroup:
     """Defining of a group on plots to make
@@ -27,7 +29,7 @@ class RailPlotGroup:
         if cls.jinja_template is not None:  # pragma: no cover
             return
         cls.jinja_env = Environment(
-            loader=FileSystemLoader("src/rail/projects/html_templates")
+            loader=FileSystemLoader(HTML_TEMPLATE_DIR)
         )
         cls.jinja_template = cls.jinja_env.get_template("plot_group_table.html")
         cls.jinja_index_template = cls.jinja_env.get_template("plot_group_index.html")

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-
+import os
 import yaml
 
 from rail.projects import RailProject
@@ -337,7 +337,7 @@ class RailDatasetFactory:
         -----
         See `RailDatasetFactory.load_yaml` for yaml file syntax
         """
-        with open(yaml_file, encoding="utf-8") as fin:
+        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
             dataset_data = yaml.safe_load(fin)
 
         for dataset_item in dataset_data:

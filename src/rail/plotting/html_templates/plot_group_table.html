@@ -22,9 +22,8 @@
 	      <tr>
 		<td>{{ dataset_name }}</td>
 		{% for plotter in plot_group.plotter_list %}
-		  <td><img src="{{
-		    os.path.abspath(plot_group.find_plot_path(dataset_name,plotter.config.name))}}">
-		  </td>
+		<td><img src="{{ plot_group.find_plot_path(dataset_name,plotter.config.name) }}">
+		</td>
 		{% endfor %}
 	      </tr>
 	    {% endfor %}
