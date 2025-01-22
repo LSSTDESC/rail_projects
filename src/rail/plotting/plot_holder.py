@@ -70,12 +70,12 @@ class RailPlotHolder:
     def savefig(
         self,
         relpath: str,
-        outdir: str=".", 
+        outdir: str=".",
         **kwargs: Any,
     ) -> None:
         if self.figure is None:  # pragma: no cover
             raise ValueError(f"Tried to savefig missing a Figure {self.name}")
-        
+
         self.set_path(relpath)
         fullpath = os.path.join(outdir, relpath)
         self.figure.savefig(fullpath, **kwargs)
