@@ -10,6 +10,7 @@ __all__: list[str] = [
     "include_groups",
     "exclude_groups",
     "extractor_class",
+    "split_by_flavor",
 ]
 
 
@@ -50,5 +51,11 @@ purge_plots = PartialOption(
 save_plots = PartialOption(
     "--save_plots",
     help="Save plots to disk",
+    is_flag=True,
+)
+
+split_by_flavor = PartialOption(
+    "--split_by_flavor",
+    help="Split dataset organization by flavor",
     is_flag=True,
 )

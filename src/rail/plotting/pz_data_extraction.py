@@ -43,6 +43,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         project: RailProject,
         selections: list[str] | None = None,
         flavors: list[str] | None = None,
+        split_by_flavor: bool=False,
     ) -> list[dict[str, Any]]:
         output: list[dict[str, Any]] = []
 
@@ -65,8 +66,11 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
         output.append(project_block)
 
-        datasets: list[str] = []
-
+        datasets: dict[str, list[str]] = {}
+        dataset_key = dataset_list_name
+        if not split_by_flavor:
+            datasets[dataset_key] = []
+        
         for key in flavors:
             val = flavor_dict[key]
             pipelines = val["Pipelines"]
@@ -78,6 +82,11 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                 algos = list(project.get_pzalgorithms().keys())
 
             for selection_ in selections:
+                
+                if split_by_flavor:
+                    dataset_key = f"{dataset_list_name}_{selection_}_{key}"                
+                    datasets[dataset_key] = []
+                    
                 for algo_ in algos:
                     path = get_ceci_pz_output_path(
                         project,
@@ -97,15 +106,16 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                         tag="test",
                         selection=selection_,
                     )
-                    datasets.append(dataset_name)
+
+                    datasets[dataset_key].append(dataset_name)
                     output.append(dict(Dataset=dataset_dict))
 
-        dataset_list = dict(
-            name=dataset_list_name,
-            datasets=datasets,
-        )
-
-        output.append(dict(DatasetList=dataset_list))
+        for ds_name, ds_list in datasets.items():
+            dataset_list = dict(
+                name=dataset_list_name,
+                datasets=datasets,
+            )
+            output.append(dict(DatasetList=dataset_list))
 
         return output
 

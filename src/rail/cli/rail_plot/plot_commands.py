@@ -53,6 +53,7 @@ def inspect_command(config_file: str) -> int:
 @project_options.flavor()
 @project_options.selection()
 @options.output_yaml()
+@plot_options.split_by_flavor()
 def extract_datasets_command(
     config_file: str,
     dataset_list_name: str,
@@ -60,6 +61,7 @@ def extract_datasets_command(
     flavor: list[str],
     selection: list[str],
     output_yaml: str,
+    split_by_flavor: bool,
 ) -> int:
     """Create a yaml file with the datasets in a project"""
     control.clear()
@@ -70,5 +72,6 @@ def extract_datasets_command(
         flavors=flavor,
         selections=selection,
         output_yaml=output_yaml,
+        split_by_flavor=split_by_flavor,
     )
     return 0
