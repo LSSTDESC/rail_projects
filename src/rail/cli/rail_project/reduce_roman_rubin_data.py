@@ -56,9 +56,11 @@ PROJECTIONS = [
             pc.multiply(
                 pc.field("spheroidHalfLightRadiusArcsec"),
                 pc.field("bulge_frac"),
-            )
+            ),
         ),
-        "_orientationAngle": pc.atan2(pc.field("totalEllipticity2"), pc.field("totalEllipticity1")),
+        "_orientationAngle": pc.atan2(
+            pc.field("totalEllipticity2"), pc.field("totalEllipticity1")
+        ),
     },
     {
         "major": pc.divide(
@@ -75,16 +77,13 @@ PROJECTIONS = [
                 pc.field("_orientationAngle"),
                 pc.multiply(
                     pc.floor(
-                        pc.divide(
-                            pc.field("_orientationAngle"),
-                            pc.scalar(2 * math.pi)
-                        )
+                        pc.divide(pc.field("_orientationAngle"), pc.scalar(2 * math.pi))
                     ),
-                    pc.scalar(2 * math.pi)
-                )
-            )
+                    pc.scalar(2 * math.pi),
+                ),
+            ),
         ),
-    }
+    },
 ]
 
 
@@ -94,7 +93,6 @@ def run_reduction(
     sink_dir: str,
     sink_catalog: str,
 ) -> None:  # pragma: no cover
-
     dataset = ds.dataset(
         source_catalog,
         format="parquet",
@@ -116,10 +114,7 @@ def run_reduction(
         ),
     )
 
-    column_projection = {
-        k: pc.field(k)
-        for k in COLUMNS
-    }
+    column_projection = {k: pc.field(k) for k in COLUMNS}
     projection = column_projection
     project_nodes = []
     for _projection in PROJECTIONS:
@@ -130,7 +125,7 @@ def run_reduction(
             acero.ProjectNodeOptions(
                 [v for k, v in projection.items()],
                 names=[k for k, v in projection.items()],
-            )
+            ),
         )
         project_nodes.append(project_node)
 
@@ -149,15 +144,13 @@ def run_reduction(
     pq.write_table(table, sink_catalog)
 
 
-
 def reduce_roman_rubin_data(
     project: RailProject,
     input_tag: str,
     input_selection: str,
-    selection: str|None,
-    run_mode: RunMode=RunMode.bash,
+    selection: str | None,
+    run_mode: RunMode = RunMode.bash,
 ) -> int:
-
     source_catalogs = []
     sink_catalogs = []
     catalogs = []
@@ -167,7 +160,6 @@ def reduce_roman_rubin_data(
         selection_dict = project.get_selection(selection)
     else:  # pragma: no cover
         selection_dict = {}
-
 
     # FIXME is this how we want to get the Iteration variables
     iteration_vars = list(project.config.get("IterationVars", {}).keys())
@@ -180,18 +172,23 @@ def reduce_roman_rubin_data(
         )
         for iteration_args in iterations:
             iteration_kwargs = {
-                iteration_vars[i]: iteration_args[i]
-                for i in range(len(iteration_vars))
+                iteration_vars[i]: iteration_args[i] for i in range(len(iteration_vars))
             }
-            source_catalog = project.get_catalog(input_tag, selection=input_selection, **iteration_kwargs)
-            sink_catalog = project.get_catalog('reduced', selection=selection, **iteration_kwargs)
+            source_catalog = project.get_catalog(
+                input_tag, selection=input_selection, **iteration_kwargs
+            )
+            sink_catalog = project.get_catalog(
+                "reduced", selection=selection, **iteration_kwargs
+            )
             sink_dir = os.path.dirname(sink_catalog)
             if selection_dict:
                 predicate = pc.field("LSST_obs_i") < selection_dict["maglim_i"][1]
             else:  # pragma: no cover
                 predicate = None
 
-            if not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run:  # pragma: no cover
+            if (
+                not os.path.isfile(source_catalog) and run_mode != RunMode.dry_run
+            ):  # pragma: no cover
                 raise ValueError(f"Input file {source_catalog} not found")
 
             # FIXME properly warn about or protect pre-existing output files
@@ -207,7 +204,9 @@ def reduce_roman_rubin_data(
             predicates.append(predicate)
 
             if run_mode == RunMode.slurm:
-                raise NotImplementedError("run_mode == RunMode.slurm not implemented for reduce_roman_rubin")
+                raise NotImplementedError(
+                    "run_mode == RunMode.slurm not implemented for reduce_roman_rubin"
+                )
             if run_mode == RunMode.bash:  # pragma: no cover
                 run_reduction(
                     source_catalog,

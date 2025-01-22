@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import os
-from types import GenericAlias
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from ceci.config import StageConfig, StageParameter
+from .plot_holder import RailPlotDict
+from .configurable import Configurable
+from .dynamic_class import DynamicClass
+from .validation import validate_inputs
 
-from .plot_holder import RailPlotHolder
+if TYPE_CHECKING:
+    from .plot_holder import RailPlotHolder
+    from .dataset_holder import RailDatasetHolder
 
 
-class RailPlotter:
-    """ Base class for making matplotlib plot
+class RailPlotter(Configurable, DynamicClass):
+    """Base class for making matplotlib plot
 
     The main function in this class is:
     __call__(prefix: str, kwargs**: Any) -> dict[str, RailPlotHolder]
@@ -38,103 +42,25 @@ class RailPlotter:
     that the correct kwargs have been given.
     """
 
-    config_options: dict[str, StageParameter] = {}
-
     inputs: dict = {}
 
-    plotter_classes: dict[str, type] = {}
-
-    def __init_subclass__(cls) -> None:
-        cls.plotter_classes[cls.__name__] = cls
-
-    @classmethod
-    def print_classes(cls) -> None:
-        """Print the sub-classes of RailPlotter that have been loaded"""
-        for key, val in cls.plotter_classes.items():
-            print(f"{key} {val}")
-
-    @classmethod
-    def get_plotter_class(cls, name: str) -> type:
-        """Get a particular sub-class of RailPlotter by name
-
-        Parameters
-        ----------
-        name: str
-            Name of the subclass
-
-        Returns
-        -------
-        subclass: type
-            Subclass in question
-        """
-        try:
-            return cls.plotter_classes[name]
-        except KeyError as msg:
-            raise KeyError(
-                f"Could not find plotter class {name} in {list(cls.plotter_classes.keys())}"
-        ) from msg
-
-    @staticmethod
-    def load_plotter_class(class_name: str) -> type:
-        """Import a particular sub-class of RailPlotter by name
-
-        Parameters
-        ----------
-        class_name: str
-            Full path and name of the subclass, e.g., rail.plotting.some_file.SomeClass
-
-        Returns
-        -------
-        subclass: type
-            Subclass in question
-        """
-        tokens = class_name.split('.')
-        module = '.'.join(tokens[:-1])
-        class_name = tokens[-1]
-        __import__(module)
-        plotter_class = RailPlotter.get_plotter_class(class_name)
-        return plotter_class
-
-    @staticmethod
-    def create_from_dict(
-        name: str,
-        config_dict: dict[str, Any],
-    ) -> RailPlotter:
-        """Create a RailPlotter object
-
-        Parameters
-        ----------
-        name: str
-            Name to give to the newly created object
-
-        config_dict: dict[str, Any],
-            Configuration parameters
-
-        Returns
-        -------
-        plotter: RailPlotter
-            Newly created plotter
-
-        Notes
-        -----
-        config_dict must include 'class_name' which gives the path and name of the
-        class, e.g., rail.plotters.some_file.SomeClass
-        """
-        copy_config = config_dict.copy()
-        class_name = copy_config.pop('class_name')
-        plotter_class = RailPlotter.load_plotter_class(class_name)
-        return plotter_class(name, **copy_config)
+    sub_classes: dict[str, type[DynamicClass]] = {}
 
     @staticmethod
     def iterate_plotters(
+        name: str,
         plotters: list[RailPlotter],
         prefix: str,
+        dataset: RailDatasetHolder,
         **kwargs: Any,
-    ) -> dict[str, RailPlotHolder]:
-        """ Utility function to several plotters on the same data
+    ) -> RailPlotDict:
+        """Utility function to several plotters on the same data
 
         Parameters
         ----------
+        name: str
+            Name to give to the RailPlotDict
+
         plotters: list[RailPlotter]
             Plotters to run
 
@@ -147,52 +73,55 @@ class RailPlotter:
 
         Returns
         -------
-        out_dict: dict[str, RailPlotHolder]
+        out_dict: RailPlotDict
             Dictionary of the newly created figures
         """
         out_dict: dict[str, RailPlotHolder] = {}
+        extra_args: dict[str, Any] = dict(dataset_holder=dataset)
         for plotter_ in plotters:
-            out_dict.update(plotter_(prefix, **kwargs))
-        return out_dict
+            out_dict.update(plotter_(prefix, **dataset(), **kwargs, **extra_args))
+        return RailPlotDict(name=name, plots=out_dict)
 
     @staticmethod
     def iterate(
         plotters: list[RailPlotter],
-        data_dict: dict[str, dict],
+        data_dict: dict[str, RailDatasetHolder],
         **kwargs: Any,
-    ) -> dict[str, RailPlotHolder]:
-        """ Utility function to several plotters of several data sets
+    ) -> dict[str, RailPlotDict]:
+        """Utility function to several plotters of several data sets
 
         Parameters
         ----------
         plotters: list[RailPlotter]
             Plotters to run
 
-        data_dict: dict[str, dict]
+        data_dict: dict[str, RailDatasetHolder]
             Prefixes and datasets to iterate over
 
         Returns
         -------
-        out_dict: dict[str, RailPlotHolder]
+        out_dict: dict[str, RailPlotDict]
             Dictionary of the newly created figures
         """
-        out_dict: dict[str, RailPlotHolder] = {}
+        out_dict: dict[str, RailPlotDict] = {}
         for key, val in data_dict.items():
-            out_dict.update(RailPlotter.iterate_plotters(plotters, key, **val, **kwargs))
+            out_dict[key] = RailPlotter.iterate_plotters(
+                key, plotters, "", val, **kwargs
+            )
         return out_dict
 
     @staticmethod
     def write_plots(
-        fig_dict: dict[str, RailPlotHolder],
-        outdir: str=".",
-        figtype: str="png",
-        purge: bool=False,
+        fig_dict: dict[str, RailPlotDict],
+        outdir: str = ".",
+        figtype: str = "png",
+        purge: bool = False,
     ) -> None:
-        """ Utility function to write several plots do disk
+        """Utility function to write several plots do disk
 
         Parameters
         ----------
-        fig_dict: dict[str, RailPlotHolder]
+        fig_dict: dict[str, RailPlotDict]
             Dictionary of figures to write
 
         outdir: str
@@ -209,37 +138,27 @@ class RailPlotter:
                 os.makedirs(outdir)
             except Exception:
                 pass
-            out_path = os.path.join(outdir, f"{key}.{figtype}")
-            val.savefig(out_path)
-            if purge:
-                val.set_figure(None)
+            out_path = os.path.join(outdir, key)
+            val.savefigs(out_path, figtype=figtype, purge=purge)
 
-    def __init__(self, name: str, **kwargs: Any):
-        """ C'tor
+    def __init__(self, **kwargs: Any):
+        """C'tor
 
         Parameters
         ----------
-        name: str
-            Name for this plotter, used to construct names of plots
-
         kwargs: Any
             Configuration parameters for this plotter, must match
             class.config_options data members
         """
-        self._name = name
-        self._config = StageConfig(**self.config_options)
-        self._set_config(**kwargs)
+        DynamicClass.__init__(self)
+        Configurable.__init__(self, **kwargs)
 
-    @property
-    def config(self) -> StageConfig:
-        """Return the plotter configuration """
-        return self._config
-
-    def __repr__(self) -> str:
-        return f"{self._name}"
-
-    def __call__(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
-        """ Make all the plots given the data
+    def __call__(
+        self,
+        prefix: str,
+        **kwargs: dict[str, Any],
+    ) -> dict[str, RailPlotHolder]:
+        """Make all the plots given the data
 
         Parameters
         ----------
@@ -259,7 +178,7 @@ class RailPlotter:
         return self._make_plots(prefix, **kwargs)
 
     def _make_full_plot_name(self, prefix: str, plot_name: str) -> str:
-        """ Create the make for a specific plot
+        """Create the make for a specific plot
 
         Parameters
         ----------
@@ -273,43 +192,13 @@ class RailPlotter:
         Returns
         -------
         plot_name: str
-            Plot name, following the pattern f"{self._name}_{prefix}_{plot_name}"
+            Plot name, following the pattern f"{prefix}{self._name}{plot_name}"
         """
-        return f"{self._name}_{prefix}_{plot_name}"
-
-    def _set_config(self, **kwargs: Any) -> None:
-        kwcopy = kwargs.copy()
-        for key in self.config.keys():
-            if key in kwargs:
-                self.config[key] = kwcopy.pop(key)
-            else:  # pragma: no cover
-                attr = self.config.get(key)
-                if attr.required:
-                    raise ValueError(f"Missing configuration option {key}")
-                self.config[key] = attr.default
-        if kwcopy:  # pragma: no cover
-            raise ValueError(f"Unrecogonized configruation parameters {kwcopy.keys()}")
+        return f"{prefix}{self.config.name}{plot_name}"
 
     @classmethod
     def _validate_inputs(cls, **kwargs: Any) -> None:
-        for key, expected_type in cls.inputs.items():
-            try:
-                data = kwargs[key]
-            except KeyError as msg:  # pragma: no cover
-                raise KeyError(
-                    f"{key} not provided to RailPlotter {cls} in {list(kwargs.keys())}"
-                ) from msg
-            if isinstance(expected_type, GenericAlias):
-                if not isinstance(data, expected_type.__origin__):  # pragma: no cover
-                    raise TypeError(
-                        f"{key} provided to RailPlotter was "
-                        f"{type(data)}, not {expected_type.__origin__}"
-                    )
-                continue
-            if not isinstance(data, expected_type):  # pragma: no cover
-                raise TypeError(
-                    f"{key} provided to RailPlotter was {type(data)}, expected {expected_type}"
-                )
+        validate_inputs(cls, cls.inputs, **kwargs)
 
     def _make_plots(
         self,

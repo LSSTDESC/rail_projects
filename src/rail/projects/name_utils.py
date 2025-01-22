@@ -9,13 +9,13 @@ from typing import Any
 
 
 CommonPaths = dict(
-    root='.',
-    scratch_root='.',
-    project='',
-    project_dir='{root}/projects/{project}',
-    project_scratch_dir='{scratch_root}/projects/{project}',
-    catalogs_dir='{root}/catalogs',
-    pipelines_dir='{project_dir}/pipelines',
+    root=".",
+    scratch_root=".",
+    project="",
+    project_dir="{root}/projects/{project}",
+    project_scratch_dir="{scratch_root}/projects/{project}",
+    catalogs_dir="{root}/catalogs",
+    pipelines_dir="{project_dir}/pipelines",
 )
 
 PathTemplates = dict(
@@ -46,34 +46,36 @@ def update_include_dict(
 
 
 def get_required_interpolants(template: str) -> list[str]:
-    """ Get the list of interpolants required to format a template string
+    """Get the list of interpolants required to format a template string
 
     Notes
     -----
     'interpolants' are strings that must be replaced in to format a string,
     e.g., in "{project_dir}/models" "{project_dir}" would an interpolant
     """
-    return re.findall('{.*?}', template)
+    return re.findall("{.*?}", template)
 
 
 def format_template(template: str, **kwargs: Any) -> str:
-    """ Resolve a specific template
+    """Resolve a specific template
 
     This is fault-tolerant and will not raise KeyError if some
     of the required interpolants are missing, but rather just
     leave them untouched
     """
 
-    required_interpolants = re.findall('{.*?}', template)
+    required_interpolants = re.findall("{.*?}", template)
     interpolants = kwargs.copy()
 
     for interpolant_ in required_interpolants:
-        interpolants.setdefault(interpolant_.replace('}', '').replace('{', ''), interpolant_)
+        interpolants.setdefault(
+            interpolant_.replace("}", "").replace("{", ""), interpolant_
+        )
     return template.format(**interpolants)
 
 
 def resolve_dict(source: dict, interpolants: dict) -> dict:
-    """ Recursively resolve a dictionary using interpolants
+    """Recursively resolve a dictionary using interpolants
 
     Parameters
     ----------
@@ -111,7 +113,7 @@ def resolve_dict(source: dict, interpolants: dict) -> dict:
 
 
 def _resolve(templates: dict, source: dict, interpolants: dict) -> dict:
-    """ Resolve a set of templates using interpolants and allow for overrides
+    """Resolve a set of templates using interpolants and allow for overrides
 
     Parameters
     ----------
@@ -147,23 +149,20 @@ def _resolve(templates: dict, source: dict, interpolants: dict) -> dict:
 
 
 class NameFactory:
-    """ Class defining standard paths for various data products
+    """Class defining standard paths for various data products"""
 
-    """
     config_template = dict(
-        CommonPaths = CommonPaths,
-        PathTemplates = PathTemplates,
+        CommonPaths=CommonPaths,
+        PathTemplates=PathTemplates,
     )
 
     def __init__(
         self,
-        config: dict | None=None,
-        templates: dict | None=None,
-        interpolants: dict | None=None,
+        config: dict | None = None,
+        templates: dict | None = None,
+        interpolants: dict | None = None,
     ):
-        """ C'tor
-
-        """
+        """C'tor"""
         if config is None:
             config = {}
         if templates is None:
@@ -175,7 +174,7 @@ class NameFactory:
         for key, _val in config.items():
             if key in self._config:
                 self._config[key].update(**config[key])
-        self._templates = copy.deepcopy(self._config['PathTemplates'])
+        self._templates = copy.deepcopy(self._config["PathTemplates"])
         self._templates.update(**templates)
         self._interpolants: dict = {}
 
@@ -183,34 +182,34 @@ class NameFactory:
         for k, v in templates.items():
             self.templates[k] = partial(v.format, **templates)
 
-        self.interpolants = self._config['CommonPaths']
+        self.interpolants = self._config["CommonPaths"]
         self.interpolants = interpolants
 
     def get_path_templates(self) -> dict:
-        return self._config['PathTemplates']
+        return self._config["PathTemplates"]
 
     def get_common_paths(self) -> dict:
-        return self._config['CommonPaths']
+        return self._config["CommonPaths"]
 
     @property
     def interpolants(self) -> dict:
-        """ Return the dict of interpolants that are used to resolve templates """
+        """Return the dict of interpolants that are used to resolve templates"""
         return self._interpolants
 
     @interpolants.setter
     def interpolants(self, config: dict) -> None:
-        """ Update the dict of interpolants that are used to resolve templates """
+        """Update the dict of interpolants that are used to resolve templates"""
         for key, value in config.items():
             new_value = value.format(**self.interpolants)
             self.interpolants[key] = new_value
 
     @interpolants.deleter
     def interpolants(self) -> None:
-        """ Reset the dict of interpolants that are used to resolve templates"""
+        """Reset the dict of interpolants that are used to resolve templates"""
         self._interpolants = {}
 
     def resolve_from_config(self, config: dict) -> dict:
-        """ Resolve all the templates in a dict
+        """Resolve all the templates in a dict
 
         Parameters
         ----------
@@ -232,7 +231,7 @@ class NameFactory:
         return resolved
 
     def resolve_path(self, config: dict, path_key: str, **kwargs: Any) -> str:
-        """ Resolve a particular template in a config dict
+        """Resolve a particular template in a config dict
 
         Parameters
         ----------
@@ -253,9 +252,8 @@ class NameFactory:
             raise KeyError(f"Path '{path_key}' not found in {config}")
         return formatted
 
-
     def get_template(self, section_key: str, path_key: str) -> str:
-        """ Return the template for a particular file type
+        """Return the template for a particular file type
 
         Parameters
         ----------
@@ -287,7 +285,7 @@ class NameFactory:
             ) from msg
 
     def resolve_template(self, section_key: str, path_key: str, **kwargs: Any) -> str:
-        """ Return the template for a particular file type
+        """Return the template for a particular file type
 
         Parameters
         ----------
@@ -307,7 +305,7 @@ class NameFactory:
         return format_template(template, **self.interpolants, **kwargs)
 
     def resolve_path_template(self, path_key: str, **kwargs: Any) -> str:
-        """ Return a particular path templated
+        """Return a particular path templated
 
         Parameters
         ----------
@@ -319,14 +317,13 @@ class NameFactory:
         resovled: str
             Resolved path
         """
-        template = self.get_template('PathTemplates', path_key)
+        template = self.get_template("PathTemplates", path_key)
         interp_dict = self.interpolants.copy()
         interp_dict.update(**kwargs)
         return format_template(template, **interp_dict)
 
-
     def resolve_common_path(self, path_key: str, **kwargs: Any) -> str:
-        """ Return a particular common path template
+        """Return a particular common path template
 
         Parameters
         ----------
@@ -338,7 +335,7 @@ class NameFactory:
         resovled: str
             Resolved path
         """
-        template = self.get_template('CommonPaths', path_key)
+        template = self.get_template("CommonPaths", path_key)
         interp_dict = self.interpolants.copy()
         interp_dict.update(**kwargs)
         return format_template(template, **interp_dict)

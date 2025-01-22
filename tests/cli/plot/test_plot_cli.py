@@ -16,7 +16,6 @@ def check_result(
 
 
 def test_cli_help() -> None:
-
     runner = CliRunner()
 
     result = runner.invoke(plot_cli, "--help")
@@ -25,33 +24,26 @@ def test_cli_help() -> None:
 
 @pytest.mark.skipif(missing_ci_data, reason="NO CI data")
 def test_cli_run(setup_project_area: int) -> None:
-
     assert setup_project_area == 0
     runner = CliRunner()
 
     result = runner.invoke(
-        plot_cli,
-        "run --outdir test/temp_dir/plots/ tests/ci_plot_groups.yaml"
+        plot_cli, "run --outdir test/temp_dir/plots/ tests/ci_plot_groups.yaml"
     )
     check_result(result)
 
 
 @pytest.mark.skipif(missing_ci_data, reason="NO CI data")
 def test_cli_inspect(setup_project_area: int) -> None:
-
     assert setup_project_area == 0
     runner = CliRunner()
 
-    result = runner.invoke(
-        plot_cli,
-        "inspect tests/ci_plot_groups.yaml"
-    )
+    result = runner.invoke(plot_cli, "inspect tests/ci_plot_groups.yaml")
     check_result(result)
 
 
 @pytest.mark.skipif(missing_ci_data, reason="NO CI data")
 def test_cli_extract_datasets(setup_project_area: int) -> None:
-
     assert setup_project_area == 0
     runner = CliRunner()
 
@@ -62,6 +54,6 @@ def test_cli_extract_datasets(setup_project_area: int) -> None:
         "--flavor all "
         "--selection all "
         "--output_yaml tests/temp_data/dataset_out.yaml "
-        "tests/ci_project.yaml"
+        "tests/ci_project.yaml",
     )
     check_result(result)

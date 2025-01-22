@@ -6,3 +6,7 @@
       name: zestimate_v_ztrue_test_plots
       plotter_list_name: zestimate_v_ztrue 
       dataset_dict_name: baseline_test 
+- PlotGroup: 
+      name: accuracy_v_ztrue
+      plotter_list_name: accuracy_v_ztrue
+      dataset_dict_name: baseline_merged

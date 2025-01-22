@@ -6,7 +6,7 @@ import yaml
 
 from rail.projects import RailProject
 
-from .data_extraction import RailProjectDataExtractor
+from .dataset_holder import RailDatasetHolder
 
 
 class RailDatasetFactory:
@@ -19,6 +19,7 @@ class RailDatasetFactory:
          yaml_file: /path/to/rail_project_file
     - Dataset:
           name: gold_baseline_test
+          class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
           extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
           project: some_project
           selection: gold
@@ -27,6 +28,7 @@ class RailDatasetFactory:
           algos: ['all']
     - Dataset:
           name: blend_baseline_test
+          class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
           exctractor: rail.plottings.pz_data_extraction.PZPointEstimateDataExtractorxs
           project: some_project
           selection: blend
@@ -43,13 +45,14 @@ class RailDatasetFactory:
               - gold_baseline_test
               - blend_baseline_test
     """
+
     _instance: RailDatasetFactory | None = None
 
     def __init__(self) -> None:
         """C'tor, build an empty RailDatasetFactory"""
         self._projects: dict[str, RailProject] = {}
-        self._datasets: dict[str, dict] = {}
-        self._dataset_dicts: dict[str, dict[str, dict]] = {}
+        self._datasets: dict[str, RailDatasetHolder] = {}
+        self._dataset_dicts: dict[str, dict[str, RailDatasetHolder]] = {}
 
     @classmethod
     def instance(cls) -> RailDatasetFactory:
@@ -67,7 +70,7 @@ class RailDatasetFactory:
 
     @classmethod
     def print_contents(cls) -> None:
-        """Print the contents of the factory """
+        """Print the contents of the factory"""
         if cls._instance is None:  # pragma: no cover
             cls._instance = RailDatasetFactory()
         cls._instance.print_instance_contents()
@@ -90,6 +93,7 @@ class RailDatasetFactory:
               yaml_file: /path/to/rail_project_file
         - Dataset:
               name: gold_baseline_test
+              class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
               extractor: rail.plotters.pz_data_extraction.PZPointEstimateDataExtractor
               project: some_project
               selection: gold
@@ -98,6 +102,7 @@ class RailDatasetFactory:
               algos: ['all']
         - Dataset:
               name: blend_baseline_test
+              class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
               extractor: rail.plotters.pz_data_extraction.PZPointEstimateDataExtractor
               project: some_project
               selection: blend
@@ -121,11 +126,16 @@ class RailDatasetFactory:
 
     @classmethod
     def get_project_names(cls) -> list[str]:
-        """Return the dict of all the projects"""
+        """Return the names of all the projects"""
         return list(cls.instance().projects.keys())
 
     @classmethod
-    def get_datasets(cls) -> dict[str, dict]:
+    def get_project(cls, key: str) -> RailProject:
+        """Return a project by name"""
+        return cls.instance().projects[key]
+
+    @classmethod
+    def get_datasets(cls) -> dict[str, RailDatasetHolder]:
         """Return the dict of all the datasets"""
         return cls.instance().datasets
 
@@ -135,7 +145,7 @@ class RailDatasetFactory:
         return list(cls.instance().datasets.keys())
 
     @classmethod
-    def get_dataset_dicts(cls) -> dict[str, dict[str, dict]]:
+    def get_dataset_dicts(cls) -> dict[str, dict[str, RailDatasetHolder]]:
         """Return the dict of all the datasets"""
         return cls.instance().dataset_dicts
 
@@ -145,8 +155,8 @@ class RailDatasetFactory:
         return list(cls.instance().dataset_dicts.keys())
 
     @classmethod
-    def get_dataset(cls, name: str) -> dict:
-        """Get dataset it's assigned name
+    def get_dataset(cls, name: str) -> RailDatasetHolder:
+        """Get dataset by it's assigned name
 
         Parameters
         ----------
@@ -167,7 +177,7 @@ class RailDatasetFactory:
             ) from msg
 
     @classmethod
-    def get_dataset_dict(cls, name: str) -> dict[str, dict]:
+    def get_dataset_dict(cls, name: str) -> dict[str, RailDatasetHolder]:
         """Get a list of datasets their assigned name
 
         Parameters
@@ -194,12 +204,12 @@ class RailDatasetFactory:
         return self._projects
 
     @property
-    def datasets(self) -> dict[str, dict]:
+    def datasets(self) -> dict[str, RailDatasetHolder]:
         """Return the dictionary of individual datasets"""
         return self._datasets
 
     @property
-    def dataset_dicts(self) -> dict[str, dict[str, dict]]:
+    def dataset_dicts(self) -> dict[str, dict[str, RailDatasetHolder]]:
         """Return the dictionary of lists of datasets"""
         return self._dataset_dicts
 
@@ -223,30 +233,26 @@ class RailDatasetFactory:
         for dataset_dict_name, dataset_dict in self.dataset_dicts.items():
             print(f"  {dataset_dict_name}: {dataset_dict}")
 
-    def _get_extractor(self, name: str, class_name: str) -> RailProjectDataExtractor:
-        return RailProjectDataExtractor.create(name, class_name)
-
-    def _make_dataset(self, name: str, class_name: str, **kwargs: Any) -> dict:
-        if name in self._datasets:  # pragma: no cover
-            raise KeyError(f"Dataset {name} is already defined")
-        extractor = self._get_extractor(name, class_name)
-        project_name = kwargs.pop('project')
+    def _make_dataset(self, **kwargs: Any) -> RailDatasetHolder:
         try:
-            project = self._projects[project_name]
+            name = kwargs["name"]
         except KeyError as msg:  # pragma: no cover
             raise KeyError(
-                f"Could not find project {project_name} in {list(self._projects.keys())}"
+                "Dataset yaml block does not contain name for dataset: "
+                f"{list(kwargs.keys())}"
             ) from msg
-        dataset = extractor(project=project, **kwargs)
-        self._datasets[name] = dataset
-        return dataset
+        if name in self._datasets:  # pragma: no cover
+            raise KeyError(f"Dataset {name} is already defined")
+        dataset_holder = RailDatasetHolder.create_from_dict(kwargs)
+        self._datasets[name] = dataset_holder
+        return dataset_holder
 
     def _make_dataset_dict(
         self, name: str, dataset_name_list: list[str]
-    ) -> dict[str, dict]:
+    ) -> dict[str, RailDatasetHolder]:
         if name in self._datasets:  # pragma: no cover
             raise KeyError(f"DatasetDict {name} is already defined")
-        datasets: dict[str, dict] = {}
+        datasets: dict[str, RailDatasetHolder] = {}
         for dataset_name in dataset_name_list:
             try:
                 dataset = self._datasets[dataset_name]
@@ -267,23 +273,11 @@ class RailDatasetFactory:
         dataset_config: dict[str, Any]
             Yaml data in question
         """
-        try:
-            name = dataset_config.pop("name")
-        except KeyError as msg:  # pragma: no cover
-            raise KeyError(
-                "Dataset yaml block does not contain name for dataset: "
-                f"{list(dataset_config.keys())}"
-            ) from msg
-        try:
-            extractor = dataset_config.pop("extractor")
-        except KeyError as msg:  # pragma: no cover
-            raise KeyError(
-                "Dataset yaml block does not contain extractor for dataset: "
-                f"{list(dataset_config.keys())}"
-            ) from msg
-        self._make_dataset(name, extractor, **dataset_config)
+        self._make_dataset(**dataset_config)
 
-    def load_dataset_list_from_yaml_tag(self, dataset_list_config: dict[str, Any]) -> None:
+    def load_dataset_list_from_yaml_tag(
+        self, dataset_list_config: dict[str, Any]
+    ) -> None:
         """Load a list of datasets from a DatasetList tag in yaml
 
         Paramters

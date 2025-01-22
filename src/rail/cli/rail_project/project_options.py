@@ -45,7 +45,6 @@ class RunMode(enum.Enum):
     slurm = 2
 
 
-
 args = PartialArgument(
     "args",
     type=str,
