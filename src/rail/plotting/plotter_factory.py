@@ -47,21 +47,21 @@ class RailPlotterFactory:
     @classmethod
     def instance(cls) -> RailPlotterFactory:
         """Return the singleton instance of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             cls._instance = RailPlotterFactory()
         return cls._instance
 
     @classmethod
     def clear(cls) -> None:
         """Clear the contents of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             return
         cls._instance.clear_instance()
 
     @classmethod
     def print_contents(cls) -> None:
         """Print the contents of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             cls._instance = RailPlotterFactory()
         cls._instance.print_instance_contents()
 
@@ -188,11 +188,11 @@ class RailPlotterFactory:
     def _make_plotter(self, config_dict: dict[str, Any]) -> RailPlotter:
         try:
             name = config_dict["name"]
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "Plotter yaml block does not contain name for plotter: "
                 f"{list(config_dict.keys())}"
-            ) from msg
+            ) from missing_key
         if name in self._plotter_dict:  # pragma: no cover
             raise KeyError(f"Plotter {name} is already defined")
         plotter = RailPlotter.create_from_dict(config_dict)
@@ -208,11 +208,11 @@ class RailPlotterFactory:
         for plotter_name in plotter_list:
             try:
                 plotter = self._plotter_dict[plotter_name]
-            except KeyError as msg:  # pragma: no cover
+            except KeyError as missing_key:
                 raise KeyError(
                     f"RailPlotter {plotter_name} used in PlotterList "
                     f"is not found {list(self._plotter_dict.keys())}"
-                ) from msg
+                ) from missing_key
             plotters.append(plotter)
         self._plotter_list_dict[name] = plotters
         return plotters
@@ -239,17 +239,17 @@ class RailPlotterFactory:
         """
         try:
             name = plotter_list_config.pop("name")
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "PlotterList yaml block does not contain name for plotter: "
                 f"{list(plotter_list_config.keys())}"
-            ) from msg
+            ) from missing_key
         try:
             plotters = plotter_list_config.pop("plotters")
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 f"PlotterList yaml block does not contain plotter: {list(plotter_list_config.keys())}"
-            ) from msg
+            ) from missing_key
         self._make_plotter_list(name, plotters)
 
     def load_instance_yaml(self, yaml_file: str) -> None:

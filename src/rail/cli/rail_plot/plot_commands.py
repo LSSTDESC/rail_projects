@@ -22,6 +22,8 @@ def plot_cli() -> None:
 @plot_options.exclude_groups()
 @plot_options.save_plots()
 @plot_options.purge_plots()
+@plot_options.find_only()
+@plot_options.make_html()
 @options.outdir()
 def run_command(config_file: str, **kwargs: Any) -> int:
     """Make a bunch of plots"""
@@ -48,27 +50,39 @@ def inspect_command(config_file: str) -> int:
 
 @plot_cli.command(name="extract-datasets")
 @project_options.config_file()
-@plot_options.dataset_list_name()
 @plot_options.extractor_class()
+@options.output_yaml()
+@plot_options.dataset_list_name()
+@plot_options.dataset_holder_class()
 @project_options.flavor()
 @project_options.selection()
-@options.output_yaml()
+@plot_options.split_by_flavor()
 def extract_datasets_command(
     config_file: str,
-    dataset_list_name: str,
     extractor_class: str,
-    flavor: list[str],
-    selection: list[str],
     output_yaml: str,
+    **kwargs: dict[str, Any],
 ) -> int:
     """Create a yaml file with the datasets in a project"""
     control.clear()
     control.extract_datasets(
         config_file,
-        dataset_list_name,
         extractor_class,
-        flavors=flavor,
-        selections=selection,
         output_yaml=output_yaml,
+        **kwargs,
     )
+    return 0
+
+
+@plot_cli.command(name="make-plot-groups")
+@options.output_yaml()
+@plot_options.plotter_yaml_path()
+@plot_options.dataset_yaml_path()
+@plot_options.plotter_list_name()
+@plot_options.output_prefix()
+@plot_options.dataset_list_name(multiple=True)
+def make_plot_groups(output_yaml: str, **kwargs: dict[str, Any]) -> int:
+    """Create a yaml file with the datasets in a project"""
+    control.clear()
+    control.make_plot_group_yaml(output_yaml, **kwargs)
     return 0

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+import os
 import yaml
 
 from rail.projects import RailProject
@@ -58,6 +59,8 @@ get_plotter_list = RailPlotterFactory.get_plotter_list
 # Lift methods from the RailPlotGroupFactory
 
 load_plot_group_yaml = RailPlotGroupFactory.load_yaml
+
+make_plot_group_yaml = RailPlotGroupFactory.make_yaml
 
 print_plot_group_contents = RailPlotGroupFactory.print_contents
 
@@ -179,6 +182,8 @@ def run(
 
     include_groups = kwargs.pop("include_groups", None)
     exclude_groups = kwargs.pop("exclude_groups", None)
+    make_html = kwargs.get("make_html", False)
+    outdir = kwargs.get("outdir", "plots")
 
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
@@ -187,19 +192,24 @@ def run(
     for exclude_group_ in exclude_groups:  # pragma: no cover
         include_groups.remove(exclude_group_)
 
+    output_pages: list[str] = []
     for group_ in include_groups:
         plot_group = group_dict[group_]
         out_dict.update(plot_group(**kwargs))
+        if make_html:
+            output_pages.append(f"plots_{plot_group.name}.html")
+    if make_html:
+        RailPlotGroup.make_html_index(
+            os.path.join(outdir, "plot_index.html"), output_pages
+        )
     return out_dict
 
 
 def extract_datasets(
     config_file: str,
-    dataset_list_name: str,
     extractor_class: str,
-    flavors: list[str],
-    selections: list[str],
     output_yaml: str,
+    **kwargs: dict[str, Any],
 ) -> None:
     """Extract datasets into a yaml file
 
@@ -208,11 +218,19 @@ def extract_datasets(
     config_file: str
         Yaml project configuration file
 
+    extractor_class: str
+        Class used to extract Datasets
+
+    output_yaml: str
+        Path to output file
+
+    Keywords
+    --------
     dataset_list_name: str
         Name for the resulting DatasetList
 
-    extractor_class: str
-        Class used to extract Datasets
+    dataset_holder_class: str
+        Class for the dataset holder
 
     selections: list[str]
         Selections to use
@@ -220,16 +238,14 @@ def extract_datasets(
     flavors: list[str]
         Flavors to use
 
-    output_yaml: str
-        Path to output file
+    split_by_flavor: bool
+        Split dataset lists by flavor
     """
     extractor_cls = load_extractor_class(extractor_class)
     project = RailProject.load_config(config_file)
     output_data = extractor_cls.generate_dataset_dict(
-        dataset_list_name,
-        project,
-        selections,
-        flavors,
+        project=project,
+        **kwargs,
     )
     with open(output_yaml, "w", encoding="utf-8") as fout:
         yaml.dump(output_data, fout)

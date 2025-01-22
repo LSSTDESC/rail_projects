@@ -8,10 +8,10 @@ def validate_inputs(a_class: type, expected_inputs: dict, **kwargs: Any) -> None
     for key, expected_type in expected_inputs.items():
         try:
             data = kwargs[key]
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 f"{key} not provided to {a_class.__name__} in {list(kwargs.keys())}"
-            ) from msg
+            ) from missing_key
         if isinstance(expected_type, GenericAlias):
             if not isinstance(data, expected_type.__origin__):  # pragma: no cover
                 raise TypeError(
