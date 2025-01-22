@@ -83,7 +83,7 @@ def extract_datasets_command(
 @plot_options.dataset_yaml_path()
 @plot_options.plotter_list_name()
 @plot_options.output_prefix()
-@plot_options.dataset_list_names(multiple=True)
+@plot_options.dataset_list_name(multiple=True)
 def make_plot_groups(output_yaml: str, **kwargs: dict[str, Any]) -> int:
     """Create a yaml file with the datasets in a project"""
     control.clear()
