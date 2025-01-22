@@ -53,7 +53,6 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         find_only = kwargs.get("find_only", False)
-        outdir = kwargs.get("outdir", ".")
         figtype = kwargs.get("figtype", "png")
         dataset_holder = kwargs.get("dataset_holder")
         out_dict: dict[str, RailPlotHolder] = {}
@@ -65,7 +64,7 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             plot = RailPlotHolder(
                 name=plot_name,
                 path=os.path.join(
-                    outdir, dataset_holder.config.name, f"{plot_name}.{figtype}"
+                    dataset_holder.config.name, f"{plot_name}.{figtype}"
                 ),
                 plotter=self,
                 dataset_holder=dataset_holder,
@@ -135,7 +134,6 @@ class PZPlotterPointEstimateVsTrueProfile(RailPlotter):
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         find_only = kwargs.get("find_only", False)
-        outdir = kwargs.get("outdir", ".")
         figtype = kwargs.get("figtype", "png")
         dataset_holder = kwargs.get("dataset_holder")
         out_dict: dict[str, RailPlotHolder] = {}
@@ -147,7 +145,7 @@ class PZPlotterPointEstimateVsTrueProfile(RailPlotter):
             plot = RailPlotHolder(
                 name=plot_name,
                 path=os.path.join(
-                    outdir, dataset_holder.config.name, f"{plot_name}.{figtype}"
+                    dataset_holder.config.name, f"{plot_name}.{figtype}"
                 ),
                 plotter=self,
                 dataset_holder=dataset_holder,
@@ -221,7 +219,6 @@ class PZPlotterAccuraciesVsTrue(RailPlotter):
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         find_only = kwargs.get("find_only", False)
-        outdir = kwargs.get("outdir", ".")
         figtype = kwargs.get("figtype", "png")
         dataset_holder = kwargs.get("dataset_holder")
         out_dict: dict[str, RailPlotHolder] = {}
@@ -231,7 +228,7 @@ class PZPlotterAccuraciesVsTrue(RailPlotter):
             plot = RailPlotHolder(
                 name=plot_name,
                 path=os.path.join(
-                    outdir, dataset_holder.config.name, f"{plot_name}.{figtype}"
+                    dataset_holder.config.name, f"{plot_name}.{figtype}"
                 ),
                 plotter=self,
                 dataset_holder=dataset_holder,

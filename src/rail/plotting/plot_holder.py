@@ -69,13 +69,16 @@ class RailPlotHolder:
 
     def savefig(
         self,
-        outpath: str,
+        relpath: str,
+        outdir: str=".",
         **kwargs: Any,
     ) -> None:
         if self.figure is None:  # pragma: no cover
             raise ValueError(f"Tried to savefig missing a Figure {self.name}")
-        self.set_path(outpath)
-        self.figure.savefig(self.path, **kwargs)
+
+        self.set_path(relpath)
+        fullpath = os.path.join(outdir, relpath)
+        self.figure.savefig(fullpath, **kwargs)
 
 
 class RailPlotDict:
@@ -107,12 +110,11 @@ class RailPlotDict:
     ) -> None:
         purge = kwargs.pop("purge", False)
         for _key, val in self._plots.items():
+            if not os.path.exists(outpath):  # pragma: no cover
+                os.makedirs(outpath)
             if val.path:  # pragma: no cover
-                val.savefig(val.path, **kwargs)
+                val.savefig(val.path, outpath, **kwargs)
             else:
-                if not os.path.exists(outpath):  # pragma: no cover
-                    os.makedirs(outpath)
-                fullpath = os.path.join(outpath, f"{val.name}.{figtype}")
-                val.savefig(fullpath, **kwargs)
+                val.savefig(f"{val.name}.{figtype}", outpath, **kwargs)
             if purge:
                 val.set_figure(None)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import re
 import yaml
 
 from .dataset_factory import RailDatasetFactory
@@ -185,10 +186,18 @@ class RailPlotGroupFactory:
 
         output: list[dict[str, Any]] = []
         output.append(
-            dict(PlotterYaml=dict(path=plotter_yaml_path)),
+            dict(
+                PlotterYaml=dict(
+                    path=re.sub('.*rail_project_config', '${RAIL_PROJECT_CONFIG_DIR}', plotter_yaml_path),
+                ),
+            )
         )
         output.append(
-            dict(DatasetYaml=dict(path=dataset_yaml_path)),
+            dict(
+                DatasetYaml=dict(
+                    path=re.sub('.*rail_project_config', '${RAIL_PROJECT_CONFIG_DIR}', dataset_yaml_path)
+                ),
+            )
         )
         for ds_name in dataset_list_name:
             group_name = f"{output_prefix}{ds_name}_{plotter_list_name}"

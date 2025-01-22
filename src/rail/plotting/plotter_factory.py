@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import os
 import yaml
 
 from .plotter import RailPlotter
@@ -264,7 +265,7 @@ class RailPlotterFactory:
         -----
         See `RailPlotterFactory.load_yaml` for yaml file syntax
         """
-        with open(yaml_file, encoding="utf-8") as fin:
+        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
             plotter_data = yaml.safe_load(fin)
 
         for plotter_item in plotter_data:
