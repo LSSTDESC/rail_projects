@@ -183,6 +183,7 @@ def run(
     include_groups = kwargs.pop("include_groups", None)
     exclude_groups = kwargs.pop("exclude_groups", None)
     make_html = kwargs.get('make_html', False)
+    outdir = kwargs.get('outdir', 'plots')
     
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
