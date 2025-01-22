@@ -6,6 +6,7 @@ from rail.cli.rail.options import (
 __all__: list[str] = [
     "purge_plots",
     "save_plots",
+    "dataset_holder_class",
     "dataset_list_name",
     "plotter_list_name",
     "output_prefix",
@@ -36,6 +37,13 @@ include_groups = PartialOption(
     "--include_groups",
     help="Plot groups to include",
     multiple=True,
+)
+
+
+dataset_holder_class = PartialOption(
+    "--dataset_holder_class",
+    help="Class for the dataset holder",
+    type=str,
 )
 
 

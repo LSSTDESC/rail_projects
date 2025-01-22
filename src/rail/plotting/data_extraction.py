@@ -76,6 +76,7 @@ class RailProjectDataExtractor(Configurable, DynamicClass):
     def generate_dataset_dict(
         cls,
         dataset_list_name: str,
+        dataset_holder_class: str,
         project: RailProject,
         selections: list[str] | None = None,
         flavors: list[str] | None = None,
@@ -87,6 +88,9 @@ class RailProjectDataExtractor(Configurable, DynamicClass):
         ----------
         dataset_list_name: str
             Name for the resulting DatasetList
+
+        dataset_holder_class: str
+            Class for the dataset holder
 
         project: RailProject
             Project to inspect

@@ -198,6 +198,7 @@ def run(
 def extract_datasets(
     config_file: str,
     dataset_list_name: str,
+    dataset_holder_class: str,
     extractor_class: str,
     flavors: list[str],
     selections: list[str],
@@ -213,6 +214,9 @@ def extract_datasets(
 
     dataset_list_name: str
         Name for the resulting DatasetList
+
+    dataset_holder_class: str
+        Class for the dataset holder
 
     extractor_class: str
         Class used to extract Datasets
@@ -233,6 +237,7 @@ def extract_datasets(
     project = RailProject.load_config(config_file)
     output_data = extractor_cls.generate_dataset_dict(
         dataset_list_name,
+        dataset_holder_class,
         project,
         selections,
         flavors,
