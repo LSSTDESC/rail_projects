@@ -66,10 +66,10 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
         output.append(project_block)
 
-        datasets: dict[str, list[str]] = {}
+        dataset_list_dict: dict[str, list[str]] = {}
         dataset_key = dataset_list_name
         if not split_by_flavor:
-            datasets[dataset_key] = []
+            dataset_list_dict[dataset_key] = []
         
         for key in flavors:
             val = flavor_dict[key]
@@ -85,7 +85,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                 
                 if split_by_flavor:
                     dataset_key = f"{dataset_list_name}_{selection_}_{key}"                
-                    datasets[dataset_key] = []
+                    dataset_list_dict[dataset_key] = []
                     
                 for algo_ in algos:
                     path = get_ceci_pz_output_path(
@@ -107,13 +107,13 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                         selection=selection_,
                     )
 
-                    datasets[dataset_key].append(dataset_name)
+                    dataset_list_dict[dataset_key].append(dataset_name)
                     output.append(dict(Dataset=dataset_dict))
 
-        for ds_name, ds_list in datasets.items():
+        for ds_name, ds_list in dataset_list_dict.items():
             dataset_list = dict(
-                name=dataset_list_name,
-                datasets=datasets,
+                name=ds_name,
+                datasets=ds_list,
             )
             output.append(dict(DatasetList=dataset_list))
 
