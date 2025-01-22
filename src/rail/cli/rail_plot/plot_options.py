@@ -6,6 +6,8 @@ from rail.cli.rail.options import (
 __all__: list[str] = [
     "purge_plots",
     "save_plots",
+    "find_only",
+    "make_html",
     "dataset_holder_class",
     "dataset_list_name",
     "plotter_list_name",
@@ -82,6 +84,19 @@ plotter_yaml_path = PartialOption(
     type=str,
 )
 
+
+find_only = PartialOption(
+    "--find_only",
+    help="Find existing plots, do not create new ones",
+    is_flag=True,
+)
+
+
+make_html = PartialOption(
+    "--make_html",
+    help="Make html files to help browse plots",
+    is_flag=True,
+)
 
 
 purge_plots = PartialOption(

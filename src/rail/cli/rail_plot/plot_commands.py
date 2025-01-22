@@ -22,6 +22,8 @@ def plot_cli() -> None:
 @plot_options.exclude_groups()
 @plot_options.save_plots()
 @plot_options.purge_plots()
+@plot_options.find_only()
+@plot_options.make_html()
 @options.outdir()
 def run_command(config_file: str, **kwargs: Any) -> int:
     """Make a bunch of plots"""
