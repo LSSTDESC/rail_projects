@@ -53,10 +53,10 @@ class RailDatasetHolder(Configurable, DynamicClass):
         for key, expected_type in cls.extractor_inputs.items():
             try:
                 data = kwargs[key]
-            except KeyError as msg:  # pragma: no cover
+            except KeyError as missing_key:
                 raise KeyError(
                     f"{key} not provided to RailDatasetHolder {cls} in {list(kwargs.keys())}"
-                ) from msg
+                ) from missing_key
             if isinstance(expected_type, GenericAlias):
                 if not isinstance(data, expected_type.__origin__):  # pragma: no cover
                     raise TypeError(

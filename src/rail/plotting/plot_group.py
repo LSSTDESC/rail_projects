@@ -154,7 +154,7 @@ class RailPlotGroup:
         output = cls.jinja_index_template.render(output_pages=output_pages, os=os)
         with open(outfile, "w", encoding="utf-8") as file:
             file.write(output)
-    
+
     def make_html(
         self,
         outfile: str,

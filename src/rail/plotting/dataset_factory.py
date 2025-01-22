@@ -57,21 +57,21 @@ class RailDatasetFactory:
     @classmethod
     def instance(cls) -> RailDatasetFactory:
         """Return the singleton instance of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             cls._instance = RailDatasetFactory()
         return cls._instance
 
     @classmethod
     def clear(cls) -> None:
         """Clear the contents of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             return
         cls._instance.clear_instance()
 
     @classmethod
     def print_contents(cls) -> None:
         """Print the contents of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             cls._instance = RailDatasetFactory()
         cls._instance.print_instance_contents()
 
@@ -236,11 +236,11 @@ class RailDatasetFactory:
     def _make_dataset(self, **kwargs: Any) -> RailDatasetHolder:
         try:
             name = kwargs["name"]
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "Dataset yaml block does not contain name for dataset: "
                 f"{list(kwargs.keys())}"
-            ) from msg
+            ) from missing_key
         if name in self._datasets:  # pragma: no cover
             raise KeyError(f"Dataset {name} is already defined")
         dataset_holder = RailDatasetHolder.create_from_dict(kwargs)
@@ -256,11 +256,11 @@ class RailDatasetFactory:
         for dataset_name in dataset_name_list:
             try:
                 dataset = self._datasets[dataset_name]
-            except KeyError as msg:  # pragma: no cover
+            except KeyError as missing_key:
                 raise KeyError(
                     f"Dataset {dataset_name} used in DatasetList "
                     f"is not found {list(self._datasets.keys())}"
-                ) from msg
+                ) from missing_key
             datasets[dataset_name] = dataset
         self._dataset_dicts[name] = datasets
         return datasets
@@ -287,18 +287,18 @@ class RailDatasetFactory:
         """
         try:
             name = dataset_list_config.pop("name")
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "DatasetList yaml block does not contain name for dataset: "
                 f"{list(dataset_list_config.keys())}"
-            ) from msg
+            ) from missing_key
         try:
             dataset_names = dataset_list_config.pop("datasets")
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "DatasetList yaml block does not contain dataset: "
                 f"{list(dataset_list_config.keys())}"
-            ) from msg
+            ) from missing_key
         self._make_dataset_dict(name, dataset_names)
 
     def load_project_from_yaml_tag(self, project_config: dict[str, Any]) -> None:
@@ -311,18 +311,18 @@ class RailDatasetFactory:
         """
         try:
             name = project_config.pop("name")
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "Project yaml block does not contain name for project: "
                 f"{list(project_config.keys())}"
-            ) from msg
+            ) from missing_key
         try:
             project_yaml = project_config.pop("yaml_file")
-        except KeyError as msg:  # pragma: no cover
+        except KeyError as missing_key:
             raise KeyError(
                 "Project yaml block does not contain yaml_file: "
                 f"{list(project_config.keys())}"
-            ) from msg
+            ) from missing_key
         self._projects[name] = RailProject.load_config(project_yaml)
 
     def load_instance_yaml(self, yaml_file: str) -> None:

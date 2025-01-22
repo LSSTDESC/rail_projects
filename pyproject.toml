@@ -107,4 +107,6 @@ exclude_also = [
     "raise NotImplementedError",
     "__repr__",
     "TYPE_CHECKING",
+    "if cls._instance is None:",
+    "except KeyError as missing_key:",
     ]

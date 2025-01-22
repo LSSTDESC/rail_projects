@@ -39,13 +39,38 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
     @classmethod
     def generate_dataset_dict(
         cls,
-        dataset_list_name: str,
-        dataset_holder_class: str,
-        project: RailProject,
-        selections: list[str] | None = None,
-        flavors: list[str] | None = None,
-        split_by_flavor: bool = False,
+        **kwargs: Any,
     ) -> list[dict[str, Any]]:
+        """
+        Keywords
+        --------
+        dataset_list_name: str
+            Name for the resulting DatasetList
+
+        dataset_holder_class: str
+            Class for the dataset holder
+
+        project: RailProject
+            Project to inspect
+
+        selections: list[str]
+            Selections to use
+
+        flavors: list[str]
+            Flavors to use
+
+        Returns
+        -------
+        output: list[dict[str, Any]]
+            Dictionary of the extracted datasets
+        """
+        dataset_list_name: str | None = kwargs.get('dataset_list_name')
+        dataset_holder_class: str | None = kwargs.get('dataset_holder_class')
+        project: RailProject = kwargs.get('project')
+        selections = kwargs.get('selections')
+        flavors = kwargs.get('flavors')
+        split_by_flavor = kwargs.get('split_by_flavor', False)
+
         output: list[dict[str, Any]] = []
 
         flavor_dict = project.get_flavors()

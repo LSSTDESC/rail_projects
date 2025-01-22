@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from rail.projects import RailProject
-
 from .configurable import Configurable
 from .dynamic_class import DynamicClass
 from .validation import validate_inputs
@@ -75,12 +73,7 @@ class RailProjectDataExtractor(Configurable, DynamicClass):
     @classmethod
     def generate_dataset_dict(
         cls,
-        dataset_list_name: str,
-        dataset_holder_class: str,
-        project: RailProject,
-        selections: list[str] | None = None,
-        flavors: list[str] | None = None,
-        split_by_flavor: bool=False,
+        **kwargs: dict[str, Any],
     ) -> list[dict[str, Any]]:
         """Create a dict of the datasets that this extractor can extract
 

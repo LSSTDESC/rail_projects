@@ -37,21 +37,21 @@ class RailPlotGroupFactory:
     @classmethod
     def instance(cls) -> RailPlotGroupFactory:
         """Return the singleton instance of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             cls._instance = RailPlotGroupFactory()
         return cls._instance
 
     @classmethod
     def clear(cls) -> None:
         """Clear the contents of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             return
         cls._instance.clear_instance()
 
     @classmethod
     def print_contents(cls) -> None:
         """Print the contents of the factory"""
-        if cls._instance is None:  # pragma: no cover
+        if cls._instance is None:
             cls._instance = RailPlotGroupFactory()
         cls._instance.print_instance_contents()
 
@@ -180,7 +180,7 @@ class RailPlotGroupFactory:
 
         plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
         assert plotter_list
-        if not dataset_list_name:
+        if not dataset_list_name:  # pragma: no cover
             dataset_list_name = RailDatasetFactory.get_dataset_dict_names()
 
         output: list[dict[str, Any]] = []
@@ -245,33 +245,33 @@ class RailPlotGroupFactory:
                 plotter_yaml_config = group_item["PlotterYaml"]
                 try:
                     plotter_yaml_path = plotter_yaml_config.pop("path")
-                except KeyError as msg:  # pragma: no cover
+                except KeyError as missing_key:
                     raise KeyError(
                         "PlotterYaml yaml block does not contain path: "
                         f"{list(plotter_yaml_config.keys())}"
-                    ) from msg
+                    ) from missing_key
                 RailPlotterFactory.clear()
                 RailPlotterFactory.load_yaml(plotter_yaml_path)
             elif "DatasetYaml" in group_item:
                 dataset_yaml_config = group_item["DatasetYaml"]
                 try:
                     dataset_yaml_path = dataset_yaml_config.pop("path")
-                except KeyError as msg:  # pragma: no cover
+                except KeyError as missing_key:
                     raise KeyError(
                         "PlotterYamlDatasetYaml yaml block does not contain path: "
                         f"{list(dataset_yaml_config.keys())}"
-                    ) from msg
+                    ) from missing_key
                 RailDatasetFactory.clear()
                 RailDatasetFactory.load_yaml(dataset_yaml_path)
             elif "PlotGroup" in group_item:
                 plot_group_config = group_item["PlotGroup"]
                 try:
                     name = plot_group_config.pop("name")
-                except KeyError as msg:  # pragma: no cover
+                except KeyError as missing_key:
                     raise KeyError(
                         "PlotGroup yaml block does not contain name for plot group: "
                         f"{list(plot_group_config.keys())}"
-                    ) from msg
+                    ) from missing_key
                 self._plot_groups[name] = RailPlotGroup.create(name, plot_group_config)
             else:  # pragma: no cover
                 good_keys = ["PlotterYaml", "DatasetYaml", "PlotGroup"]
