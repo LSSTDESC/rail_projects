@@ -112,7 +112,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
         for ds_name, ds_list in dataset_list_dict.items():
             # Skip empty lists
-            if ds_list:
+            if not ds_list:
                 continue
             dataset_list = dict(
                 name=ds_name,
