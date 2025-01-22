@@ -181,7 +181,8 @@ def run(
 
     include_groups = kwargs.pop("include_groups", None)
     exclude_groups = kwargs.pop("exclude_groups", None)
-
+    make_html = kwargs.get('make_html', False)
+    
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
     if exclude_groups is None or not exclude_groups:
@@ -189,9 +190,14 @@ def run(
     for exclude_group_ in exclude_groups:  # pragma: no cover
         include_groups.remove(exclude_group_)
 
+    output_pages: list[str] = []
     for group_ in include_groups:
         plot_group = group_dict[group_]
         out_dict.update(plot_group(**kwargs))
+        if make_html:
+            output_pages.append(f'plots_{plot_group.name}.html')
+    if make_html:
+        RailPlotGroup.make_html_index(os.path.join(outdir, "plot_index.html"), output_pages)
     return out_dict
 
 

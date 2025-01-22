@@ -20,6 +20,7 @@ class RailPlotGroup:
 
     jinja_env: Environment | None = None
     jinja_template: Template | None = None
+    jinja_index_template: Template | None = None
 
     @classmethod
     def _load_jinja(cls) -> None:
@@ -29,6 +30,7 @@ class RailPlotGroup:
             loader=FileSystemLoader("src/rail/projects/html_templates")
         )
         cls.jinja_template = cls.jinja_env.get_template("plot_group_table.html")
+        cls.jinja_index_template = cls.jinja_env.get_template("plot_group_index.html")
 
     def __init__(
         self,
@@ -139,6 +141,20 @@ class RailPlotGroup:
         )
         return self._plots
 
+    @classmethod
+    def make_html_index(
+        cls,
+        outfile: str,
+        output_pages: list[str],
+    ) -> None:
+        cls._load_jinja()
+        assert cls.jinja_index_template is not None
+
+        # Render template  data and save to HTML file
+        output = cls.jinja_index_template.render(output_pages=output_pages, os=os)
+        with open(outfile, "w", encoding="utf-8") as file:
+            file.write(output)
+    
     def make_html(
         self,
         outfile: str,
