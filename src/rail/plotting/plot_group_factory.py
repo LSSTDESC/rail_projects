@@ -63,7 +63,7 @@ class RailPlotGroupFactory:
         dataset_yaml_path: str,
         plotter_list_name: str,
         output_prefix: str = "",
-        dataset_list_names: list[str] | None = None,
+        dataset_list_name: list[str] | None = None,
     ) -> None:
         """Construct a yaml file defining plot groups
 
@@ -95,7 +95,7 @@ class RailPlotGroupFactory:
             dataset_yaml_path=dataset_yaml_path,
             plotter_list_name=plotter_list_name,
             output_prefix=output_prefix,
-            dataset_list_names=dataset_list_names,
+            dataset_list_name=dataset_list_name,
         )
 
     @classmethod
@@ -149,7 +149,7 @@ class RailPlotGroupFactory:
         dataset_yaml_path: str,
         plotter_list_name: str,
         output_prefix: str = "",
-        dataset_list_names: list[str] | None = None,
+        dataset_list_name: list[str] | None = None,
     ) -> None:
         """Construct a yaml file defining plot groups
 
@@ -170,7 +170,7 @@ class RailPlotGroupFactory:
         output_prefix: str=""
             Prefix for PlotGroup names we construct
 
-        dataset_list_names: list[str] | None=None
+        dataset_list_name: list[str] | None=None
             Names of dataset lists to use
         """
         RailPlotterFactory.clear()
@@ -180,8 +180,8 @@ class RailPlotGroupFactory:
 
         plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
         assert plotter_list
-        if dataset_list_names is None:
-            dataset_list_names = RailDatasetFactory.get_dataset_dict_names()
+        if dataset_list_name is None:
+            dataset_list_name = RailDatasetFactory.get_dataset_dict_names()
 
         output: list[dict[str, Any]] = []
         output.append(
@@ -190,7 +190,7 @@ class RailPlotGroupFactory:
         output.append(
             dict(DatasetYaml=dict(path=dataset_yaml_path)),
         )
-        for ds_name in dataset_list_names:
+        for ds_name in dataset_list_name:
             group_name = f"{output_prefix}{ds_name}_{plotter_list_name}"
             output.append(
                 dict(
