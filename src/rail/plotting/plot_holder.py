@@ -109,12 +109,16 @@ class RailPlotDict:
         **kwargs: Any,
     ) -> None:
         purge = kwargs.pop("purge", False)
-        for _key, val in self._plots.items():
-            if not os.path.exists(outpath):  # pragma: no cover
-                os.makedirs(outpath)
+        if not os.path.exists(outpath):  # pragma: no cover
+            os.makedirs(outpath)
+        for key, val in self._plots.items():            
             if val.path:  # pragma: no cover
                 val.savefig(val.path, outpath, **kwargs)
-            else:
-                val.savefig(f"{val.name}.{figtype}", outpath, **kwargs)
+            else:                
+                val.savefig(
+                    os.path.join(os.path.basename(outpath), f"{val.name}.{figtype}"),
+                    os.path.dirname(outpath),
+                    **kwargs,
+                )
             if purge:
                 val.set_figure(None)
