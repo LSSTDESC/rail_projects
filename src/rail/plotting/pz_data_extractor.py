@@ -4,7 +4,7 @@ from typing import Any
 
 from rail.projects import RailProject
 
-from .data_extraction import RailProjectDataExtractor
+from .data_extractor import RailProjectDataExtractor
 from .data_extraction_funcs import (
     get_pz_point_estimate_data,
     get_ceci_pz_output_path,
@@ -125,7 +125,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                     dataset_dict = dict(
                         name=dataset_name,
                         class_name=dataset_holder_class,
-                        extractor="rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor",
+                        extractor="rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor",
                         project=project_name,
                         flavor=key,
                         algo=algo_,
