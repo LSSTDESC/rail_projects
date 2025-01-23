@@ -4,7 +4,7 @@
 - Dataset:
       name: blend_baseline_trainz
       class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-      extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+      extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
       project: ci_test
       selection: blend
       flavor: baseline
@@ -13,7 +13,7 @@
 - Dataset:
       name: blend_baseline_knn
       class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-      extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+      extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
       project: ci_test
       selection: blend
       flavor: baseline
@@ -22,7 +22,7 @@
 - Dataset:
       name: blend_baseline_fzboost
       class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-      extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+      extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
       project: ci_test
       selection: blend
       flavor: baseline
@@ -37,7 +37,7 @@
 - Dataset:
       name: blend_baseline_all
       class_name: rail.plotting.project_dataset_holder.RailProjectMultiDatasetHolder
-      extractor: rail.plotting.pz_data_extraction.PZMultiPointEstimateDataExtractor
+      extractor: rail.plotting.pz_data_extractor.PZMultiPointEstimateDataExtractor
       datasets:
           - blend_baseline_trainz
           - blend_baseline_knn

@@ -20,7 +20,7 @@ class RailDatasetFactory:
     - Dataset:
           name: gold_baseline_test
           class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-          extractor: rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor
+          extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
           project: some_project
           selection: gold
           flavor: baseline
@@ -29,7 +29,7 @@ class RailDatasetFactory:
     - Dataset:
           name: blend_baseline_test
           class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-          exctractor: rail.plottings.pz_data_extraction.PZPointEstimateDataExtractorxs
+          exctractor: rail.plottings.pz_data_extractor.PZPointEstimateDataExtractorxs
           project: some_project
           selection: blend
           flavor: baseline
@@ -94,7 +94,7 @@ class RailDatasetFactory:
         - Dataset:
               name: gold_baseline_test
               class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-              extractor: rail.plotters.pz_data_extraction.PZPointEstimateDataExtractor
+              extractor: rail.plotters.pz_data_extractor.PZPointEstimateDataExtractor
               project: some_project
               selection: gold
               flavor: baseline
@@ -103,7 +103,7 @@ class RailDatasetFactory:
         - Dataset:
               name: blend_baseline_test
               class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-              extractor: rail.plotters.pz_data_extraction.PZPointEstimateDataExtractor
+              extractor: rail.plotters.pz_data_extractor.PZPointEstimateDataExtractor
               project: some_project
               selection: blend
               flavor: baseline

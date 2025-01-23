@@ -2,7 +2,7 @@ import os
 import pytest
 
 from rail.plotting.dataset_factory import RailDatasetFactory
-from rail.plotting.data_extraction import RailProjectDataExtractor
+from rail.plotting.data_extractor import RailProjectDataExtractor
 from rail.plotting.dataset_holder import RailDatasetHolder
 from rail.projects import RailProject
 

@@ -11,7 +11,7 @@ from rail.projects import RailProject
 from .dataset_factory import RailDatasetFactory
 from .plotter_factory import RailPlotterFactory
 from .plot_group_factory import RailPlotGroupFactory
-from .data_extraction import RailProjectDataExtractor
+from .data_extractor import RailProjectDataExtractor
 from .dataset_holder import RailDatasetHolder
 from .plotter import RailPlotter
 from .plot_group import RailPlotGroup
