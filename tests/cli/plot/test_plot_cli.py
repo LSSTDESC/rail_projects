@@ -51,7 +51,7 @@ def test_cli_extract_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--extractor_class rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor "
+        "--extractor_class rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor "
         "--flavor all "
         "--selection all "
         "--split_by_flavor "
@@ -64,7 +64,7 @@ def test_cli_extract_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--extractor_class rail.plotting.pz_data_extraction.PZPointEstimateDataExtractor "
+        "--extractor_class rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor "
         "--flavor all "
         "--selection all "
         "--output_yaml tests/temp_data/dataset_out.yaml "

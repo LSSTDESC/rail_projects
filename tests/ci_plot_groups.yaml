@@ -10,3 +10,7 @@
       name: accuracy_v_ztrue
       plotter_list_name: accuracy_v_ztrue
       dataset_dict_name: baseline_merged
+- PlotGroup: 
+      name: tomo_bins
+      plotter_list_name: tomo_bins
+      dataset_dict_name: blend_baseline_tomo_knn

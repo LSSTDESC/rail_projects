@@ -25,3 +25,13 @@
       name: accuracy_v_ztrue
       plotters:
           - accuracy_v_ztrue
+- Plotter:
+      name: tomo_bins
+      class_name: rail.plotting.nz_plotters.NZPlotterTomoBins
+      z_min: 0.0
+      z_max: 3.0
+      n_zbins: 151
+- PlotterList:
+      name: tomo_bins
+      plotters:
+          - tomo_bins
