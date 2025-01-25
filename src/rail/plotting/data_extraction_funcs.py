@@ -242,7 +242,7 @@ def get_ceci_nz_output_paths(
     flavor: str,
     algo: str,
     classifier: str,
-    summarizer: str,   
+    summarizer: str,
 ) -> list[str]:
     """Get the paths to the file with n(z) estimates
     for a particualar analysis selection and flavor
@@ -359,6 +359,7 @@ def get_pz_point_estimate_data(
     pz_data = make_z_true_z_point_dict(z_true_data, z_estimate_data)
     return pz_data
 
+
 def get_multi_pz_point_estimate_data(
     point_estimate_infos: dict[str, dict[str, Any]],
 ) -> dict[str, Any] | None:
@@ -405,7 +406,7 @@ def get_tomo_bins_nz_estimate_data(
     flavor: str,
     algo: str,
     classifier: str,
-    summarizer: str,   
+    summarizer: str,
 ) -> qp.Ensemble:
     """Get the tomographic bin n(z) estimates
 
@@ -454,7 +455,7 @@ def get_tomo_bins_true_nz_data(
     algo: str,
     classifier: str,
 ) -> qp.Ensemble:
-    """Get the tomographic bin true n(z) 
+    """Get the tomographic bin true n(z)
 
     Parameters
     ----------
@@ -488,5 +489,3 @@ def get_tomo_bins_true_nz_data(
 
     data = qp.concatenate([extract_z_pdf(path_) for path_ in paths])
     return data
-
-

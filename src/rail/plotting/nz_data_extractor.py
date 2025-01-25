@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 
 from rail.projects import RailProject
 
 from .data_extractor import RailProjectDataExtractor
 from .data_extraction_funcs import (
-    get_tomo_bins_nz_estimate_data,    
+    get_tomo_bins_nz_estimate_data,
     get_tomo_bins_true_nz_data,
 )
 
@@ -37,7 +36,7 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any]:
         kwcopy = kwargs.copy()
-        kwcopy.pop('summarizer')
+        kwcopy.pop("summarizer")
         data = dict(
             nz_estimates=get_tomo_bins_nz_estimate_data(**kwargs),
             truth=get_tomo_bins_true_nz_data(**kwcopy),

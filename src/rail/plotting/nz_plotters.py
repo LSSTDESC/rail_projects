@@ -13,8 +13,7 @@ from .dataset_holder import RailDatasetHolder
 
 
 class NZPlotterTomoBins(RailPlotter):
-    """Class to make a histogram of all the nz distributions
-    """
+    """Class to make a histogram of all the nz distributions"""
 
     config_options: dict[str, StageParameter] = RailPlotter.config_options.copy()
     config_options.update(
@@ -42,9 +41,9 @@ class NZPlotterTomoBins(RailPlotter):
         truth_vals = truth.pdf(bin_edges)
         nz_vals = nz_estimates.pdf(bin_edges)
         n_pdf = truth.npdf
-        
+
         for i in range(n_pdf):
-            axes.plot(bin_edges, truth_vals[i], '-')
+            axes.plot(bin_edges, truth_vals[i], "-")
             axes.plot(bin_edges, nz_vals[i])
         plt.xlabel("z")
         plt.ylabel("n(z)")
@@ -65,9 +64,7 @@ class NZPlotterTomoBins(RailPlotter):
             assert dataset_holder
             plot = RailPlotHolder(
                 name=plot_name,
-                path=os.path.join(
-                    dataset_holder.config.name, f"{plot_name}.{figtype}"
-                ),
+                path=os.path.join(dataset_holder.config.name, f"{plot_name}.{figtype}"),
                 plotter=self,
                 dataset_holder=dataset_holder,
             )
