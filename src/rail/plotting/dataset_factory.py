@@ -29,7 +29,7 @@ class RailDatasetFactory:
     - Dataset:
           name: blend_baseline_test
           class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-          exctractor: rail.plottings.pz_data_extractor.PZPointEstimateDataExtractorxs
+          exctractor: rail.plottings.pz_data_extractor.PZPointEstimateDataExtractor
           project: some_project
           selection: blend
           flavor: baseline
