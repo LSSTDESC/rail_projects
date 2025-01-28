@@ -1,0 +1,18 @@
+Catalogs:
+  - CatalogTemplate:
+        name: truth
+        path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
+        iteration_vars: ['healpix']
+  - CatalogTemplate:
+        name: reduced
+        path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
+        iteration_vars: ['healpix']
+  - CatalogTemplate:
+        name: degraded
+        path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
+        iteration_vars: ['healpix']
+  - CatalogInstance:
+        name: degraded_ci_test_1.1.3_gold_blend
+        path_template: "tests/temp_data/ci_test_1.1.3_gold_baseline/{healpix}/output_degraded.hdf5"
+        iteration_vars: ['healpix']
+

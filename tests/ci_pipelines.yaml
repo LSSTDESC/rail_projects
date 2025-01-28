@@ -1,0 +1,50 @@
+Pipelines:
+  - Pipeline:
+        name: truth_to_observed
+        pipeline_class: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
+        kwargs:
+            error_models: ['all']
+            selectors: ['all']
+            blending: true
+  - Pipeline:
+        name: photometric_errors:
+        pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
+        kwargs:
+            error_models: ['all']
+  - Pipeline:
+        name: blending:
+        pipeline_class: rail.pipelines.degradation.blending.BlendingPipeline
+        kwargs: {}
+  - Pipeline:
+        name: spec_selection:
+        pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
+        kwargs:
+            selectors: ['all']
+  - Pipeline:
+        name: inform:
+        pipeline_class: rail.pipelines.estimation.inform_all.InformPipeline
+        kwargs:
+            algorithms: ['all']
+   - Pipeline:
+        name: estimate:
+        pipeline_class: rail.pipelines.estimation.estimate_all.EstimatePipeline
+        kwargs:
+            algorithms: ['all']
+  - Pipeline:
+        name: evaluate:
+        pipeline_class: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
+        kwargs:
+            algorithms: ['all']
+  - Pipeline:
+        name: pz:
+        pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
+        kwargs:
+            algorithms: ['all']
+   - Pipeline:
+        name: tomography:
+        pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
+        kwargs:
+            algorithms: ['all']
+            classifiers: ['all']
+            summarizers: ['all']
+            n_tomo_bins: 5
