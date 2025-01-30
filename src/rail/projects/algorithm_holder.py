@@ -5,9 +5,8 @@ from typing import Any
 from ceci.config import StageParameter
 from ceci.stage import PipelineStage
 
-from rail.plotting.configurable import Configurable
-from rail.plotting.dynamic_class import DynamicClass
-
+from .configurable import Configurable
+from .dynamic_class import DynamicClass
 from .subsampler import RailSubsampler
 from .reducer import RailReducer
 

@@ -10,8 +10,8 @@ import pyarrow.parquet as pq
 
 from ceci.config import StageParameter
 
-from rail.plotting.configurable import Configurable
-from rail.plotting.dynamic_class import DynamicClass
+from .configurable import Configurable
+from .dynamic_class import DynamicClass
 
 
 class RailSubsampler(Configurable, DynamicClass):

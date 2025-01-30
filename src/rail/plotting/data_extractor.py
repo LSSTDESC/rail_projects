@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from .configurable import Configurable
-from .dynamic_class import DynamicClass
+from rail.projects.configurable import Configurable
+from rail.projects.dynamic_class import DynamicClass
 from .validation import validate_inputs
 
 

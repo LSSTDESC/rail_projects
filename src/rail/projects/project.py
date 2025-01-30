@@ -7,11 +7,11 @@ from typing import Any
 import yaml
 
 from ceci.config import StageParameter
-from rail.plotting.configurable import Configurable
 from rail.utils import catalog_utils
 from rail.core.stage import RailPipeline
 
 from . import name_utils, library
+from .configurable import Configurable
 from .catalog_template import RailProjectCatalogTemplate
 from .pipeline_holder import RailPipelineTemplate
 from .selection_factory import RailSelection
@@ -221,7 +221,7 @@ class RailProject(Configurable):
             raise KeyError(f"Label '{label}' not found in flavor '{flavor}'") from msg
         return self.get_file(file_alias, flavor=flavor, label=label, **kwargs)
 
-    def get_file_metadata_for_flavor(self, flavor: str, label: str) -> dict:
+    def get_file_metadata_for_flavor(self, flavor: str, label: str) -> RailProjectFileTemplate:
         """Resolve the metadata associated to a particular flavor and label
 
         E.g., flavor=baseline and label=train would give the baseline training metadata
@@ -659,7 +659,7 @@ class RailProject(Configurable):
         sinks: list[str]
             Paths to output files
         """
-        sources = self.get_catalog_files(catalog_template, selection=input_selection, **kwargs)        
+        sources = self.get_catalog_files(catalog_template, selection=input_selection, **kwargs)
         sinks = self.get_catalog_files(output_catalog_template, selection=selection, **kwargs)
 
         reducer_class = library.get_algorithm_class(

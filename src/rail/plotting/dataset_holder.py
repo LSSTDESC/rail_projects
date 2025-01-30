@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 from types import GenericAlias
 
-from .configurable import Configurable
-from .dynamic_class import DynamicClass
+from rail.projects.configurable import Configurable
+from rail.projects.dynamic_class import DynamicClass
 
 
 class RailDatasetHolder(Configurable, DynamicClass):

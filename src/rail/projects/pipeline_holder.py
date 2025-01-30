@@ -4,7 +4,7 @@ from typing import Any
 
 from ceci.config import StageParameter
 
-from rail.plotting.configurable import Configurable
+from .configurable import Configurable
 
 
 class RailPipelineTemplate(Configurable):
