@@ -1,4 +1,6 @@
-# These describe the selections going from Input to Reduced catalog
+# These describe the selections going from "truth" to "reduced" catalog
+
+# These just all use different limiting i-band magnitudes
 Selections:
   - Selection:
       name: maglim_25.5

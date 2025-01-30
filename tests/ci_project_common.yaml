@@ -1,28 +1,60 @@
+# This is the "library" of common defintions shared between similar projects
+
+# Templates we use to define catalogs
+#
+# A CatalogTemplate can be given several interpolants to resolve to a specific Catalog
+#
+# Some of the interpolants [{catalogs_dir}, {project}, {sim_version}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
+#
+# Possible values of {flavor} are defined the the Project "Flavors" block
 Catalogs:
+  # The input "Truth" catalog
   - CatalogTemplate:
       name: truth
       path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
       iteration_vars: ['healpix']
+  # Catalogs that have been reduced using a particular selection
   - CatalogTemplate:
       name: reduced
       path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
       iteration_vars: ['healpix']
+  # Data output from running some degraders on the original catalog
+  # Note that the {basename} can be used to select which degraded output we want
   - CatalogTemplate:
       name: degraded
       path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
       iteration_vars: ['healpix']
 
-# These are templates for specific files, such as testing and training files
+
+# This file describes the templates we use to define files and specfic instances
+# of files
+#
+# A FileTemplate can be given several interpolants to resolve to a specific FileInstance
+#
+# Some of the interpolants [{catalogs_dir}, {project}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
 Files:
+  # Testing data file
   - FileTemplate:
       name: test_file_100k
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  # Generic training data file
   - FileTemplate:
       name: train_file_100k
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  # Training file with a non-representative sample from the zCOSMOS selection
   - FileTemplate:
       name: train_file_zCOSMOS_100k
       path_template: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
+
+
+# The next plots list all available algorithms of various types and assigns short names each of then
+#
 
 # These	describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
@@ -222,7 +254,10 @@ Pipelines:
         summarizers: ['all']
         n_tomo_bins: 5
 
-# These describe the selections going from Input to Reduced catalog
+
+# These describe the selections going from "truth" to "reduced" catalog
+
+# These just all use different limiting i-band magnitudes
 Selections:
   - Selection:
       name: maglim_25.5
@@ -245,11 +280,14 @@ Selections:
       cuts:
         maglim_i: [null, null]
 
+# These describe the subsampling used to make test and training datasets
 Subsamples:
+  # Testing subsample with 100k events
   - Subsample:
       name: test_100k
       seed: 1234
       num_objects: 100000
+  # Training subsample with 100k events, and a different seed to select the events
   - Subsample:
       name: train_100k
       seed: 4321

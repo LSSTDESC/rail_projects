@@ -1,15 +1,30 @@
+# This file describes the groups of plots we can make with the rail_plotting module
+
+# Where to find the plot definitions
 - PlotterYaml:
       path: tests/ci_plots.yaml
+
+# Where to find the dataset definitions
 - DatasetYaml:
       path: tests/ci_datasets.yaml
+
+
+# Each of these will back a group of plots, by taking the product of the
+# plots in the name PlotterList with the datasets in the DatasetList
+
+# Make plots of point estimates v. true redshifts
 - PlotGroup:
       name: zestimate_v_ztrue_test_plots
       plotter_list_name: zestimate_v_ztrue
       dataset_dict_name: baseline_test
+
+# Make plots of accuracy as a function of true redshift
 - PlotGroup:
       name: accuracy_v_ztrue
       plotter_list_name: accuracy_v_ztrue
       dataset_dict_name: baseline_merged
+
+# Make plots of n(z) in various tomographic bins
 - PlotGroup:
       name: tomo_bins
       plotter_list_name: tomo_bins

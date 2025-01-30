@@ -1,28 +1,34 @@
+# This file is an "algorithm library" for rail_project.
+#
+# It list all the available algorithms of various types and assigns short names each of then
+#
+
+
 # These	describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
-  #  - SpecSelection:
-  #        name: GAMA:
-  #        select: SpecSelection_GAMA
-  #        module: rail.creation.degraders.spectroscopic_selections
-  #  - SpecSelection:
-  #        name: BOSS
-  #        select: SpecSelection_BOSS
-  #        module: rail.creation.degraders.spectroscopic_selections
-  #  - SpecSelection:
-  #        name: VVDSf02
-  #        select: SpecSelection_VVDSf02
-  #        module: rail.creation.degraders.spectroscopic_selections
-  #  - SpecSelection:
-  #        name: HSC
-  #        select: SpecSelection_HSC
-  #        module: rail.creation.degraders.spectroscopic_selections
   - SpecSelection:
       name: zCOSMOS
       select: SpecSelection_zCOSMOS
       module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: GAMA:
+#        select: SpecSelection_GAMA
+#        module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: BOSS
+#        select: SpecSelection_BOSS
+#        module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: VVDSf02
+#        select: SpecSelection_VVDSf02
+#        module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: HSC
+#        select: SpecSelection_HSC
+#        module: rail.creation.degraders.spectroscopic_selections
 
 
-# These describe all the algorithms that estimate PZ
+# These describe all the algorithms that estimate p(z) from table of fluxes
 PZAlgorithms:
   - PZAlgorithm:
       name: trainz
@@ -63,7 +69,7 @@ Classifiers:
       Module: rail.estimation.algos.uniform_binning
 
 
-# These describe all the algorithms that summarize PZ information into NZ distributions
+# These describe all the algorithms that summarize p(z) information into n(z) distributions
 Summarizers:
   - Summarizer:
       name: naive_stack
@@ -75,7 +81,7 @@ Summarizers:
       Module: rail.estimation.algos.point_est_hist
 
 
-# These describe the error models we use in the truth_to_observed pipeline
+# These describe the error models we use for emulating photometric uncertainties
 ErrorModels:
   - ErrorModel:
       name: lsst
@@ -95,7 +101,7 @@ Subsamplers:
       Module: rail.projects.subsampler
 
 
-# These describe the ways we can reduce the data
+# These describe the ways we can reduce the data (by removing columns and applying selections)
 Reducers:
   - Reducer:
       name: roman_rubin
