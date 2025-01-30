@@ -3,9 +3,10 @@ import subprocess
 import pprint
 import time
 import itertools
+import yaml
 from typing import Any, Callable
 
-from rail.projects import RailProject
+from rail.projects import RailProject, library
 
 from .project_options import RunMode
 
@@ -183,11 +184,21 @@ def inspect(config_file: str) -> int:
     returncode: int
         Status.  0 for success, exit code otherwise
     """
+    print("RAIL Project Library")
+    print(">>>>>>>>")
     project = RailProject.load_config(config_file)
-    printable_config = pprint.pformat(project.config, compact=True)
+    library.print_contents()
+    print("<<<<<<<<")
     print(f"RAIL Project: {project}")
     print(">>>>>>>>")
-    print(printable_config)
+    for key, val in project.config.items():
+        if key == 'Flavors':            
+            print(f"{key}:")
+            for flavor_ in val:
+                flavor_name = flavor_['Flavor']['name']
+                print(f"- {flavor_name}")
+            continue
+        print(yaml.dump({key: val}, indent=2))
     print("<<<<<<<<")
     return 0
 
