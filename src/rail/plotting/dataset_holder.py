@@ -27,6 +27,9 @@ class RailDatasetHolder(Configurable, DynamicClass):
         DynamicClass.__init__(self)
         self._data: dict[str, Any] | None = None
 
+    def __repr__(self) -> str:
+        return f"{self.config.to_dict()}"
+
     def set_data(self, the_data: dict[str, Any] | None) -> None:
         """Set the data in this holder"""
         self._data = the_data

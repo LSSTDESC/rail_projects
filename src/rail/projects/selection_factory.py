@@ -33,7 +33,7 @@ class RailSelection(Configurable):
 
     def __repr__(self) -> str:
         return f"cuts={self.config.cuts}"
-        
+
 
 class RailSelectionFactory:
     """Factory class to make selections

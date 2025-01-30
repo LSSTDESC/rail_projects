@@ -1,4 +1,5 @@
 """Class to get track of groups of plots to make"""
+
 from __future__ import annotations
 
 import os
@@ -50,6 +51,9 @@ class RailPlotGroup:
         self._plots: dict[str, RailPlotDict] = {}
         self._plotter_list: list[RailPlotter] = []
         self._dataset_dict: dict[str, RailDatasetHolder] = {}
+
+    def __repr__(self) -> str:
+        return f"PlotterList: {self.plotter_list_name}, DatasetList: {self.dataset_dict_name}"
 
     @property
     def plotter_list(self) -> list[RailPlotter]:

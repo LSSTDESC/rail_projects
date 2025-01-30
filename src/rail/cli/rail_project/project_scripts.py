@@ -1,10 +1,10 @@
 import os
 import subprocess
-import pprint
 import time
 import itertools
-import yaml
 from typing import Any, Callable
+
+import yaml
 
 from rail.projects import RailProject, library
 
@@ -192,10 +192,10 @@ def inspect(config_file: str) -> int:
     print(f"RAIL Project: {project}")
     print(">>>>>>>>")
     for key, val in project.config.items():
-        if key == 'Flavors':            
+        if key == "Flavors":
             print(f"{key}:")
             for flavor_ in val:
-                flavor_name = flavor_['Flavor']['name']
+                flavor_name = flavor_["Flavor"]["name"]
                 print(f"- {flavor_name}")
             continue
         print(yaml.dump({key: val}, indent=2))

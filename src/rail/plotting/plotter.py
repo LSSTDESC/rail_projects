@@ -154,6 +154,9 @@ class RailPlotter(Configurable, DynamicClass):
         DynamicClass.__init__(self)
         Configurable.__init__(self, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"{type(self)}"
+
     def __call__(
         self,
         prefix: str,

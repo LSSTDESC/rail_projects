@@ -177,7 +177,7 @@ class RailCatalogFactory:
         """Print the contents of the factory"""
         print("----------------")
         print("Catalogs")
-        print("----------------")        
+        print("----------------")
         print("CatalogTemplates:")
         for template_name, catalog_template in self.catalog_templates.items():
             print(f"  {template_name}: {catalog_template}")

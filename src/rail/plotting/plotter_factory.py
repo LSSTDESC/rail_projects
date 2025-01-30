@@ -178,13 +178,15 @@ class RailPlotterFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
+        print("----------------")
         print("Plotters:")
         for plotter_name, plotter in self.plotter_dict.items():
             print(f"  {plotter_name}: {plotter}")
         print("----------------")
         print("PlotterLists")
         for plotter_list_name, plotter_list in self.plotter_list_dict.items():
-            print(f"  {plotter_list_name}: {plotter_list}")
+            plotter_names = [plotter_.config.name for plotter_ in plotter_list]
+            print(f"  {plotter_list_name}: {plotter_names}")
 
     def _make_plotter(self, config_dict: dict[str, Any]) -> RailPlotter:
         try:

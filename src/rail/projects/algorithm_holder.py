@@ -40,10 +40,10 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
 
     def __repr__(self) -> str:
         vals = self.config.to_dict().copy()
-        vals.pop('name')
-        vals.pop('Module')        
+        vals.pop("name")
+        vals.pop("Module")
         return f"{self.config.Module}.{vals}"
-        
+
     def __call__(self, key: str) -> type:
         """Get the associated class one of the parts of the algorithm"""
         try:

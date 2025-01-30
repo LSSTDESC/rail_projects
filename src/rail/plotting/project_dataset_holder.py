@@ -50,6 +50,16 @@ class RailProjectDatasetHolder(RailDatasetHolder):
         self._project: RailProject | None = None
         self._extractor: RailProjectDataExtractor | None = None
 
+    def __repr__(self) -> str:
+        ret_str = (
+            f"{self.config.extractor} "
+            "( "
+            f"{self.config.project}, "
+            f"{self.config.selection}_{self.config.flavor}_{self.config.tag}_{self.config.algo}"
+            ")"
+        )
+        return ret_str
+
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
             self._project = RailDatasetFactory.get_project(self.config.project)
@@ -91,6 +101,9 @@ class RailProjectMultiDatasetHolder(RailDatasetHolder):
         RailDatasetHolder.__init__(self, **kwargs)
         self._extractor: RailProjectDataExtractor | None = None
         self._datasets: list[RailDatasetHolder] | None = None
+
+    def __repr__(self) -> str:
+        return f"{self.config.extractor}( {self.config.datasets} )"
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._extractor is None:
@@ -152,6 +165,16 @@ class RailProjectNZDatasetHolder(RailDatasetHolder):
         RailDatasetHolder.__init__(self, **kwargs)
         self._project: RailProject | None = None
         self._extractor: RailProjectDataExtractor | None = None
+
+    def __repr__(self) -> str:
+        ret_str = (
+            f"{self.config.extractor}"
+            "( "
+            f"{self.config.project}, "
+            f"{self.config.selection}_{self.config.flavor}_{self.config.algo}_{self.config.classifier}_{self.config.summarizer} "
+            ")"
+        )
+        return ret_str
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
