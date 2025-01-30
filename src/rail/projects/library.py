@@ -139,18 +139,23 @@ def clear() -> None:
 
 def print_contents() -> None:
     """Print the contents of the factories"""
-    print("----------------")
     RailAlgorithmFactory.print_contents()
     print("----------------")
+    print("")
     RailCatalogFactory.print_contents()
     print("----------------")
+    print("")
     RailPipelineFactory.print_contents()
     print("----------------")
+    print("")
     RailProjectFileFactory.print_contents()
     print("----------------")
+    print("")
     RailSelectionFactory.print_contents()
     print("----------------")
+    print("")
     RailSubsampleFactory.print_contents()
+    print("----------------")
 
 
 def load_yaml(yaml_file: str) -> None:

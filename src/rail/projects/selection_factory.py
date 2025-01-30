@@ -31,6 +31,9 @@ class RailSelection(Configurable):
         """
         Configurable.__init__(self, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"cuts={self.config.cuts}"
+        
 
 class RailSelectionFactory:
     """Factory class to make selections
@@ -148,10 +151,10 @@ class RailSelectionFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
-        print("SelectionTemplates:")
+        print("----------------")
+        print("Selections:")
         for selection_name, selection in self.selections.items():
             print(f"  {selection_name}: {selection}")
-        print("----------------")
 
     def _make_selection(self, **kwargs: Any) -> RailSelection:
         try:

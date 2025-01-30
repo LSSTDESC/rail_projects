@@ -31,6 +31,9 @@ class RailSubsample(Configurable):
         """
         Configurable.__init__(self, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"N={self.config.num_objects} seed={self.config.seed}"
+
 
 class RailSubsampleFactory:
     """Factory class to make subsamples
@@ -148,10 +151,10 @@ class RailSubsampleFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
-        print("SubsampleTemplates:")
+        print("----------------")
+        print("Subsamples:")
         for subsample_name, subsample in self.subsamples.items():
             print(f"  {subsample_name}: {subsample}")
-        print("----------------")
 
     def _make_subsample(self, **kwargs: Any) -> RailSubsample:
         try:

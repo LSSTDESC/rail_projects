@@ -169,6 +169,9 @@ class RailProjectFileFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
+        print("----------------")
+        print("Files:")
+        print("----------------")
         print("FileTemplates:")
         for template_name, file_template in self.file_templates.items():
             print(f"  {template_name}: {file_template}")

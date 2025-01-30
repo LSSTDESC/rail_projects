@@ -36,6 +36,9 @@ class RailProjectCatalogInstance(Configurable):
         self._file_list: list[str] | None = None
         self._file_exists: list[bool] | None = None
 
+    def __repr__(self) -> str:
+        return f"{self.config.path_template}"
+
     def __call__(self, **kwargs: dict[str, Any]) -> list[str]:
         if self._file_list is not None:
             return self._file_list
@@ -85,6 +88,9 @@ class RailProjectCatalogTemplate(Configurable):
             class.config_options data members
         """
         Configurable.__init__(self, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.config.path_template}"
 
     def make_catalog_instance(
         self, name: str, **kwargs: dict[str, Any]

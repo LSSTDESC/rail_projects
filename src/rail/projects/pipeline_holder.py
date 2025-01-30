@@ -56,7 +56,10 @@ class RailPipelineTemplate(Configurable):
         """
         Configurable.__init__(self, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"{self.config.pipeline_class}"
 
+    
 class RailPipelineInstance(Configurable):
     """Simple class for holding a pipeline configuraiton"""
 
@@ -93,3 +96,8 @@ class RailPipelineInstance(Configurable):
             class.config_options data members
         """
         Configurable.__init__(self, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.config.pipeline_template} {self.config.interpolants}"
+        
+    

@@ -159,11 +159,13 @@ class RailAlgorithmFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
+        print("----------------")
+        print("Algorithms")
         for algorithm_type, algo_dict in self.algorithm_holder_dict.items():
+            print("----------------")
             print(f"{algorithm_type}:")
             for algorithm_name, algorithm in algo_dict.items():
                 print(f"  {algorithm_name}: {algorithm}")
-            print("----------------")
 
     def _make_algorithm(self, **kwargs: Any) -> RailAlgorithmHolder:
         try:

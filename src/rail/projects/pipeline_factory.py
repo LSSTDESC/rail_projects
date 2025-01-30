@@ -175,6 +175,9 @@ class RailPipelineFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
+        print("----------------")
+        print("Pipelines:")
+        print("----------------")
         print("PipelineTemplates:")
         for template_name, pipeline_template in self.pipeline_templates.items():
             print(f"  {template_name}: {pipeline_template}")
