@@ -26,26 +26,26 @@ Files:
 
 # These	describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
-#  - SpecSelection:
-#        name: GAMA:
-#        Select: SpecSelection_GAMA
-#        Module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: BOSS
-#        Select: SpecSelection_BOSS
-#        Module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: VVDSf02
-#        Select: SpecSelection_VVDSf02
-#        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: GAMA:
+  #        Select: SpecSelection_GAMA
+  #        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: BOSS
+  #        Select: SpecSelection_BOSS
+  #        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: VVDSf02
+  #        Select: SpecSelection_VVDSf02
+  #        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #      name: HSC
+  #      Select: SpecSelection_HSC
+  #      Module: rail.creation.degraders.spectroscopic_selections
   - SpecSelection:
       name: zCOSMOS
       Select: SpecSelection_zCOSMOS
       Module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: HSC
-#        Select: SpecSelection_HSC
-#        Module: rail.creation.degraders.spectroscopic_selections
 
 
 # These describe all the algorithms that estimate PZ
@@ -128,6 +128,8 @@ Reducers:
       Reduce: RomanRubinReducer
       Module: rail.projects.reducer
 
+
+# These describe the various data analysis pipelines
 Pipelines:
   - PipelineTemplate:
       name: truth_to_observed

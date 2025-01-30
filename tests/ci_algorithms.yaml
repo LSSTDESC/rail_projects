@@ -1,78 +1,25 @@
 # These	describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
-#  - SpecSelection:
-#        name: GAMA:
-#        select: SpecSelection_GAMA
-#        module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: BOSS
-#        select: SpecSelection_BOSS
-#        module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: VVDSf02
-#        select: SpecSelection_VVDSf02
-#        module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: GAMA:
+  #        select: SpecSelection_GAMA
+  #        module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: BOSS
+  #        select: SpecSelection_BOSS
+  #        module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: VVDSf02
+  #        select: SpecSelection_VVDSf02
+  #        module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: HSC
+  #        select: SpecSelection_HSC
+  #        module: rail.creation.degraders.spectroscopic_selections
   - SpecSelection:
       name: zCOSMOS
       select: SpecSelection_zCOSMOS
       module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: HSC
-#        select: SpecSelection_HSC
-#        module: rail.creation.degraders.spectroscopic_selections
-
-
-# These describe all the algorithms that estimate PZ
-PZAlgorithms:
-  - PZAlgorithm:
-      name: trainz
-      estimate: TrainZEstimator
-      inform: TrainZInformer
-      module: rail.estimation.algos.train_z
-  - PZAlgorithm:
-      name: simplenn
-      estimate: SklNeurNetEstimator
-      inform: SklNeurNetInformer
-      module: rail.estimation.algos.sklearn_neurnet
-  - PZAlgorithm:
-      name: fzboost
-      estimate: FlexZBoostEstimator
-      inform: FlexZBoostInformer
-      module: rail.estimation.algos.flexzboost
-  - PZAlgorithm:
-      name: knn
-      estimate: KNearNeighEstimator
-      inform: KNearNeighInformer
-      module: rail.estimation.algos.k_nearneigh
-  - PZAlgorithm:
-      name: gpz
-      estimate: GPzEstimator
-      inform: GPzInformer
-      module: rail.estimation.algos.gpz
-
-
-# These	describe all the algorithms that emulate spectroscopic selections
-SpecSelections:
-#  - SpecSelection:
-#        name: GAMA:
-#        Select: SpecSelection_GAMA
-#        Module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: BOSS
-#        Select: SpecSelection_BOSS
-#        Module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: VVDSf02
-#        Select: SpecSelection_VVDSf02
-#        Module: rail.creation.degraders.spectroscopic_selections
-  - SpecSelection:
-      name: zCOSMOS
-      Select: SpecSelection_zCOSMOS
-      Module: rail.creation.degraders.spectroscopic_selections
-#  - SpecSelection:
-#        name: HSC
-#        Select: SpecSelection_HSC
-#        Module: rail.creation.degraders.spectroscopic_selections
 
 
 # These describe all the algorithms that estimate PZ
