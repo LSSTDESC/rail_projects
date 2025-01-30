@@ -12,15 +12,15 @@ class RailProjectFileFactory:
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Files: 
+    Files:
       - FileTemplate:
             name: test_file_100k
             path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
-              
+
     Or the used can specifiy particular file instances where everything except the
     interation_vars are resolved
 
-    Files: 
+    Files:
       - FileInstance
             name: test_file_100k_roman_rubin_v1.1.3_gold
             path: <full_path_to_file>
@@ -72,6 +72,23 @@ class RailProjectFileFactory:
         cls._instance.load_instance_yaml(yaml_file)
 
     @classmethod
+    def load_yaml_tag(cls, files_config: list[dict[str, Any]]) -> None:
+        """Load from a yaml tag
+
+        Parameters
+        ----------
+        files_config: list[dict[str, Any]]
+            Yaml tag used to load
+
+        Notes
+        -----
+        See class helpstring for yaml format
+        """
+        if cls._instance is None:
+            cls._instance = RailProjectFileFactory()
+        cls._instance.load_files_from_yaml_tag(files_config)
+
+    @classmethod
     def get_file_templates(cls) -> dict[str, RailProjectFileTemplate]:
         """Return the dict of all the file templates"""
         return cls.instance().file_templates
@@ -84,7 +101,7 @@ class RailProjectFileFactory:
     @classmethod
     def get_file_instances(cls) -> dict[str, RailProjectFileInstance]:
         """Return the dict of all the file instances"""
-        return cls.instance()._file_instances
+        return cls.instance().file_instances
 
     @classmethod
     def get_file_instance_names(cls) -> list[str]:
@@ -136,7 +153,7 @@ class RailProjectFileFactory:
             ) from msg
 
     @property
-    def file_templates(self) ->dict[str, RailProjectFileTemplate]:
+    def file_templates(self) -> dict[str, RailProjectFileTemplate]:
         """Return the dictionary of file templates"""
         return self._file_templates
 
@@ -188,7 +205,9 @@ class RailProjectFileFactory:
         self._file_templates[name] = file_template
         return file_template
 
-    def load_file_template_from_yaml_tag(self, file_template_config: dict[str, Any]) -> None:
+    def load_file_template_from_yaml_tag(
+        self, file_template_config: dict[str, Any]
+    ) -> None:
         """Load a dataset from a Dataset tag in yaml
 
         Paramters
@@ -198,7 +217,9 @@ class RailProjectFileFactory:
         """
         self._make_file_template(**file_template_config)
 
-    def load_file_instance_from_yaml_tag(self, file_instance_config: dict[str, Any]) -> None:
+    def load_file_instance_from_yaml_tag(
+        self, file_instance_config: dict[str, Any]
+    ) -> None:
         """Load a dataset from a Dataset tag in yaml
 
         Paramters
@@ -207,6 +228,34 @@ class RailProjectFileFactory:
             Yaml data in question
         """
         self._make_file_instance(**file_instance_config)
+
+    def load_files_from_yaml_tag(
+        self,
+        files_config: list[dict[str, Any]],
+    ) -> None:
+        """Read a yaml "Files" tag and load the factory accordingy
+
+        Parameters
+        ----------
+        files_config: list[dict[str, Any]]
+            Yaml tag to load
+
+        Notes
+        -----
+        See class description for yaml file syntax
+        """
+        for files_item in files_config:
+            if "FileTemplate" in files_item:
+                file_template_config = files_item["FileTemplate"]
+                self.load_file_template_from_yaml_tag(file_template_config)
+            elif "FileInstance" in files_item:
+                file_instance_config = files_item["FileInstance"]
+                self.load_file_instance_from_yaml_tag(file_instance_config)
+            else:  # pragma: no cover
+                good_keys = ["FileTemplate", "FileInstance"]
+                raise KeyError(
+                    f"Expecting one of {good_keys} not: {files_item.keys()})"
+                )
 
     def load_instance_yaml(self, yaml_file: str) -> None:
         """Read a yaml file and load the factory accordingly
@@ -224,19 +273,8 @@ class RailProjectFileFactory:
             yaml_data = yaml.safe_load(fin)
 
         try:
-            files_config = yaml_data['Files']
+            files_config = yaml_data["Files"]
         except KeyError as missing_key:
             raise KeyError(f"Did not find key Files in {yaml_file}") from missing_key
-        
-        for files_item in files_config:
-            if "FileTemplate" in files_item:
-                file_template_config = files_item["FileTemplate"]
-                self.load_file_template_from_yaml_tag(file_template_config)
-            elif "FileInstance" in files_item:
-                file_instance_config = files_item["FileInstance"]                
-                self.load_file_instance_from_yaml_tag(file_instance_config)
-            else:  # pragma: no cover
-                good_keys = ["FileTemplate", "FileInstance"]
-                raise KeyError(
-                    f"Expecting one of {good_keys} not: {dataset_item.keys()})"
-                )
+
+        self.load_files_from_yaml_tag(files_config)

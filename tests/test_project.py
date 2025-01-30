@@ -14,7 +14,7 @@ def check_get_func(func: Callable, check_dict: dict[str, Any]) -> None:
         func("does_not_exist")
 
 
-def test_project() -> None:
+def test_project_class() -> None:
     project = RailProject.load_config("tests/ci_project.yaml")
 
     print(project)
@@ -61,9 +61,6 @@ def test_project() -> None:
     pz_algos = project.get_pzalgorithms()
     check_get_func(project.get_pzalgorithm, pz_algos)
 
-    nz_algos = project.get_nzalgorithms()
-    check_get_func(project.get_nzalgorithm, nz_algos)
-
     spec_selections = project.get_spec_selections()
     check_get_func(project.get_spec_selection, spec_selections)
 
@@ -86,4 +83,40 @@ def test_project() -> None:
         output_dir=".",
         log_dir=".",
         alice="bob",
+    )
+
+    project.build_pipelines(flavor="baseline")
+
+    catalog_files_truth = project.get_catalog_files("truth")
+    check_path = "tests/temp_data/data/ci_test_v1.1.3/10050/part-0.parquet"
+    assert check_path in catalog_files_truth
+
+    catalog_files_reduced = project.get_catalog_files("reduced", selection="gold")
+    check_path = "tests/temp_data/data/ci_test_v1.1.3_gold/10050/part-0.pq"
+    assert check_path in catalog_files_reduced
+
+    catalog_files_degraded = project.get_catalog_files(
+        "degraded", selection="gold", flavor="baseline", basename="output.hdf5"
+    )
+    check_path = "tests/temp_data/data/ci_test_v1.1.3_gold_baseline/10050/output.hdf5"
+    assert check_path in catalog_files_degraded
+
+    project.subsample_data(
+        catalog_template="degraded",
+        file_template="test_file_100k",
+        subsampler_class_name="random_subsampler",
+        subsample_name="test_100k",
+        dry_run=True,
+        flavor="baseline",
+        selection="gold",
+        basename="output.hdf5",
+    )
+
+    project.reduce_data(
+        catalog_template="truth",
+        output_catalog_template="reduced",
+        reducer_class_name="roman_rubin",
+        input_selection="",
+        selection="gold",
+        dry_run=True,
     )

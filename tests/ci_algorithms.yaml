@@ -51,37 +51,106 @@ PZAlgorithms:
       module: rail.estimation.algos.gpz
 
 
+# These	describe all the algorithms that emulate spectroscopic selections
+SpecSelections:
+#  - SpecSelection:
+#        name: GAMA:
+#        Select: SpecSelection_GAMA
+#        Module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: BOSS
+#        Select: SpecSelection_BOSS
+#        Module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: VVDSf02
+#        Select: SpecSelection_VVDSf02
+#        Module: rail.creation.degraders.spectroscopic_selections
+  - SpecSelection:
+      name: zCOSMOS
+      Select: SpecSelection_zCOSMOS
+      Module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: HSC
+#        Select: SpecSelection_HSC
+#        Module: rail.creation.degraders.spectroscopic_selections
+
+
+# These describe all the algorithms that estimate PZ
+PZAlgorithms:
+  - PZAlgorithm:
+      name: trainz
+      Estimate: TrainZEstimator
+      Inform: TrainZInformer
+      Module: rail.estimation.algos.train_z
+  - PZAlgorithm:
+      name: simplenn
+      Estimate: SklNeurNetEstimator
+      Inform: SklNeurNetInformer
+      Module: rail.estimation.algos.sklearn_neurnet
+  - PZAlgorithm:
+      name: fzboost
+      Estimate: FlexZBoostEstimator
+      Inform: FlexZBoostInformer
+      Module: rail.estimation.algos.flexzboost
+  - PZAlgorithm:
+      name: knn
+      Estimate: KNearNeighEstimator
+      Inform: KNearNeighInformer
+      Module: rail.estimation.algos.k_nearneigh
+  - PZAlgorithm:
+      name: gpz
+      Estimate: GPzEstimator
+      Inform: GPzInformer
+      Module: rail.estimation.algos.gpz
+
+
 # These describe all the algorithms that classify objects into tomographic bins
 Classifiers:
   - Classifier:
       name: equal_count
-      classify: EqualCountClassifier
-      module: rail.estimation.algos.equal_count
+      Classify: EqualCountClassifier
+      Module: rail.estimation.algos.equal_count
   - Classifier:
       name: uniform_binning
-      classify: UniformBinningClassifier
-      module: rail.estimation.algos.uniform_binning
+      Classify: UniformBinningClassifier
+      Module: rail.estimation.algos.uniform_binning
 
 
 # These describe all the algorithms that summarize PZ information into NZ distributions
 Summarizers:
   - Summarizer:
       name: naive_stack
-      summarize: NaiveStackMaskedSummarizer
-      module: rail.estimation.algos.naive_stack
+      Summarize: NaiveStackMaskedSummarizer
+      Module: rail.estimation.algos.naive_stack
   - Summarizer:
       name: point_est_hist
-      summarize: PointEstHistMaskedSummarizer
-      module: rail.estimation.algos.point_est_hist
+      Summarize: PointEstHistMaskedSummarizer
+      Module: rail.estimation.algos.point_est_hist
 
 
-# The describe the error models we use in the truth_to_observed pipeline
+# These describe the error models we use in the truth_to_observed pipeline
 ErrorModels:
   - ErrorModel:
       name: lsst
-      error_model: LSSTErrorModel
-      module: rail.creation.degraders.photometric_errors
+      ErrorModel: LSSTErrorModel
+      Module: rail.creation.degraders.photometric_errors
   - ErrorModel:
       name: roman
-      error_model: RomanErrorModel
-      module: rail.creation.degraders.photometric_errors
+      ErrorModel: RomanErrorModel
+      Module: rail.creation.degraders.photometric_errors
+
+
+# These describe the ways we can sub-sample the data
+Subsamplers:
+  - Subsampler:
+      name: random_subsampler
+      Subsample: RandomSubsampler
+      Module: rail.projects.subsampler
+
+
+# These describe the ways we can reduce the data
+Reducers:
+  - Reducer:
+      name: roman_rubin
+      Reduce: RomanRubinReducer
+      Module: rail.projects.reducer

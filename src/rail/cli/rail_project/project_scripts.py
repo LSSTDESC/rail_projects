@@ -5,13 +5,6 @@ import time
 import itertools
 from typing import Any, Callable
 
-import numpy as np
-import pyarrow.parquet as pq
-import pyarrow.dataset as ds
-import yaml
-
-from rail.utils import catalog_utils
-from rail.core.stage import RailPipeline
 from rail.projects import RailProject
 
 from .project_options import RunMode
@@ -345,7 +338,7 @@ def run_pipeline_on_catalog(
     pipeline_info = project.get_pipeline(pipeline_name)
     pipeline_path = project.get_path("pipeline_path", pipeline=pipeline_name, **kwargs)
 
-    input_catalog_name = pipeline_info["InputCatalogTag"]
+    input_catalog_name = pipeline_info["input_catalog_template"]
     input_catalog = project.get_catalogs().get(input_catalog_name, {})
 
     # Loop through all possible combinations of the iteration variables that are
@@ -494,7 +487,7 @@ def inform_input_callback(
     """
     pipeline_info = project.get_pipeline(pipeline_name)
     input_files = {}
-    input_file_tags = pipeline_info["InputFileTags"]
+    input_file_tags = pipeline_info["input_file_templates"]
     flavor = kwargs.pop("flavor", "baseline")
     for key, val in input_file_tags.items():
         input_file_flavor = val.get("flavor", flavor)
@@ -533,7 +526,7 @@ def estimate_input_callback(
     """
     pipeline_info = project.get_pipeline(pipeline_name)
     input_files = {}
-    input_file_tags = pipeline_info["InputFileTags"]
+    input_file_tags = pipeline_info["input_file_templates"]
     flavor = kwargs.pop("flavor", "baseline")
     for key, val in input_file_tags.items():
         input_file_flavor = val.get("flavor", flavor)
@@ -578,7 +571,7 @@ def evaluate_input_callback(
     """
     pipeline_info = project.get_pipeline(pipeline_name)
     input_files = {}
-    input_file_tags = pipeline_info["InputFileTags"]
+    input_file_tags = pipeline_info["input_file_templates"]
     flavor = kwargs.pop("flavor", "baseline")
     for key, val in input_file_tags.items():
         input_file_flavor = val.get("flavor", flavor)
@@ -624,7 +617,7 @@ def pz_input_callback(
     """
     pipeline_info = project.get_pipeline(pipeline_name)
     input_files = {}
-    input_file_tags = pipeline_info["InputFileTags"]
+    input_file_tags = pipeline_info["input_file_templates"]
     flavor = kwargs.pop("flavor")
     for key, val in input_file_tags.items():
         input_file_flavor = val.get("flavor", flavor)
@@ -663,7 +656,7 @@ def tomography_input_callback(
     """
     pipeline_info = project.get_pipeline(pipeline_name)
     input_files = {}
-    input_file_tags = pipeline_info["InputFileTags"]
+    input_file_tags = pipeline_info["input_file_templates"]
     flavor = kwargs.pop("flavor")
     selection = kwargs.get("selection")
     for key, val in input_file_tags.items():
@@ -711,7 +704,7 @@ def sompz_input_callback(
     """
     pipeline_info = project.get_pipeline(pipeline_name)
     input_file_dict = {}
-    input_file_tags = pipeline_info["InputFileTags"]
+    input_file_tags = pipeline_info["input_file_templates"]
     flavor = kwargs.pop("flavor")
     selection = kwargs.get("selection")
     for key, val in input_file_tags.items():
@@ -729,229 +722,3 @@ def sompz_input_callback(
         truth=input_file_dict["input_test"],
     )
     return input_files
-
-
-def reduce_data(
-    sources: list[str],
-    seed: int,
-    size: int,
-    output_dir: str,
-    output: str,
-) -> None:  # pragma: no cover
-    dataset = ds.dataset(sources)
-    num_rows = dataset.count_rows()
-    print("num rows", num_rows)
-    rng = np.random.default_rng(seed)
-    print("sampling", size)
-
-    size = min(size, num_rows)
-    indices = rng.choice(num_rows, size=size, replace=False)
-    subset = dataset.take(indices)
-    print("writing", output)
-
-    os.makedirs(output_dir, exist_ok=True)
-    pq.write_table(
-        subset,
-        output,
-    )
-    print("done")
-
-
-def subsample_data(
-    project: RailProject,
-    source_tag: str = "degraded",
-    selection: str = "gold",
-    flavor: str = "baseline",
-    label: str = "train_file",
-    run_mode: RunMode = RunMode.bash,
-) -> int:
-    """Make dict of input tags and paths for the sompz pipeline
-
-    Parameters
-    ----------
-    project: RailProject
-        Object with project configuration
-
-    source_tag: str
-        Tag for the input catalog
-
-    selection: str
-        Which sub-selection of data to draw from
-
-    flavor: str
-        Which analysis flavor to draw from
-
-    label: str
-        Which label to apply to output dataset
-
-    run_mode: RunMode
-        How to run the command, e.g., dry_run, bash or slurm
-
-    Returns
-    -------
-    returncode: int
-        Status returned by the command.  0 for success, exit code otherwise
-    """
-
-    hdf5_output = project.get_file_for_flavor(flavor, label, selection=selection)
-    output = hdf5_output.replace(".hdf5", ".parquet")
-    output_metadata = project.get_file_metadata_for_flavor(flavor, label)
-    basename = output_metadata["SourceFileBasename"]
-    output_dir = os.path.dirname(output)
-    size = output_metadata.get("NumObjects")
-    seed = output_metadata.get("Seed")
-    catalog_metadata = project.get_catalogs()["degraded"]
-    iteration_vars = catalog_metadata["IterationVars"]
-
-    iterations = itertools.product(
-        *[
-            project.config.get("IterationVars", {}).get(iteration_var, "")
-            for iteration_var in iteration_vars
-        ]
-    )
-    sources = []
-    for iteration_args in iterations:
-        iteration_kwargs = {
-            iteration_vars[i]: iteration_args[i] for i in range(len(iteration_vars))
-        }
-
-        source_catalog = project.get_catalog(
-            source_tag,
-            selection=selection,
-            flavor=flavor,
-            basename=basename,
-            **iteration_kwargs,
-        )
-        sources.append(source_catalog)
-
-    if run_mode == RunMode.slurm:
-        raise NotImplementedError("subsample_data not set up to run under slurm")
-
-    if run_mode == RunMode.bash:  # pragma: no cover
-        reduce_data(sources, seed, size, output_dir, output)
-        handle_command(
-            run_mode,
-            [
-                "tables-io",
-                "convert",
-                "--input",
-                f"{output}",
-                "--output",
-                f"{hdf5_output}",
-            ],
-        )
-
-    return 0
-
-
-def build_pipelines(
-    project: RailProject,
-    flavor: str = "baseline",
-    *,
-    force: bool = False,
-) -> int:
-    """Build ceci pipeline configuraiton files for this project
-
-    Parameters
-    ----------
-    project: RailProject
-        Object with project configuration
-
-    flavor: str
-        Which analysis flavor to draw from
-
-    force: bool
-        Force overwriting of existing pipeline files
-
-    Returns
-    -------
-    returncode: int
-        Status returned by the command.  0 for success, exit code otherwise
-    """
-
-    output_dir = project.get_common_path("project_scratch_dir")
-    flavor_dict = project.get_flavor(flavor)
-    pipelines_to_build = flavor_dict["Pipelines"]
-    pipeline_overrides = flavor_dict.get("PipelineOverrides", {})
-    do_all = "all" in pipelines_to_build
-
-    for pipeline_name, pipeline_info in project.get_pipelines().items():
-        if not (do_all or pipeline_name in pipelines_to_build):
-            print(f"Skipping pipeline {pipeline_name} from flavor {flavor}")
-            continue
-        output_yaml = project.get_path(
-            "pipeline_path", pipeline=pipeline_name, flavor=flavor
-        )
-        if os.path.exists(output_yaml):  # pragma: no cover
-            if force:
-                print(f"Overwriting existing pipeline {output_yaml}")
-            else:
-                print(f"Skipping existing pipeline {output_yaml}")
-                continue
-        pipe_out_dir = os.path.dirname(output_yaml)
-
-        try:
-            os.makedirs(pipe_out_dir)
-        except FileExistsError:
-            pass
-
-        overrides = pipeline_overrides.get("default", {})
-        overrides.update(**pipeline_overrides.get(pipeline_name, {}))
-
-        pipeline_kwargs = pipeline_info.get("kwargs", {})
-        for key, val in pipeline_kwargs.items():
-            if val == "SpecSelections":
-                pipeline_kwargs[key] = project.get_spec_selections()
-            elif val == "PZAlgorithms":
-                pipeline_kwargs[key] = project.get_pzalgorithms()
-            elif val == "NZAlgorithms":  # pragma: no cover
-                pipeline_kwargs[key] = project.get_nzalgorithms()
-            elif val == "Classifiers":
-                pipeline_kwargs[key] = project.get_classifiers()
-            elif val == "Summarizers":
-                pipeline_kwargs[key] = project.get_summarizers()
-            elif val == "ErrorModels":
-                pipeline_kwargs[key] = project.get_error_models()
-
-        if overrides:
-            pipe_ctor_kwargs = overrides.pop("kwargs", {})
-            pz_algorithms = pipe_ctor_kwargs.pop("PZAlgorithms", None)
-            if pz_algorithms:
-                orig_pz_algorithms = project.get_pzalgorithms().copy()
-                pipe_ctor_kwargs["algorithms"] = {
-                    pz_algo_: orig_pz_algorithms[pz_algo_] for pz_algo_ in pz_algorithms
-                }
-            pipeline_kwargs.update(**pipe_ctor_kwargs)
-            stages_config = os.path.join(
-                pipe_out_dir, f"{pipeline_name}_{flavor}_overrides.yml"
-            )
-            with open(stages_config, "w", encoding="utf-8") as fout:
-                yaml.dump(overrides, fout)
-        else:
-            stages_config = None
-
-        pipeline_class = pipeline_info["PipelineClass"]
-        catalog_tag = pipeline_info["CatalogTag"]
-
-        if catalog_tag:
-            catalog_utils.apply_defaults(catalog_tag)
-
-        tokens = pipeline_class.split(".")
-        module = ".".join(tokens[:-1])
-        class_name = tokens[-1]
-        log_dir = f"{output_dir}/logs/{pipeline_name}"
-
-        print(f"Writing {output_yaml}")
-
-        __import__(module)
-        RailPipeline.build_and_write(
-            class_name,
-            output_yaml,
-            None,
-            stages_config,
-            output_dir,
-            log_dir,
-            **pipeline_kwargs,
-        )
-
-    return 0

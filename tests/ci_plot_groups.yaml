@@ -2,15 +2,15 @@
       path: tests/ci_plots.yaml
 - DatasetYaml:
       path: tests/ci_datasets.yaml
-- PlotGroup: 
+- PlotGroup:
       name: zestimate_v_ztrue_test_plots
-      plotter_list_name: zestimate_v_ztrue 
-      dataset_dict_name: baseline_test 
-- PlotGroup: 
+      plotter_list_name: zestimate_v_ztrue
+      dataset_dict_name: baseline_test
+- PlotGroup:
       name: accuracy_v_ztrue
       plotter_list_name: accuracy_v_ztrue
       dataset_dict_name: baseline_merged
-- PlotGroup: 
+- PlotGroup:
       name: tomo_bins
       plotter_list_name: tomo_bins
       dataset_dict_name: blend_baseline_tomo_knn

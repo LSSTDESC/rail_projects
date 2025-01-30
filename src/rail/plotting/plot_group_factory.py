@@ -188,14 +188,22 @@ class RailPlotGroupFactory:
         output.append(
             dict(
                 PlotterYaml=dict(
-                    path=re.sub('.*rail_project_config', '${RAIL_PROJECT_CONFIG_DIR}', plotter_yaml_path),
+                    path=re.sub(
+                        ".*rail_project_config",
+                        "${RAIL_PROJECT_CONFIG_DIR}",
+                        plotter_yaml_path,
+                    ),
                 ),
             )
         )
         output.append(
             dict(
                 DatasetYaml=dict(
-                    path=re.sub('.*rail_project_config', '${RAIL_PROJECT_CONFIG_DIR}', dataset_yaml_path)
+                    path=re.sub(
+                        ".*rail_project_config",
+                        "${RAIL_PROJECT_CONFIG_DIR}",
+                        dataset_yaml_path,
+                    )
                 ),
             )
         )

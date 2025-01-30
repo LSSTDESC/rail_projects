@@ -1,240 +1,254 @@
-# These are used to make all the other paths
-CommonPaths:
-    root: tests/temp_data
-    scratch_root: "{root}"
-    catalogs_dir: "{root}/data"
-
-# These are templates for catalogs produced in the early stages of the analysis
 Catalogs:
-    truth:
-        PathTemplate: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
-        IterationVars: ['healpix']
-    reduced:
-        PathTemplate: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
-        IterationVars: ['healpix']
-    degraded:
-        PathTemplate: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
-        IterationVars: ['healpix']
+  - CatalogTemplate:
+      name: truth
+      path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
+      iteration_vars: ['healpix']
+  - CatalogTemplate:
+      name: reduced
+      path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
+      iteration_vars: ['healpix']
+  - CatalogTemplate:
+      name: degraded
+      path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
+      iteration_vars: ['healpix']
 
 # These are templates for specific files, such as testing and training files
 Files:
-    test_file_100k:
-        NumObjects: 100000
-        Seed: 1234
-        PathTemplate: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
-        SourceFileBasename: output_dereddener_errors.pq
-    train_file_100k:
-        NumObjects: 100000
-        Seed: 4321
-        PathTemplate: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
-        SourceFileBasename: output_dereddener_errors.pq
-    train_file_zCOSMOS_100k:
-        NumObjects: 100000
-        Seed: 4321
-        PathTemplate: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
-        SourceFileBasename: output_select_zCOSMOS.pq
-
-# These are ceci pipelines that we will be running
-Pipelines:
-    truth_to_observed:
-        PipelineClass: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
-        CatalogTag: roman_rubin
-        InputCatalogTag: reduced
-        kwargs:
-            error_models: ErrorModels
-            selectors: SpecSelections
-            blending: true
-    photometric_errors:
-        PipelineClass: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
-        CatalogTag: roman_rubin
-        InputCatalogTag: reduced
-        kwargs:
-            error_models: ErrorModels
-    blending:
-        PipelineClass: rail.pipelines.degradation.blending.BlendingPipeline
-        CatalogTag: roman_rubin
-        InputCatalogTag: degraded
-        kwargs: {}
-    spec_selection:
-        PipelineClass: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
-        CatalogTag: roman_rubin
-        kwargs:
-            selectors: SpecSelections
-        InputCatalogTag: degraded
-    inform:
-        PipelineClass: rail.pipelines.estimation.inform_all.InformPipeline
-        CatalogTag: roman_rubin
-        kwargs:
-            algorithms: PZAlgorithms
-        InputFileTags:
-            input:
-                flavor: baseline
-                tag: train
-    estimate:
-        PipelineClass: rail.pipelines.estimation.estimate_all.EstimatePipeline
-        CatalogTag: roman_rubin
-        kwargs:
-            algorithms: PZAlgorithms
-        InputFileTags:
-            input:
-                tag: test
-                flavor: baseline
-        InputCatalogTag: degraded
-    evaluate:
-        PipelineClass: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
-        CatalogTag: roman_rubin
-        kwargs:
-            algorithms: PZAlgorithms
-        InputFileTags:
-            truth:
-                tag: test
-                flavor: baseline
-        InputCatalogTag: degraded
-    pz:
-        PipelineClass: rail.pipelines.estimation.pz_all.PzPipeline
-        CatalogTag: roman_rubin
-        kwargs:
-            algorithms: PZAlgorithms
-        InputFileTags:
-            input_train:
-                tag: train
-            input_test:
-                tag: test
-    tomography:
-        PipelineClass: rail.pipelines.estimation.tomography.TomographyPipeline
-        CatalogTag: roman_rubin
-        kwargs:
-            algorithms: PZAlgorithms
-            classifiers: Classifiers
-            summarizers: Summarizers
-            n_tomo_bins: 5
-        InputFileTags:
-            truth:
-                tag: test
-        InputCatalogTag: degraded
-
-
-# These describe the selections going from Input to Reduced catalog
-Selections:
-    maglim_25.5:
-        maglim_i: [null, 25.5]
-    gold:
-        maglim_i: [null, 25.5]
-    blend:
-        maglim_i: [null, 26.0]
-    crap:
-        maglim_i: [null, 30.0]
-    all:
-        maglim_i: [null, null]
-
+  - FileTemplate:
+      name: test_file_100k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  - FileTemplate:
+      name: train_file_100k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  - FileTemplate:
+      name: train_file_zCOSMOS_100k
+      path_template: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
 
 # These	describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
-#    GAMA:
+#  - SpecSelection:
+#        name: GAMA:
 #        Select: SpecSelection_GAMA
 #        Module: rail.creation.degraders.spectroscopic_selections
-#    BOSS:
+#  - SpecSelection:
+#        name: BOSS
 #        Select: SpecSelection_BOSS
 #        Module: rail.creation.degraders.spectroscopic_selections
-#    VVDSf02:
+#  - SpecSelection:
+#        name: VVDSf02
 #        Select: SpecSelection_VVDSf02
 #        Module: rail.creation.degraders.spectroscopic_selections
-    zCOSMOS:
-        Select: SpecSelection_zCOSMOS
-        Module: rail.creation.degraders.spectroscopic_selections
-#    HSC:
+  - SpecSelection:
+      name: zCOSMOS
+      Select: SpecSelection_zCOSMOS
+      Module: rail.creation.degraders.spectroscopic_selections
+#  - SpecSelection:
+#        name: HSC
 #        Select: SpecSelection_HSC
 #        Module: rail.creation.degraders.spectroscopic_selections
 
 
 # These describe all the algorithms that estimate PZ
 PZAlgorithms:
-    trainz:
-        Estimate: TrainZEstimator
-        Inform: TrainZInformer
-        Module: rail.estimation.algos.train_z
-    simplenn:
-        Estimate: SklNeurNetEstimator
-        Inform: SklNeurNetInformer
-        Module: rail.estimation.algos.sklearn_neurnet
-    fzboost:
-        Estimate: FlexZBoostEstimator
-        Inform: FlexZBoostInformer
-        Module: rail.estimation.algos.flexzboost
-    knn:
-        Estimate: KNearNeighEstimator
-        Inform: KNearNeighInformer
-        Module: rail.estimation.algos.k_nearneigh
-    gpz:
-        Estimate: GPzEstimator
-        Inform: GPzInformer
-        Module: rail.estimation.algos.gpz
+  - PZAlgorithm:
+      name: trainz
+      Estimate: TrainZEstimator
+      Inform: TrainZInformer
+      Module: rail.estimation.algos.train_z
+  - PZAlgorithm:
+      name: simplenn
+      Estimate: SklNeurNetEstimator
+      Inform: SklNeurNetInformer
+      Module: rail.estimation.algos.sklearn_neurnet
+  - PZAlgorithm:
+      name: fzboost
+      Estimate: FlexZBoostEstimator
+      Inform: FlexZBoostInformer
+      Module: rail.estimation.algos.flexzboost
+  - PZAlgorithm:
+      name: knn
+      Estimate: KNearNeighEstimator
+      Inform: KNearNeighInformer
+      Module: rail.estimation.algos.k_nearneigh
+  - PZAlgorithm:
+      name: gpz
+      Estimate: GPzEstimator
+      Inform: GPzInformer
+      Module: rail.estimation.algos.gpz
 
 
 # These describe all the algorithms that classify objects into tomographic bins
 Classifiers:
-    equal_count:
-        Classify: EqualCountClassifier
-        Module: rail.estimation.algos.equal_count
-    uniform_binning:
-        Classify: UniformBinningClassifier
-        Module: rail.estimation.algos.uniform_binning
+  - Classifier:
+      name: equal_count
+      Classify: EqualCountClassifier
+      Module: rail.estimation.algos.equal_count
+  - Classifier:
+      name: uniform_binning
+      Classify: UniformBinningClassifier
+      Module: rail.estimation.algos.uniform_binning
 
 
 # These describe all the algorithms that summarize PZ information into NZ distributions
 Summarizers:
-    naive_stack:
-        Summarize: NaiveStackMaskedSummarizer
-        Module: rail.estimation.algos.naive_stack
-    point_est_hist:
-        Summarize: PointEstHistMaskedSummarizer
-        Module: rail.estimation.algos.point_est_hist
+  - Summarizer:
+      name: naive_stack
+      Summarize: NaiveStackMaskedSummarizer
+      Module: rail.estimation.algos.naive_stack
+  - Summarizer:
+      name: point_est_hist
+      Summarize: PointEstHistMaskedSummarizer
+      Module: rail.estimation.algos.point_est_hist
 
 
-# The describe the error models we use in the truth_to_observed pipeline
+# These describe the error models we use in the truth_to_observed pipeline
 ErrorModels:
-    lsst:
-        ErrorModel: LSSTErrorModel
-        Module: rail.creation.degraders.photometric_errors
-    roman:
-        ErrorModel: RomanErrorModel
-        Module: rail.creation.degraders.photometric_errors
+  - ErrorModel:
+      name: lsst
+      ErrorModel: LSSTErrorModel
+      Module: rail.creation.degraders.photometric_errors
+  - ErrorModel:
+      name: roman
+      ErrorModel: RomanErrorModel
+      Module: rail.creation.degraders.photometric_errors
 
 
-# These are variables that we iterate over when running over entire catalogs
-IterationVars:
-    healpix:
-        - 10050
-        - 10051
-        - 10052
-        - 10053
-        - 10177
-        - 10178
-        - 10179
-        - 10180
-        - 10181
-        - 10305
-        - 10306
-        - 10307
-        - 10308
-        - 10429
-        - 10430
-        - 10431
-        - 10432
-        - 10549
-        - 10550
-        - 10551
-        - 10552
-        - 10665
-        - 10666
-        - 10667
-        - 10668
-        - 10777
-        - 10778
-        - 10779
-        - 9921
-        - 9922
-        - 9923
-        - 9924
-        - 9925
+# These describe the ways we can sub-sample the data
+Subsamplers:
+  - Subsampler:
+      name: random_subsampler
+      Subsample: RandomSubsampler
+      Module: rail.projects.subsampler
 
+
+# These describe the ways we can reduce the data
+Reducers:
+  - Reducer:
+      name: roman_rubin
+      Reduce: RomanRubinReducer
+      Module: rail.projects.reducer
+
+Pipelines:
+  - PipelineTemplate:
+      name: truth_to_observed
+      pipeline_class: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+      kwargs:
+        error_models: ['all']
+        selectors: ['all']
+        blending: true
+  - PipelineTemplate:
+      name: photometric_errors
+      pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+      kwargs:
+        error_models: ['all']
+  - PipelineTemplate:
+      name: blending
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      pipeline_class: rail.pipelines.degradation.blending.BlendingPipeline
+      kwargs: {}
+  - PipelineTemplate:
+      name: spec_selection
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
+      kwargs:
+        selectors: ['all']
+  - PipelineTemplate:
+      name: inform
+      pipeline_class: rail.pipelines.estimation.inform_all.InformPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: train
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: estimate
+      pipeline_class: rail.pipelines.estimation.estimate_all.EstimatePipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: evaluate
+      pipeline_class: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: pz
+      pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input_train:
+          flavor: baseline
+          tag: train
+        input_test:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: tomography
+      pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+        classifiers: ['all']
+        summarizers: ['all']
+        n_tomo_bins: 5
+
+# These describe the selections going from Input to Reduced catalog
+Selections:
+  - Selection:
+      name: maglim_25.5
+      cuts:
+        maglim_i: [null, 25.5]
+  - Selection:
+      name: gold
+      cuts:
+        maglim_i: [null, 25.5]
+  - Selection:
+      name: blend
+      cuts:
+        maglim_i: [null, 26.0]
+  - Selection:
+      name: crap
+      cuts:
+        maglim_i: [null, 30.0]
+  - Selection:
+      name: all
+      cuts:
+        maglim_i: [null, null]
+
+Subsamples:
+  - Subsample:
+      name: test_100k
+      seed: 1234
+      num_objects: 100000
+  - Subsample:
+      name: train_100k
+      seed: 4321
+      num_objects: 100000

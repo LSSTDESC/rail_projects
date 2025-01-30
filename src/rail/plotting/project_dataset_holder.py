@@ -136,7 +136,7 @@ class RailProjectNZDatasetHolder(RailDatasetHolder):
         summarizer=StageParameter(
             str, None, fmt="%s", required=True, msg="p(z) to n(z) summarizer"
         ),
-   )
+    )
 
     extractor_inputs: dict = {
         "project": RailProject,

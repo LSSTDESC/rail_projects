@@ -1,50 +1,100 @@
 Pipelines:
-  - Pipeline:
-        name: truth_to_observed
-        pipeline_class: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
+  - PipelineTemplate:
+      name: truth_to_observed
+      pipeline_class: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+      kwargs:
+        error_models: ['all']
+        selectors: ['all']
+        blending: true
+  - PipelineTemplate:
+      name: photometric_errors
+      pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+      kwargs:
+        error_models: ['all']
+  - PipelineTemplate:
+      name: blending
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      pipeline_class: rail.pipelines.degradation.blending.BlendingPipeline
+      kwargs: {}
+  - PipelineTemplate:
+      name: spec_selection
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
+      kwargs:
+        selectors: ['all']
+  - PipelineTemplate:
+      name: inform
+      pipeline_class: rail.pipelines.estimation.inform_all.InformPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: train
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: estimate
+      pipeline_class: rail.pipelines.estimation.estimate_all.EstimatePipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: evaluate
+      pipeline_class: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: pz
+      pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input_train:
+          flavor: baseline
+          tag: train
+        input_test:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: tomography
+      pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+        classifiers: ['all']
+        summarizers: ['all']
+        n_tomo_bins: 5
+  - PipelineInstance:
+      name: tomography_gold_baseline
+      pipeline_template: tomography
+      overrides:
         kwargs:
-            error_models: ['all']
-            selectors: ['all']
-            blending: true
-  - Pipeline:
-        name: photometric_errors:
-        pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
-        kwargs:
-            error_models: ['all']
-  - Pipeline:
-        name: blending:
-        pipeline_class: rail.pipelines.degradation.blending.BlendingPipeline
-        kwargs: {}
-  - Pipeline:
-        name: spec_selection:
-        pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
-        kwargs:
-            selectors: ['all']
-  - Pipeline:
-        name: inform:
-        pipeline_class: rail.pipelines.estimation.inform_all.InformPipeline
-        kwargs:
-            algorithms: ['all']
-   - Pipeline:
-        name: estimate:
-        pipeline_class: rail.pipelines.estimation.estimate_all.EstimatePipeline
-        kwargs:
-            algorithms: ['all']
-  - Pipeline:
-        name: evaluate:
-        pipeline_class: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
-        kwargs:
-            algorithms: ['all']
-  - Pipeline:
-        name: pz:
-        pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
-        kwargs:
-            algorithms: ['all']
-   - Pipeline:
-        name: tomography:
-        pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
-        kwargs:
-            algorithms: ['all']
-            classifiers: ['all']
-            summarizers: ['all']
-            n_tomo_bins: 5
+          algorithms: ['gpz']
+      interpolants:
+        flavor: baseline
+        selection: gold

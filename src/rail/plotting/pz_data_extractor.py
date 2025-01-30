@@ -64,12 +64,12 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         output: list[dict[str, Any]]
             Dictionary of the extracted datasets
         """
-        dataset_list_name: str | None = kwargs.get('dataset_list_name')
-        dataset_holder_class: str | None = kwargs.get('dataset_holder_class')
-        project: RailProject = kwargs.get('project')
-        selections = kwargs.get('selections')
-        flavors = kwargs.get('flavors')
-        split_by_flavor = kwargs.get('split_by_flavor', False)
+        dataset_list_name: str | None = kwargs.get("dataset_list_name")
+        dataset_holder_class: str | None = kwargs.get("dataset_holder_class")
+        project: RailProject = kwargs.get("project")
+        selections = kwargs.get("selections")
+        flavors = kwargs.get("flavors")
+        split_by_flavor = kwargs.get("split_by_flavor", False)
 
         output: list[dict[str, Any]] = []
 
@@ -99,11 +99,11 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
         for key in flavors:
             val = flavor_dict[key]
-            pipelines = val["Pipelines"]
+            pipelines = val["pipelines"]
             if "all" not in pipelines and "pz" not in pipelines:  # pragma: no cover
                 continue
             try:
-                algos = val["PipelineOverrides"]["default"]["kwargs"]["PZAlgorithms"]
+                algos = val["pipeline_overrides"]["default"]["kwargs"]["algorithms"]
             except KeyError:
                 algos = list(project.get_pzalgorithms().keys())
 

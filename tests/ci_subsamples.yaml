@@ -1,0 +1,9 @@
+Subsamples:
+  - Subsample:
+      name: test_100k
+      seed: 1234
+      num_objects: 100000
+  - Subsample:
+      name: train_100k
+      seed: 4321
+      num_objects: 100000

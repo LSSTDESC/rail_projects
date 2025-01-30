@@ -12,7 +12,7 @@ class RailCatalogFactory:
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Catalogs: 
+    Catalogs:
         - CatalogTemplate
               name: truth
               path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
@@ -21,11 +21,11 @@ class RailCatalogFactory:
               name: reduced
               path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
               iteration_vars: ['healpix']
-              
+
     Or the used can specifiy particular catalog instances where everything except the
     interation_vars are resolved
 
-    Catalogs: 
+    Catalogs:
         - CatalogTemplate
               name: truth_roman_rubin_v1.1.3_gold
               path_template: "full_path_to_catalog/{healpix}/part-0.parquet"
@@ -78,6 +78,23 @@ class RailCatalogFactory:
         cls._instance.load_instance_yaml(yaml_file)
 
     @classmethod
+    def load_yaml_tag(cls, catalogs_config: list[dict[str, Any]]) -> None:
+        """Load from a yaml tag
+
+        Parameters
+        ----------
+        catalogs_config: list[dict[str, Any]]
+            Yaml tag used to load
+
+        Notes
+        -----
+        See class helpstring for yaml format
+        """
+        if cls._instance is None:
+            cls._instance = RailCatalogFactory()
+        cls._instance.load_catalogs_from_yaml_tag(catalogs_config)
+
+    @classmethod
     def get_catalog_templates(cls) -> dict[str, RailProjectCatalogTemplate]:
         """Return the dict of all the catalog templates"""
         return cls.instance().catalog_templates
@@ -90,7 +107,7 @@ class RailCatalogFactory:
     @classmethod
     def get_catalog_instances(cls) -> dict[str, RailProjectCatalogInstance]:
         """Return the dict of all the catalog instances"""
-        return cls.instance()._catalog_instances
+        return cls.instance().catalog_instances
 
     @classmethod
     def get_catalog_instance_names(cls) -> list[str]:
@@ -142,7 +159,7 @@ class RailCatalogFactory:
             ) from msg
 
     @property
-    def catalog_templates(self) ->dict[str, RailProjectCatalogTemplate]:
+    def catalog_templates(self) -> dict[str, RailProjectCatalogTemplate]:
         """Return the dictionary of catalog templates"""
         return self._catalog_templates
 
@@ -194,7 +211,9 @@ class RailCatalogFactory:
         self._catalog_templates[name] = catalog_template
         return catalog_template
 
-    def load_catalog_template_from_yaml_tag(self, catalog_template_config: dict[str, Any]) -> None:
+    def load_catalog_template_from_yaml_tag(
+        self, catalog_template_config: dict[str, Any]
+    ) -> None:
         """Load a dataset from a Dataset tag in yaml
 
         Paramters
@@ -204,7 +223,9 @@ class RailCatalogFactory:
         """
         self._make_catalog_template(**catalog_template_config)
 
-    def load_catalog_instance_from_yaml_tag(self, catalog_instance_config: dict[str, Any]) -> None:
+    def load_catalog_instance_from_yaml_tag(
+        self, catalog_instance_config: dict[str, Any]
+    ) -> None:
         """Load a dataset from a Dataset tag in yaml
 
         Paramters
@@ -213,6 +234,34 @@ class RailCatalogFactory:
             Yaml data in question
         """
         self._make_catalog_instance(**catalog_instance_config)
+
+    def load_catalogs_from_yaml_tag(
+        self,
+        catalogs_config: list[dict[str, Any]],
+    ) -> None:
+        """Read a yaml "Catalogs" tag and load the factory accordingy
+
+        Parameters
+        ----------
+        catalogs_config: list[dict[str, Any]]
+            Yaml tag to load
+
+        Notes
+        -----
+        See class description for yaml file syntax
+        """
+        for catalogs_item in catalogs_config:
+            if "CatalogTemplate" in catalogs_item:
+                catalog_template_config = catalogs_item["CatalogTemplate"]
+                self.load_catalog_template_from_yaml_tag(catalog_template_config)
+            elif "CatalogInstance" in catalogs_item:
+                catalog_instance_config = catalogs_item["CatalogInstance"]
+                self.load_catalog_instance_from_yaml_tag(catalog_instance_config)
+            else:  # pragma: no cover
+                good_keys = ["CatalogTemplate", "CatalogInstance"]
+                raise KeyError(
+                    f"Expecting one of {good_keys} not: {catalogs_item.keys()})"
+                )
 
     def load_instance_yaml(self, yaml_file: str) -> None:
         """Read a yaml file and load the factory accordingly
@@ -230,19 +279,8 @@ class RailCatalogFactory:
             yaml_data = yaml.safe_load(fin)
 
         try:
-            catalogs_config = yaml_data['Catalogs']
+            catalogs_config = yaml_data["Catalogs"]
         except KeyError as missing_key:
             raise KeyError(f"Did not find key Catalogs in {yaml_file}") from missing_key
-            
-        for catalogs_item in catalogs_config:
-            if "CatalogTemplate" in catalogs_item:
-                catalog_template_config = catalogs_item["CatalogTemplate"]
-                self.load_catalog_template_from_yaml_tag(catalog_template_config)
-            elif "CatalogInstance" in catalogs_item:
-                catalog_instance_config = catalogs_item["CatalogInstance"]
-                self.load_catalog_instance_from_yaml_tag(catalog_instance_config)
-            else:  # pragma: no cover
-                good_keys = ["CatalogTemplate", "CatalogInstance"]
-                raise KeyError(
-                    f"Expecting one of {good_keys} not: {dataset_item.keys()})"
-                )
+
+        self.load_catalogs_from_yaml_tag(catalogs_config)

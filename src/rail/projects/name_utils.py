@@ -191,6 +191,9 @@ class NameFactory:
     def get_common_paths(self) -> dict:
         return self._config["CommonPaths"]
 
+    def get_resolved_common_paths(self) -> dict:
+        return resolve_dict(self._config["CommonPaths"], self._interpolants)
+
     @property
     def interpolants(self) -> dict:
         """Return the dict of interpolants that are used to resolve templates"""
