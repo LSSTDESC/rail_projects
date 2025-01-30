@@ -28,4 +28,9 @@ def test_load_algorithm_yaml(setup_project_area: int) -> None:
     with pytest.raises(KeyError):
         RailAlgorithmFactory.get_algorithms("bad")
 
+    knn_estimator = RailAlgorithmFactory.get_algorithm_class(
+        "PZAlgorithms", "knn", "Estimate"
+    )
+    assert knn_estimator
+
     RailAlgorithmFactory.clear()

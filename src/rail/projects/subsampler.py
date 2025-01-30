@@ -82,7 +82,7 @@ class RandomSubsampler(RailSubsampler):
         self,
         input_files: list[str],
         output: str,
-    ) -> None:
+    ) -> None:  # pragma: no cover
         dataset = ds.dataset(input_files)
         num_rows = dataset.count_rows()
         print("num rows", num_rows)

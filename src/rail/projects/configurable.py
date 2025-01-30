@@ -44,7 +44,7 @@ class Configurable:
     def __getitem__(self, key: str) -> Any:
         return self._config[key]
 
-    def get(self, key: str, default_value: Any|None=None) -> Any:
+    def get(self, key: str, default_value: Any | None = None) -> Any:
         try:
             return self[key]
         except KeyError:

@@ -7,6 +7,7 @@ from rail.core import __version__
 from rail.projects import RailProject
 from . import project_options, project_scripts
 
+
 @click.group()
 @click.version_option(__version__)
 def project_cli() -> None:

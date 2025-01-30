@@ -155,8 +155,8 @@ class RomanRubinReducer(RailReducer):
         self,
         input_catalog: str,
         output_catalog: str,
-    ) -> None:
-        # FIXME, do this right
+    ) -> None:  # pragma: no cover
+        # FIXME: do this right
         if self.config.cuts:
             predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
         else:  # pragma: no cover

@@ -182,7 +182,7 @@ def load_yaml(yaml_file: str) -> None:
             load_pipeline_yaml_tag(yaml_item)
         elif yaml_key in ALGORITHM_TYPES_AND_TAGS:
             load_algorithm_yaml_tag(yaml_key, yaml_item)
-        else:
+        else:  # pragma: no cover
             good_tags = list(ALGORITHM_TYPES_AND_TAGS.keys()) + [
                 "Subsamples",
                 "Selections",

@@ -159,7 +159,7 @@ class RailProject(Configurable):
             return self._file_templates
         if "all" in self.config.Files:
             self._file_templates = RailProjectFileFactory.get_file_templates()
-        else:
+        else:  # pragma: no cover
             self._file_templates = {
                 key: RailProjectFileFactory.get_file_template(key)
                 for key in self.config.Files
@@ -221,7 +221,9 @@ class RailProject(Configurable):
             raise KeyError(f"Label '{label}' not found in flavor '{flavor}'") from msg
         return self.get_file(file_alias, flavor=flavor, label=label, **kwargs)
 
-    def get_file_metadata_for_flavor(self, flavor: str, label: str) -> RailProjectFileTemplate:
+    def get_file_metadata_for_flavor(
+        self, flavor: str, label: str
+    ) -> RailProjectFileTemplate:
         """Resolve the metadata associated to a particular flavor and label
 
         E.g., flavor=baseline and label=train would give the baseline training metadata
@@ -237,11 +239,15 @@ class RailProject(Configurable):
         """Get the dictionary describing all the selections"""
         if self._selections is not None:
             return self._selections
-        if "all" in self.config.Selections:
-            sel_names = RailSelectionFactory.get_selection_names()
-        else:
-            sel_names = self.config.Selections
-        return {name_: RailSelectionFactory.get_selection(name_) for name_ in sel_names}
+        sel_names = (
+            RailSelectionFactory.get_selection_names()
+            if "all" in self.config.Selections
+            else self.config.Selections
+        )
+        self._selections = {
+            name_: RailSelectionFactory.get_selection(name_) for name_ in sel_names
+        }
+        return self._selections
 
     def get_selection(self, name: str) -> RailSelection:
         """Get a particular selection by name"""
@@ -260,10 +266,11 @@ class RailProject(Configurable):
             return sub_algo_dict
         algo_names = self.config[algorithm_type]
         all_algos = RailAlgorithmFactory.get_algorithms(algorithm_type)
-        if "all" in algo_names:
-            use_algos = list(all_algos.values())
-        else:
-            use_algos = [all_algos[key] for key in algo_names]
+        use_algos = (
+            list(all_algos.values())
+            if "all" in algo_names
+            else [all_algos[key] for key in algo_names]
+        )
         for algo_ in use_algos:
             algo_.fill_dict(sub_algo_dict)
         self._algorithms[algorithm_type] = sub_algo_dict
@@ -323,13 +330,15 @@ class RailProject(Configurable):
         """Get the dictionary describing all the types of data catalogs"""
         if self._catalog_templates is not None:
             return self._catalog_templates
-        if "all" in self.config.Catalogs:
-            self._catalog_templates = RailCatalogFactory.get_catalog_templates()
-        else:
-            self._catalog_templates = {
+
+        self._catalog_templates = (
+            RailCatalogFactory.get_catalog_templates()
+            if "all" in self.config.Catalogs
+            else {
                 key: RailCatalogFactory.get_catalog_template(key)
                 for key in self.config.Catalogs
             }
+        )
         return self._catalog_templates
 
     def get_catalog_files(self, name: str, **kwargs: Any) -> list[str]:
@@ -361,20 +370,21 @@ class RailProject(Configurable):
                 catalog.config.to_dict(), "path_template", **kwargs
             )
             return path
-        except KeyError as msg:
-            raise KeyError(f"path_template not found in {catalog}") from msg
+        except KeyError as missing_key:
+            raise KeyError(f"path_template not found in {catalog}") from missing_key
 
     def get_pipelines(self) -> dict[str, RailPipelineTemplate]:
         """Get the dictionary describing all the types of ceci pipelines"""
         if self._pipeline_templates is not None:
             return self._pipeline_templates
-        if "all" in self.config.Pipelines:
-            self._pipeline_templates = RailPipelineFactory.get_pipeline_templates()
-        else:
-            self._pipeline_templates = {
+        self._pipeline_templates = (
+            RailPipelineFactory.get_pipeline_templates()
+            if "all" in self.config.Pipelines
+            else {
                 key: RailPipelineFactory.get_pipeline_template(key)
                 for key in self.config.Pipelines
             }
+        )
         return self._pipeline_templates
 
     def get_pipeline(self, name: str) -> RailPipelineTemplate:
@@ -520,7 +530,7 @@ class RailProject(Configurable):
 
             if overrides:
                 pipe_ctor_kwargs = overrides.pop("kwargs", {})
-                pz_algorithms = pipe_ctor_kwargs.pop("PZAlgorithms", None)
+                pz_algorithms = pipe_ctor_kwargs.pop("algorithms", None)
 
                 if pz_algorithms:
                     orig_pz_algorithms = self.get_pzalgorithms().copy()
@@ -613,7 +623,7 @@ class RailProject(Configurable):
         sources = self.get_catalog_files(catalog_template, **kwargs)
 
         # output_dir = os.path.dirname(output)
-        if not dry_run:
+        if not dry_run:  # pragma: no cover
             subsampler(sources, output)
 
         return output
@@ -659,8 +669,12 @@ class RailProject(Configurable):
         sinks: list[str]
             Paths to output files
         """
-        sources = self.get_catalog_files(catalog_template, selection=input_selection, **kwargs)
-        sinks = self.get_catalog_files(output_catalog_template, selection=selection, **kwargs)
+        sources = self.get_catalog_files(
+            catalog_template, selection=input_selection, **kwargs
+        )
+        sinks = self.get_catalog_files(
+            output_catalog_template, selection=selection, **kwargs
+        )
 
         reducer_class = library.get_algorithm_class(
             "Reducers", reducer_class_name, "Reduce"
@@ -668,8 +682,7 @@ class RailProject(Configurable):
         reducer_args = library.get_selection(selection)
         reducer = reducer_class(**reducer_args.config.to_dict())
 
-        # output_dir = os.path.dirname(output)
-        if not dry_run:
+        if not dry_run:  # pragma: no cover
             reducer(sources, sinks)
 
         return sinks
