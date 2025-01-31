@@ -1,0 +1,31 @@
+# This file describes the templates we use to define catalogs and specfic instances
+# of catalogs
+#
+# A CatalogTemplate can be given several interpolants to resolve to a specific CatalogInstance
+#
+# A CatalogInstance describes a dataset with unique membership of the objects that might
+# be split across several files.   The iteration_vars are used to find all of those files.
+
+Catalogs:
+  # The original truth data
+  - CatalogTemplate:
+      name: truth
+      path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
+      iteration_vars: ['healpix']
+  # Data output from running a reduction
+  - CatalogTemplate:
+      name: reduced
+      path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
+      iteration_vars: ['healpix']
+  # Data output from running some degraders on the original catalog
+  # Note that the {basename} can be used to select which degraded output we want
+  - CatalogTemplate:
+      name: degraded
+      path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
+      iteration_vars: ['healpix']
+
+  # A specfic catalog.  Everything is resolved expect the iteration_vars
+  - CatalogInstance:
+      name: degraded_ci_test_1.1.3_gold_blend
+      path_template: "tests/temp_data/ci_test_1.1.3_gold_baseline/{healpix}/output_degraded.hdf5"
+      iteration_vars: ['healpix']

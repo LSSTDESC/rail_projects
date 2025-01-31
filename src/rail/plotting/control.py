@@ -117,20 +117,23 @@ def clear() -> None:
 
 def print_contents() -> None:
     """Print the contents of the factories"""
-    print("----------------")
     RailPlotterFactory.print_contents()
     print("----------------")
+    print("")
     RailDatasetFactory.print_contents()
+    print("----------------")
 
 
 def print_classes() -> None:
     """Print the loaded classes"""
-    print("----------------")
     RailPlotter.print_classes()
     print("----------------")
+    print("")
     RailDatasetHolder.print_classes()
     print("----------------")
+    print("")
     RailProjectDataExtractor.print_classes()
+    print("----------------")
 
 
 def run(

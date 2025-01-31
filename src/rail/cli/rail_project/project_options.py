@@ -1,6 +1,6 @@
-import enum
-
 import click
+
+from rail.projects.execution import RunMode
 
 from rail.cli.rail.options import (
     EnumChoice,
@@ -12,7 +12,10 @@ from rail.cli.rail.options import (
 __all__: list[str] = [
     "RunMode",
     "args",
+    "basename",
     "config_path",
+    "catalog_template",
+    "file_template",
     "force",
     "flavor",
     "input_dir",
@@ -27,28 +30,31 @@ __all__: list[str] = [
     "output_dir",
     "pdf_dir",
     "pdf_path",
+    "reducer_class_name",
     "run_mode",
     "selection",
     "site",
+    "subsampler_class_name",
+    "subsample_name",
     "output_dir",
     "output_file",
+    "output_catalog_template",
     "truth_path",
     "seed",
 ]
-
-
-class RunMode(enum.Enum):
-    """Choose the run mode"""
-
-    dry_run = 0
-    bash = 1
-    slurm = 2
 
 
 args = PartialArgument(
     "args",
     type=str,
     nargs=-1,
+)
+
+
+basename = PartialOption(
+    "--basename",
+    type=str,
+    help="Basename for catalog template resolution",
 )
 
 
@@ -63,6 +69,21 @@ config_path = PartialOption(
     help="Path to configuration file",
     type=click.Path(),
 )
+
+
+catalog_template = PartialOption(
+    "--catalog_template",
+    type=str,
+    help="Name of the catalog template to use",
+)
+
+
+file_template = PartialOption(
+    "--file_template",
+    type=str,
+    help="Name of the file template to use",
+)
+
 
 force = PartialOption(
     "--force",
@@ -85,6 +106,14 @@ label = PartialOption(
 )
 
 
+reducer_class_name = PartialOption(
+    "--reducer_class_name",
+    help="Class for the reducer",
+    type=str,
+    default="roman_rubin",
+)
+
+
 selection = PartialOption(
     "--selection",
     help="Data selection",
@@ -97,6 +126,22 @@ site = PartialOption(
     "--site",
     help="site for slurm submission",
     default="s3df",
+)
+
+
+subsampler_class_name = PartialOption(
+    "--subsampler_class_name",
+    help="Class for the subsampler",
+    type=str,
+    default="random_subsample",
+)
+
+
+subsample_name = PartialOption(
+    "--subsample_name",
+    help="Name for the subsample",
+    type=str,
+    default=None,
 )
 
 
@@ -162,6 +207,13 @@ output_dir = PartialOption(
     "--output_dir",
     help="Path to for output files",
     type=click.Path(),
+)
+
+
+output_catalog_template = PartialOption(
+    "--output_catalog_template",
+    type=str,
+    help="Name of the catalog template to use for output",
 )
 
 

@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 from types import GenericAlias
 
-from .configurable import Configurable
-from .dynamic_class import DynamicClass
+from rail.projects.configurable import Configurable
+from rail.projects.dynamic_class import DynamicClass
 
 
 class RailDatasetHolder(Configurable, DynamicClass):
@@ -26,6 +26,9 @@ class RailDatasetHolder(Configurable, DynamicClass):
         Configurable.__init__(self, **kwargs)
         DynamicClass.__init__(self)
         self._data: dict[str, Any] | None = None
+
+    def __repr__(self) -> str:
+        return f"{self.config.to_dict()}"
 
     def set_data(self, the_data: dict[str, Any] | None) -> None:
         """Set the data in this holder"""

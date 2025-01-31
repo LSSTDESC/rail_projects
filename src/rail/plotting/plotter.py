@@ -3,9 +3,10 @@ from __future__ import annotations
 import os
 from typing import Any, TYPE_CHECKING
 
+from rail.projects.configurable import Configurable
+from rail.projects.dynamic_class import DynamicClass
+
 from .plot_holder import RailPlotDict
-from .configurable import Configurable
-from .dynamic_class import DynamicClass
 from .validation import validate_inputs
 
 if TYPE_CHECKING:
@@ -152,6 +153,9 @@ class RailPlotter(Configurable, DynamicClass):
         """
         DynamicClass.__init__(self)
         Configurable.__init__(self, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{type(self)}"
 
     def __call__(
         self,

@@ -1,0 +1,13 @@
+# These describe the subsampling used to make test and training datasets
+
+Subsamples:
+  # Testing subsample with 100k events
+  - Subsample:
+      name: test_100k
+      seed: 1234
+      num_objects: 100000
+  # Training subsample with 100k events, and a different seed to select the events
+  - Subsample:
+      name: train_100k
+      seed: 4321
+      num_objects: 100000

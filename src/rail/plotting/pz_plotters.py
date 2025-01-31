@@ -63,9 +63,7 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             assert dataset_holder
             plot = RailPlotHolder(
                 name=plot_name,
-                path=os.path.join(
-                    dataset_holder.config.name, f"{plot_name}.{figtype}"
-                ),
+                path=os.path.join(dataset_holder.config.name, f"{plot_name}.{figtype}"),
                 plotter=self,
                 dataset_holder=dataset_holder,
             )
@@ -144,9 +142,7 @@ class PZPlotterPointEstimateVsTrueProfile(RailPlotter):
             plot_name = self._make_full_plot_name(prefix, "")
             plot = RailPlotHolder(
                 name=plot_name,
-                path=os.path.join(
-                    dataset_holder.config.name, f"{plot_name}.{figtype}"
-                ),
+                path=os.path.join(dataset_holder.config.name, f"{plot_name}.{figtype}"),
                 plotter=self,
                 dataset_holder=dataset_holder,
             )
@@ -227,9 +223,7 @@ class PZPlotterAccuraciesVsTrue(RailPlotter):
             assert dataset_holder
             plot = RailPlotHolder(
                 name=plot_name,
-                path=os.path.join(
-                    dataset_holder.config.name, f"{plot_name}.{figtype}"
-                ),
+                path=os.path.join(dataset_holder.config.name, f"{plot_name}.{figtype}"),
                 plotter=self,
                 dataset_holder=dataset_holder,
             )

@@ -1,12 +1,14 @@
 from typing import Any
 
 import click
+import yaml
 
 from rail.core import __version__
 
-from rail.projects import RailProject
-from . import project_options, project_scripts
-from .reduce_roman_rubin_data import reduce_roman_rubin_data
+from rail.projects import RailProject, library
+from rail.projects import execution
+
+from . import project_options
 
 
 @click.group()
@@ -19,7 +21,23 @@ def project_cli() -> None:
 @project_options.config_file()
 def inspect_command(config_file: str) -> int:
     """Inspect a rail pipeline project config"""
-    return project_scripts.inspect(config_file)
+    print("RAIL Project Library")
+    print(">>>>>>>>")
+    project = RailProject.load_config(config_file)
+    library.print_contents()
+    print("<<<<<<<<")
+    print(f"RAIL Project: {project}")
+    print(">>>>>>>>")
+    for key, val in project.config.items():
+        if key == "Flavors":
+            print(f"{key}:")
+            for flavor_ in val:
+                flavor_name = flavor_["Flavor"]["name"]
+                print(f"- {flavor_name}")
+            continue
+        print(yaml.dump({key: val}, indent=2))
+    print("<<<<<<<<")
+    return 0
 
 
 @project_cli.command(name="build")
@@ -33,25 +51,53 @@ def build_command(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.build_pipelines(project, **kw, **kwargs)
+        ok |= project.build_pipelines(**kw, **kwargs)
     return ok
 
 
 @project_cli.command(name="subsample")
 @project_options.config_file()
+@project_options.run_mode()
+@project_options.catalog_template()
+@project_options.file_template()
+@project_options.subsampler_class_name()
+@project_options.subsample_name()
 @project_options.selection()
 @project_options.flavor()
-@project_options.label()
-@project_options.run_mode()
-def subsample_command(config_file: str, **kwargs: Any) -> int:
+@project_options.basename()
+def subsample_command(
+    config_file: str, run_mode: project_options.RunMode, **kwargs: Any
+) -> int:
     """Make a training or test data set by randomly selecting objects"""
+    if run_mode == project_options.RunMode.slurm:
+        raise NotImplementedError("subsample_command not set up to run under slurm")
+
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
     selections = project.get_selection_args(kwargs.pop("selection"))
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+
+    dry_run = run_mode == project_options.RunMode.dry_run
+
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.subsample_data(project, **kw, **kwargs)
+        output_path = project.subsample_data(
+            dry_run=dry_run,
+            **kw,
+            **kwargs,
+        )
+        hdf5_output = output_path.replace(".parquet", ".hdf5")
+        ok |= execution.handle_command(
+            run_mode,
+            [
+                "tables-io",
+                "convert",
+                "--input",
+                f"{output_path}",
+                "--output",
+                f"{hdf5_output}",
+            ],
+        )
     return ok
 
 
@@ -63,32 +109,34 @@ def sbatch_command(
     run_mode: project_options.RunMode, site: str, args: list[str]
 ) -> int:  # pragma: no cover
     """Wrap a rail_pipe command with site-based arguements for slurm"""
-    return project_scripts.sbatch_wrap(run_mode, site, args)
+    return execution.sbatch_wrap(run_mode, site, args)
 
 
-@project_cli.group(name="reduce")
-def reduce_group() -> None:
-    """Reduce input data for PZ analysis"""
-
-
-@reduce_group.command(name="roman_rubin")
+@project_cli.command(name="reduce")
 @project_options.config_file()
-@project_options.input_tag()
+@project_options.run_mode()
+@project_options.catalog_template()
+@project_options.output_catalog_template()
+@project_options.reducer_class_name()
 @project_options.input_selection()
 @project_options.selection()
-@project_options.run_mode()
-def reduce_roman_rubin(config_file: str, **kwargs: Any) -> int:
+def reduce_roman_rubin(
+    config_file: str, run_mode: project_options.RunMode, **kwargs: Any
+) -> int:
     """Reduce the roman rubin simulations for PZ analysis"""
     project = RailProject.load_config(config_file)
     selections = project.get_selection_args(kwargs.pop("selection"))
     input_selections = kwargs.pop("input_selection")
     iter_kwargs = project.generate_kwargs_iterable(
-        selection=selections, input_selection=input_selections
+        selection=selections,
+        input_selection=input_selections,
     )
-    input_tag = kwargs.pop("input_tag", "truth")
+    dry_run = run_mode == project_options.RunMode.dry_run
+
     ok = 0
     for kw in iter_kwargs:
-        ok |= reduce_roman_rubin_data(project, input_tag, **kw, **kwargs)
+        files = project.reduce_data(dry_run=dry_run, **kw, **kwargs)
+        ok |= 0 if files else 1
     return ok
 
 
@@ -110,21 +158,10 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "photometric_errors"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["InputCatalogTag"]
-    pipeline_catalog_config = (
-        project_scripts.PhotmetricErrorsPipelineCatalogConfiguration(
-            project,
-            source_catalog_tag=input_catalog_name,
-            sink_catalog_tag="degraded",
-        )
-    )
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
-            pipeline_catalog_config,
             **kw,
             **kwargs,
         )
@@ -144,20 +181,10 @@ def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "truth_to_observed"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["InputCatalogTag"]
-    pipeline_catalog_config = project_scripts.SpectroscopicPipelineCatalogConfiguration(
-        project,
-        source_catalog_tag=input_catalog_name,
-        sink_catalog_tag="degraded",
-        source_catalog_basename="output_dereddener_errors.pq",
-    )
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
-            pipeline_catalog_config,
             **kw,
             **kwargs,
         )
@@ -177,19 +204,10 @@ def blending_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "blending"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["InputCatalogTag"]
-    pipeline_catalog_config = project_scripts.BlendingPipelineCatalogConfiguration(
-        project,
-        source_catalog_tag=input_catalog_name,
-        sink_catalog_tag="degraded",
-    )
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
-            pipeline_catalog_config,
             **kw,
             **kwargs,
         )
@@ -209,20 +227,11 @@ def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "spec_selection"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["InputCatalogTag"]
-    pipeline_catalog_config = project_scripts.SpectroscopicPipelineCatalogConfiguration(
-        project,
-        source_catalog_tag=input_catalog_name,
-        sink_catalog_tag="degraded",
-        source_catalog_basename="output_dereddener_errors.pq",
-    )
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
-            pipeline_catalog_config,
+            spec_selections=list(project.get_spec_selections().keys()),
             **kw,
             **kwargs,
         )
@@ -243,10 +252,8 @@ def inform_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
-            project_scripts.inform_input_callback,
             **kw,
             **kwargs,
         )
@@ -267,10 +274,8 @@ def estimate_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
-            project_scripts.estimate_input_callback,
             **kw,
             **kwargs,
         )
@@ -291,10 +296,8 @@ def evaluate_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
-            project_scripts.evaluate_input_callback,
             **kw,
             **kwargs,
         )
@@ -315,10 +318,8 @@ def pz_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
-            project_scripts.pz_input_callback,
             **kw,
             **kwargs,
         )
@@ -339,10 +340,8 @@ def tomography_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
-            project_scripts.tomography_input_callback,
             **kw,
             **kwargs,
         )
@@ -363,10 +362,8 @@ def sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
-            project_scripts.sompz_input_callback,
             **kw,
             **kwargs,
         )

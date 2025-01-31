@@ -1,0 +1,31 @@
+# This file describes the templates we use to define files and specfic instances
+# of files
+#
+# A FileTemplate can be given several interpolants to resolve to a specific FileInstance
+#
+# A FileInstance describes a dataset with unique membership of the objects
+#
+# Some of the interpolants [{catalogs_dir}, {project}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
+#
+
+Files:
+  # Testing data file
+  - FileTemplate:
+      name: test_file_100k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  # Generic training data file
+  - FileTemplate:
+      name: train_file_100k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  # Training file with a non-representative sample from the zCOSMOS selection
+  - FileTemplate:
+      name: train_file_zCOSMOS_100k
+      path_template: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
+
+  # A specific tesing file, for a specfic project and selection and flavor
+  - FileInstance:
+      name: test_file_baseline_100k_ci_test_blend
+      path: "test/temp_data/data/train/ci_test_blend_baseline_100k.hdf5"

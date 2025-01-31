@@ -221,6 +221,7 @@ class RailDatasetFactory:
 
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
+        print("----------------")
         print("Projects:")
         for project_name, project in self.projects.items():
             print(f"  {project_name}: {project}")
@@ -231,7 +232,7 @@ class RailDatasetFactory:
         print("----------------")
         print("DatasetLists")
         for dataset_dict_name, dataset_dict in self.dataset_dicts.items():
-            print(f"  {dataset_dict_name}: {dataset_dict}")
+            print(f"  {dataset_dict_name}: {list(dataset_dict.keys())}")
 
     def _make_dataset(self, **kwargs: Any) -> RailDatasetHolder:
         try:

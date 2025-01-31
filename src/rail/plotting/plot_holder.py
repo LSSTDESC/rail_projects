@@ -70,7 +70,7 @@ class RailPlotHolder:
     def savefig(
         self,
         relpath: str,
-        outdir: str=".",
+        outdir: str = ".",
         **kwargs: Any,
     ) -> None:
         if self.figure is None:  # pragma: no cover

@@ -1,68 +1,138 @@
 from __future__ import annotations
 
 import os
-import copy
-from pathlib import Path
 import itertools
 from typing import Any
 
 import yaml
 
-from . import name_utils
+from ceci.config import StageParameter
+
+from . import name_utils, library, execution
+from .configurable import Configurable
+from .catalog_template import RailProjectCatalogTemplate
+from .pipeline_holder import RailPipelineTemplate
+from .selection_factory import RailSelection
+from .file_template import RailProjectFileTemplate
+from .algorithm_factory import RailAlgorithmFactory
+from .catalog_factory import RailCatalogFactory
+from .pipeline_factory import RailPipelineFactory
+from .project_file_factory import RailProjectFileFactory
+from .selection_factory import RailSelectionFactory
 
 
-class RailProject:
-    config_template: dict[str, dict] = {
-        "IterationVars": {},
-        "CommonPaths": {},
-        "PathTemplates": {},
-        "Catalogs": {},
-        "Files": {},
-        "Pipelines": {},
-        "Flavors": {},
-        "Selections": {},
-        "ErrorModels": {},
-        "PZAlgorithms": {},
-        "NZAlgorithms": {},
-        "SpecSelections": {},
-        "Classifiers": {},
-        "Summarizers": {},
-    }
+class RailFlavor(Configurable):
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Flavor name"),
+        catalog_tag=StageParameter(
+            str, None, fmt="%s", msg="tag for catalog being used"
+        ),
+        pipelines=StageParameter(list, ["all"], fmt="%s", msg="pipelines being used"),
+        file_aliases=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
+        pipeline_overrides=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
+    )
 
-    def __init__(self, name: str, config_dict: dict):
-        self.name = name
-        self._config_dict = config_dict
-        self.config = copy.deepcopy(self.config_template)
-        for k in self.config.keys():
-            if (v := self._config_dict.get(k)) is not None:
-                self.config[k] = v
-        # self.interpolants = self.get_interpolants()
+    def __init__(self, **kwargs: Any):
+        """C'tor
+
+        Parameters
+        ----------
+        kwargs: Any
+            Configuration parameters for this RailFlavor, must match
+            class.config_options data members
+        """
+        Configurable.__init__(self, **kwargs)
+
+
+class RailProject(Configurable):
+    config_options: dict[str, StageParameter] = dict(
+        Name=StageParameter(str, None, fmt="%s", required=True, msg="Project name"),
+        PathTemplates=StageParameter(
+            dict, {}, fmt="%s", required=True, msg="File path templates"
+        ),
+        CommonPaths=StageParameter(
+            dict, {}, fmt="%s", required=True, msg="Paths to shared directories"
+        ),
+        IterationVars=StageParameter(
+            dict, {}, fmt="%s", msg="Iteration variables to use"
+        ),
+        Catalogs=StageParameter(
+            list, ["all"], fmt="%s", msg="Catalog templates to use"
+        ),
+        Files=StageParameter(list, ["all"], fmt="%s", msg="Catalog templates to use"),
+        Pipelines=StageParameter(
+            list, ["all"], fmt="%s", msg="Catalog templates to use"
+        ),
+        Reducers=StageParameter(list, ["all"], fmt="%s", msg="Data reducers to use"),
+        Subsamplers=StageParameter(
+            list, ["all"], fmt="%s", msg="Data subsamplers to use"
+        ),
+        Selections=StageParameter(
+            list, ["all"], fmt="%s", msg="Data selections to use"
+        ),
+        PZAlgorithms=StageParameter(
+            list, ["all"], fmt="%s", msg="p(z) algorithms to use"
+        ),
+        SpecSelections=StageParameter(
+            list, ["all"], fmt="%s", msg="Spectroscopic selections to use"
+        ),
+        Classifiers=StageParameter(
+            list, ["all"], fmt="%s", msg="Tomographic classifiers to use"
+        ),
+        Summarizers=StageParameter(
+            list, ["all"], fmt="%s", msg="n(z) summarizers to use"
+        ),
+        ErrorModels=StageParameter(
+            list, ["all"], fmt="%s", msg="Photometric ErrorModels to use"
+        ),
+        Baseline=StageParameter(
+            dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
+        ),
+        Flavors=StageParameter(list, [], fmt="%s", msg="Analysis variants"),
+    )
+
+    def __init__(self, **kwargs: Any):
+        """C'tor
+
+        Parameters
+        ----------
+        kwargs: Any
+            Configuration parameters for this RailProject, must match
+            class.config_options data members
+        """
+        Configurable.__init__(self, **kwargs)
         self.name_factory = name_utils.NameFactory(
             config=self.config,
-            templates=config_dict.get("PathTemplates", {}),
-            interpolants=self.config.get("CommonPaths", {}),
+            templates=self.config.PathTemplates,
+            interpolants=self.config.CommonPaths,
         )
-        self.name_factory.resolve_from_config(self.config.get("CommonPaths", {}))
+        self._iteration_vars: dict[str, list[Any]] | None = None
+        self._catalog_templates: dict[str, RailProjectCatalogTemplate] | None = None
+        self._file_templates: dict[str, RailProjectFileTemplate] | None = None
+        self._pipeline_templates: dict[str, RailPipelineTemplate] | None = None
+        self._algorithms: dict[str, dict[str, dict[str, str]]] = {}
+        self._selections: dict[str, RailSelection] | None = None
+        self._flavors: dict[str, RailFlavor] | None = None
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return f"{self.config.Name}"
+
+    @property
+    def name(self) -> str:
+        return self.config.Name
 
     @staticmethod
     def load_config(config_file: str) -> RailProject:
         """Create and return a RailProject from a yaml config file"""
-        project_name = Path(config_file).stem
         with open(os.path.expandvars(config_file), "r", encoding="utf-8") as fp:
             config_orig = yaml.safe_load(fp)
         includes = config_orig.get("Includes", [])
-        config_dict: dict[str, Any] = {}
         # FIXME, make this recursive to allow for multiple layers of includes
         for include_ in includes:
-            with open(os.path.expandvars(include_), "r", encoding="utf-8") as fp:
-                config_extra = yaml.safe_load(fp)
-            name_utils.update_include_dict(config_dict, config_extra)
-        name_utils.update_include_dict(config_dict, config_orig)
-        project = RailProject(project_name, config_dict)
-        # project.resolve_common()
+            library.load_yaml(os.path.expandvars(include_))
+
+        project_config = config_orig.get("Project")
+        project = RailProject(**project_config)
         return project
 
     def get_path_templates(self) -> dict:
@@ -81,36 +151,61 @@ class RailProject:
         """Resolve and return a common path using the kwargs as interopolants"""
         return self.name_factory.resolve_common_path(path_key, **kwargs)
 
-    def get_files(self) -> dict:
-        """Return the dictionary of specific files"""
-        return self.config.get("Files", {})
+    def get_files(self) -> dict[str, RailProjectFileTemplate]:
+        """Return the dictionary of specific file templates"""
+        if self._file_templates is not None:
+            return self._file_templates
+        if "all" in self.config.Files:
+            self._file_templates = RailProjectFileFactory.get_file_templates()
+        else:  # pragma: no cover
+            self._file_templates = {
+                key: RailProjectFileFactory.get_file_template(key)
+                for key in self.config.Files
+            }
+        return self._file_templates
 
     def get_file(self, name: str, **kwargs: Any) -> str:
         """Resolve and return a file using the kwargs as interpolants"""
         files = self.get_files()
-        file_dict = files.get(name, None)
-        if file_dict is None:
-            raise KeyError(f"file '{name}' not found in {self}")
-        path = self.name_factory.resolve_path(file_dict, "PathTemplate", **kwargs)
+        try:
+            file_template = files[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"file '{name}' not found in {list(files.keys())}"
+            ) from missing_key
+
+        path = self.name_factory.resolve_path(
+            file_template.config.to_dict(), "path_template", **kwargs
+        )
         return path
 
-    def get_flavors(self) -> dict:
+    def get_flavors(self) -> dict[str, RailFlavor]:
         """Return the dictionary of analysis flavor variants"""
-        flavors = self.config.get("Flavors", {})
-        baseline = flavors.get("baseline", {})
-        for k, v in flavors.items():
-            if k != "baseline":
-                flavors[k] = baseline | v
+        if self._flavors is not None:
+            return self._flavors
 
-        return flavors
+        baseline = self.config.Baseline
+        self._flavors = dict(baseline=RailFlavor(name="baseline", **baseline))
 
-    def get_flavor(self, name: str) -> dict:
+        flavor_list = self.config.Flavors
+
+        for flavor_item in flavor_list:
+            flavor_dict = baseline.copy()
+            flavor_dict.update(**flavor_item["Flavor"])
+            flavor_name = flavor_dict["name"]
+            self._flavors[flavor_name] = RailFlavor(**flavor_dict)
+
+        return self._flavors
+
+    def get_flavor(self, name: str) -> RailFlavor:
         """Resolve the configuration for a particular analysis flavor variant"""
         flavors = self.get_flavors()
-        flavor = flavors.get(name, None)
-        if flavor is None:
-            raise KeyError(f"flavor '{name}' not found in {self}")
-        return flavor
+        try:
+            return flavors[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"flavor '{name}' not found in {list(flavors.keys())}"
+            ) from missing_key
 
     def get_file_for_flavor(self, flavor: str, label: str, **kwargs: Any) -> str:
         """Resolve the file associated to a particular flavor and label
@@ -119,134 +214,186 @@ class RailProject:
         """
         flavor_dict = self.get_flavor(flavor)
         try:
-            file_alias = flavor_dict["FileAliases"][label]
+            file_alias = flavor_dict.config.file_aliases[label]
         except KeyError as msg:
             raise KeyError(f"Label '{label}' not found in flavor '{flavor}'") from msg
         return self.get_file(file_alias, flavor=flavor, label=label, **kwargs)
 
-    def get_file_metadata_for_flavor(self, flavor: str, label: str) -> dict:
+    def get_file_metadata_for_flavor(
+        self, flavor: str, label: str
+    ) -> RailProjectFileTemplate:
         """Resolve the metadata associated to a particular flavor and label
 
         E.g., flavor=baseline and label=train would give the baseline training metadata
         """
         flavor_dict = self.get_flavor(flavor)
         try:
-            file_alias = flavor_dict["FileAliases"][label]
+            file_alias = flavor_dict["file_aliases"][label]
         except KeyError as msg:
             raise KeyError(f"Label '{label}' not found in flavor '{flavor}'") from msg
         return self.get_files()[file_alias]
 
-    def get_selections(self) -> dict:
+    def get_selections(self) -> dict[str, RailSelection]:
         """Get the dictionary describing all the selections"""
-        return self.config.get("Selections", {})
+        if self._selections is not None:
+            return self._selections
+        sel_names = (
+            RailSelectionFactory.get_selection_names()
+            if "all" in self.config.Selections
+            else self.config.Selections
+        )
+        self._selections = {
+            name_: RailSelectionFactory.get_selection(name_) for name_ in sel_names
+        }
+        return self._selections
 
-    def get_selection(self, name: str) -> dict:
+    def get_selection(self, name: str) -> RailSelection:
         """Get a particular selection by name"""
         selections = self.get_selections()
-        selection = selections.get(name, None)
-        if selection is None:
-            raise KeyError(f"selection '{name}' not found in {self}")
-        return selection
+        try:
+            return selections[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"Selection '{name}' not found in {self}. "
+                f"Known values are {list(selections.keys())}"
+            ) from missing_key
+
+    def get_algorithms(self, algorithm_type: str) -> dict[str, dict[str, str]]:
+        sub_algo_dict = self._algorithms.get(algorithm_type, {})
+        if sub_algo_dict:
+            return sub_algo_dict
+        algo_names = self.config[algorithm_type]
+        all_algos = RailAlgorithmFactory.get_algorithms(algorithm_type)
+        use_algos = (
+            list(all_algos.values())
+            if "all" in algo_names
+            else [all_algos[key] for key in algo_names]
+        )
+        for algo_ in use_algos:
+            algo_.fill_dict(sub_algo_dict)
+        self._algorithms[algorithm_type] = sub_algo_dict
+        return sub_algo_dict
+
+    def get_algorithm(self, algorithm_type: str, algo_name: str) -> dict[str, str]:
+        algo_dict = self.get_algorithms(algorithm_type)
+        try:
+            return algo_dict[algo_name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"Algorithm '{algo_name}' of type '{algorithm_type}' not found in {self}. "
+                f"Known values are {list(algo_dict.keys())}"
+            ) from missing_key
 
     def get_error_models(self) -> dict:
         """Get the dictionary describing all the photometric error model algorithms"""
-        return self.config.get("ErrorModels", {})
+        return self.get_algorithms("ErrorModels")
 
     def get_error_model(self, name: str) -> dict:
         """Get the information about a particular photometric error model algorithms"""
-        error_models = self.get_error_models()
-        error_model = error_models.get(name, None)
-        if error_model is None:
-            raise KeyError(f"error_models '{name}' not found in {self}")
-        return error_model
+        return self.get_algorithm("ErrorModels", name)
 
     def get_pzalgorithms(self) -> dict:
         """Get the dictionary describing all the PZ estimation algorithms"""
-        return self.config.get("PZAlgorithms", {})
+        return self.get_algorithms("PZAlgorithms")
 
     def get_pzalgorithm(self, name: str) -> dict:
         """Get the information about a particular PZ estimation algorithm"""
-        pzalgorithms = self.get_pzalgorithms()
-        pzalgorithm = pzalgorithms.get(name, None)
-        if pzalgorithm is None:
-            raise KeyError(f"pz algorithm '{name}' not found in {self}")
-        return pzalgorithm
-
-    def get_nzalgorithms(self) -> dict:
-        """Get the dictionary describing all the PZ estimation algorithms"""
-        return self.config.get("NZAlgorithms", {})
-
-    def get_nzalgorithm(self, name: str) -> dict:
-        """Get the information about a particular NZ estimation algorithm"""
-        nzalgorithms = self.get_nzalgorithms()
-        nzalgorithm = nzalgorithms.get(name, None)
-        if nzalgorithm is None:
-            raise KeyError(f"nz algorithm '{name}' not found in {self}")
-        # NZ algorithms are not being used yet
-        return nzalgorithm  # pragma: no cover
+        return self.get_algorithm("PZAlgorithms", name)
 
     def get_spec_selections(self) -> dict:
         """Get the dictionary describing all the spectroscopic selection algorithms"""
-        return self.config.get("SpecSelections", {})
+        return self.get_algorithms("SpecSelections")
 
     def get_spec_selection(self, name: str) -> dict:
         """Get the information about a particular spectroscopic selection algorithm"""
-        spec_selections = self.get_spec_selections()
-        spec_selection = spec_selections.get(name, None)
-        if spec_selection is None:
-            raise KeyError(f"spectroscopic selection '{name}' not found in {self}")
-        return spec_selection
+        return self.get_algorithm("SpecSelections", name)
 
     def get_classifiers(self) -> dict:
         """Get the dictionary describing all the tomographic bin classification"""
-        return self.config.get("Classifiers", {})
+        return self.get_algorithms("Classifiers")
 
     def get_classifier(self, name: str) -> dict:
         """Get the information about a particular tomographic bin classification"""
-        classifiers = self.get_classifiers()
-        classifier = classifiers.get(name, None)
-        if classifier is None:
-            raise KeyError(f"tomographic bin classifier '{name}' not found in {self}")
-        return classifier
+        return self.get_algorithm("Classifiers", name)
 
     def get_summarizers(self) -> dict:
         """Get the dictionary describing all the NZ summarization algorithms"""
-        return self.config.get("Summarizers", {})
+        return self.get_algorithms("Summarizers")
 
     def get_summarizer(self, name: str) -> dict:
         """Get the information about a particular NZ summarization algorithms"""
-        summarizers = self.get_summarizers()
-        summarizer = summarizers.get(name, None)
-        if summarizer is None:
-            raise KeyError(f"NZ summarizer '{name}' not found in {self}")
-        return summarizer
+        return self.get_algorithm("Summarizers", name)
 
     def get_catalogs(self) -> dict:
         """Get the dictionary describing all the types of data catalogs"""
-        return self.config.get("Catalogs", {})
+        if self._catalog_templates is not None:
+            return self._catalog_templates
 
-    def get_catalog(self, catalog: str, **kwargs: Any) -> str:
+        self._catalog_templates = (
+            RailCatalogFactory.get_catalog_templates()
+            if "all" in self.config.Catalogs
+            else {
+                key: RailCatalogFactory.get_catalog_template(key)
+                for key in self.config.Catalogs
+            }
+        )
+        return self._catalog_templates
+
+    def get_catalog_files(self, name: str, **kwargs: Any) -> list[str]:
+        """Resolve the paths for a particular catalog file"""
+        catalogs = self.get_catalogs()
+        try:
+            catalog = catalogs[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"catalogs '{name}' not found in {list(catalogs.keys())}"
+            ) from missing_key
+        interpolants = kwargs.copy()
+        interpolants.update(**self.name_factory.get_resolved_common_paths())
+        catalog_instance = catalog.make_catalog_instance("dummy", **interpolants)
+        return catalog_instance(**self.config.IterationVars)
+
+    def get_catalog(self, name: str, **kwargs: Any) -> str:
         """Resolve the path for a particular catalog file"""
-        catalog_dict = self.config["Catalogs"].get(catalog, {})
+        catalogs = self.get_catalogs()
+        try:
+            catalog = catalogs[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"catalogs '{name}' not found in {list(catalogs.keys())}"
+            ) from missing_key
+
         try:
             path = self.name_factory.resolve_path(
-                catalog_dict, "PathTemplate", **kwargs
+                catalog.config.to_dict(), "path_template", **kwargs
             )
             return path
-        except KeyError as msg:
-            raise KeyError(f"PathTemplate not found in {catalog}") from msg
+        except KeyError as missing_key:
+            raise KeyError(f"path_template not found in {catalog}") from missing_key
 
-    def get_pipelines(self) -> dict:
+    def get_pipelines(self) -> dict[str, RailPipelineTemplate]:
         """Get the dictionary describing all the types of ceci pipelines"""
-        return self.config.get("Pipelines", {})
+        if self._pipeline_templates is not None:
+            return self._pipeline_templates
+        self._pipeline_templates = (
+            RailPipelineFactory.get_pipeline_templates()
+            if "all" in self.config.Pipelines
+            else {
+                key: RailPipelineFactory.get_pipeline_template(key)
+                for key in self.config.Pipelines
+            }
+        )
+        return self._pipeline_templates
 
-    def get_pipeline(self, name: str) -> dict:
+    def get_pipeline(self, name: str) -> RailPipelineTemplate:
         """Get the information about a particular ceci pipeline"""
         pipelines = self.get_pipelines()
-        pipeline = pipelines.get(name, None)
-        if pipeline is None:
-            raise KeyError(f"pipeline '{name}' not found in {self}")
-        return pipeline
+        try:
+            return pipelines[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"pipeline '{name}' not found in {list(pipelines.keys())}"
+            ) from missing_key
 
     def get_flavor_args(self, flavors: list[str]) -> list[str]:
         """Get the 'flavors' to iterate a particular command over
@@ -314,3 +461,236 @@ class RailProject:
             command_line.append(f"{key}={val}")
 
         return command_line
+
+    def build_pipelines(
+        self,
+        flavor: str = "baseline",
+        *,
+        force: bool = False,
+    ) -> int:
+        """Build ceci pipeline configuraiton files for this project
+
+        Parameters
+        ----------
+        flavor: str
+            Which analysis flavor to draw from
+
+        force: bool
+            Force overwriting of existing pipeline files
+
+        Returns
+        -------
+        status_code: int
+            0 if ok, error code otherwise
+        """
+        flavor_dict = self.get_flavor(flavor)
+        pipelines_to_build = flavor_dict["pipelines"]
+        pipeline_overrides = flavor_dict.get("pipeline_overrides", {})
+        do_all = "all" in pipelines_to_build
+
+        ok = 0
+        for pipeline_name, pipeline_info in self.get_pipelines().items():
+            if not (do_all or pipeline_name in pipelines_to_build):
+                print(f"Skipping pipeline {pipeline_name} from flavor {flavor}")
+                continue
+            output_yaml = self.get_path(
+                "pipeline_path", pipeline=pipeline_name, flavor=flavor
+            )
+            if os.path.exists(output_yaml):  # pragma: no cover
+                if force:
+                    print(f"Overwriting existing pipeline {output_yaml}")
+                else:
+                    print(f"Skipping existing pipeline {output_yaml}")
+                    continue
+
+            overrides = pipeline_overrides.get("default", {}).copy()
+            overrides.update(**pipeline_overrides.get(pipeline_name, {}))
+
+            pipeline_instance = pipeline_info.make_instance(
+                self, flavor, pipeline_overrides
+            )
+            ok |= pipeline_instance.build(self)
+
+        return ok
+
+    def subsample_data(
+        self,
+        catalog_template: str,
+        file_template: str,
+        subsampler_class_name: str,
+        subsample_name: str,
+        dry_run: bool = False,
+        **kwargs: dict[str, Any],
+    ) -> str:
+        """Subsammple some data
+
+        Parameters
+        ----------
+        catalog_template: str
+            Tag for the input catalog
+
+        file_template: str
+            Which label to apply to output dataset
+
+        subsampler_class_name: str,
+            Name of the class to use for subsampling
+
+        subsample_name: str,
+            Name of the subsample to create
+
+        dry_run: bool
+            If true, do not actually run
+
+        Keywords
+        --------
+        Used to provide values for additional interpolants, e.g., flavor, basename, etc...
+
+        Returns
+        -------
+        output_path: str
+            Path to output file
+        """
+        hdf5_output = self.get_file(file_template, **kwargs)
+        output = hdf5_output.replace(".hdf5", ".parquet")
+
+        subsampler_class = library.get_algorithm_class(
+            "Subsamplers", subsampler_class_name, "Subsample"
+        )
+        subsampler_args = library.get_subsample(subsample_name)
+        subsampler = subsampler_class(**subsampler_args.config.to_dict())
+
+        sources = self.get_catalog_files(catalog_template, **kwargs)
+
+        # output_dir = os.path.dirname(output)
+        if not dry_run:  # pragma: no cover
+            subsampler(sources, output)
+
+        return output
+
+    def reduce_data(
+        self,
+        catalog_template: str,
+        output_catalog_template: str,
+        reducer_class_name: str,
+        input_selection: str,
+        selection: str,
+        dry_run: bool = False,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Reduce some data
+
+        Parameters
+        ----------
+        catalog_template: str
+            Tag for the input catalog
+
+        output_catalog_template: str
+            Which label to apply to output dataset
+
+        reducer_class_name: str,
+            Name of the class to use for subsampling
+
+        input_selection: str,
+            Selection to use for the input
+
+        selection: str,
+            Selection to apply
+
+        dry_run: bool
+            If true, do not actually run
+
+        Keywords
+        --------
+        Used to provide values for additional interpolants, e.g.,
+
+        Returns
+        -------
+        sinks: list[str]
+            Paths to output files
+        """
+        sources = self.get_catalog_files(
+            catalog_template, selection=input_selection, **kwargs
+        )
+        sinks = self.get_catalog_files(
+            output_catalog_template, selection=selection, **kwargs
+        )
+
+        reducer_class = library.get_algorithm_class(
+            "Reducers", reducer_class_name, "Reduce"
+        )
+        reducer_args = library.get_selection(selection)
+        reducer = reducer_class(**reducer_args.config.to_dict())
+
+        if not dry_run:  # pragma: no cover
+            for source_, sink_ in zip(sources, sinks):
+                reducer(source_, sink_)
+
+        return sinks
+
+    def make_pipeline_single_input_command(
+        self,
+        pipeline_name: str,
+        flavor: str,
+        **kwargs: Any,
+    ) -> list[str]:
+        pipeline_template = self.get_pipeline(pipeline_name)
+        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
+        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs)
+
+    def make_pipeline_catalog_commands(
+        self,
+        pipeline_name: str,
+        flavor: str,
+        **kwargs: Any,
+    ) -> list[tuple[list[list[str]], str]]:
+        pipeline_template = self.get_pipeline(pipeline_name)
+        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
+        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)
+
+    def run_pipeline_single(
+        self,
+        pipeline_name: str,
+        run_mode: execution.RunMode = execution.RunMode.bash,
+        **kwargs: Any,
+    ) -> int:
+
+        kwcopy = kwargs.copy()
+        flavor = kwcopy.pop("flavor")
+        sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
+        script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
+        commands = self.make_pipeline_single_input_command(
+            pipeline_name, flavor, **kwcopy
+        )
+        try:
+            statuscode = execution.handle_commands(run_mode, [commands], script_path)
+        except Exception as msg:  # pragma: no cover
+            print(msg)
+            statuscode = 1
+        return statuscode
+
+    def run_pipeline_catalog(
+        self,
+        pipeline_name: str,
+        run_mode: execution.RunMode = execution.RunMode.bash,
+        **kwargs: Any,
+    ) -> int:
+
+        kwcopy = kwargs.copy()
+        flavor = kwcopy.pop("flavor")
+        all_commands = self.make_pipeline_catalog_commands(
+            pipeline_name, flavor, **kwcopy
+        )
+
+        ok = 0
+        for commands, script_path in all_commands:
+            try:
+                execution.handle_commands(
+                    run_mode,
+                    commands,
+                    script_path,
+                )
+            except Exception as msg:  # pragma: no cover
+                print(msg)
+                ok |= 1
+
+        return ok

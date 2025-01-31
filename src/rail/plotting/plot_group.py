@@ -1,4 +1,5 @@
 """Class to get track of groups of plots to make"""
+
 from __future__ import annotations
 
 import os
@@ -12,7 +13,9 @@ from .plotter import RailPlotter
 from .plot_holder import RailPlotDict, RailPlotHolder
 from .dataset_holder import RailDatasetHolder
 
-HTML_TEMPLATE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'html_templates')
+HTML_TEMPLATE_DIR = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)), "html_templates"
+)
 
 
 class RailPlotGroup:
@@ -28,9 +31,7 @@ class RailPlotGroup:
     def _load_jinja(cls) -> None:
         if cls.jinja_template is not None:  # pragma: no cover
             return
-        cls.jinja_env = Environment(
-            loader=FileSystemLoader(HTML_TEMPLATE_DIR)
-        )
+        cls.jinja_env = Environment(loader=FileSystemLoader(HTML_TEMPLATE_DIR))
         cls.jinja_template = cls.jinja_env.get_template("plot_group_table.html")
         cls.jinja_index_template = cls.jinja_env.get_template("plot_group_index.html")
 
@@ -50,6 +51,9 @@ class RailPlotGroup:
         self._plots: dict[str, RailPlotDict] = {}
         self._plotter_list: list[RailPlotter] = []
         self._dataset_dict: dict[str, RailDatasetHolder] = {}
+
+    def __repr__(self) -> str:
+        return f"PlotterList: {self.plotter_list_name}, DatasetList: {self.dataset_dict_name}"
 
     @property
     def plotter_list(self) -> list[RailPlotter]:

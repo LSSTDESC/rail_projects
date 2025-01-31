@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from rail.plotting.dataset_factory import RailDatasetFactory
@@ -6,10 +5,7 @@ from rail.plotting.data_extractor import RailProjectDataExtractor
 from rail.plotting.dataset_holder import RailDatasetHolder
 from rail.projects import RailProject
 
-missing_ci_data = not os.path.exists(os.path.expandvars(("$HOME/xfer/ci_test.tgz")))
 
-
-@pytest.mark.skipif(missing_ci_data, reason="no ci data")
 def test_load_yaml(setup_project_area: int) -> None:
     assert setup_project_area == 0
 

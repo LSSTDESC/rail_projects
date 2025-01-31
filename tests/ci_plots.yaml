@@ -1,36 +1,54 @@
+# This file describes the plots that we can use with the rail_plotting module
+
+# A 2D histogram of point estimate v. true redshift
 - Plotter:
       name: zestimate_v_ztrue_hist2d
       class_name: rail.plotting.pz_plotters.PZPlotterPointEstimateVsTrueHist2D
       z_min: 0.0
       z_max: 3.0
-      n_zbins: 150      
+      n_zbins: 150
+
+# A "profile" plot of the mean and scatter of the point-estimates in true redshift slices
 - Plotter:
       name: zestimate_v_ztrue_profile
       class_name: rail.plotting.pz_plotters.PZPlotterPointEstimateVsTrueProfile
       z_min: 0.0
       z_max: 3.0
       n_zbins: 60
+
+# This combines the two previous plots, since they used the same type of data
+# they can be made together
 - PlotterList:
       name: zestimate_v_ztrue
       plotters:
           - zestimate_v_ztrue_hist2d
           - zestimate_v_ztrue_profile
+
+
+# Plot the accuracy v. redshift for a set of point estimates
 - Plotter:
       name: accuracy_v_ztrue
       class_name: rail.plotting.pz_plotters.PZPlotterAccuraciesVsTrue
       z_min: 0.0
       z_max: 3.0
       n_zbins: 60
+
+# This makes a list with only one type of plot
 - PlotterList:
       name: accuracy_v_ztrue
       plotters:
           - accuracy_v_ztrue
+
+
+# Plot the n(z) in a series of tomographic bins
 - Plotter:
       name: tomo_bins
       class_name: rail.plotting.nz_plotters.NZPlotterTomoBins
       z_min: 0.0
       z_max: 3.0
       n_zbins: 151
+
+# This makes a list with only one type of plot
 - PlotterList:
       name: tomo_bins
       plotters:

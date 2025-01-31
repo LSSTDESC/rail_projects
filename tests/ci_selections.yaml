@@ -1,0 +1,24 @@
+# These describe the selections going from "truth" to "reduced" catalog
+
+# These just all use different limiting i-band magnitudes
+Selections:
+  - Selection:
+      name: maglim_25.5
+      cuts:
+        maglim_i: [null, 25.5]
+  - Selection:
+      name: gold
+      cuts:
+        maglim_i: [null, 25.5]
+  - Selection:
+      name: blend
+      cuts:
+        maglim_i: [null, 26.0]
+  - Selection:
+      name: crap
+      cuts:
+        maglim_i: [null, 30.0]
+  - Selection:
+      name: all
+      cuts:
+        maglim_i: [null, null]
