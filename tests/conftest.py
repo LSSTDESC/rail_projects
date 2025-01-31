@@ -1,29 +1,48 @@
 import os
 
 import pytest
+import urllib.request
+import subprocess
 
 
-@pytest.fixture(name="setup_project_area", scope="session")
+@pytest.fixture(name="setup_project_area", scope="package")
 def setup_project_area(request: pytest.FixtureRequest) -> int:
     if not os.path.exists("tests/temp_data"):
-        os.system("\\rm -f ci_test.tgz")
-        os.system("wget http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz -o /dev/null")
-        os.system("tar zxvf ci_test.tgz -C tests")
+        try:
+            os.unlink("tests/ci_test.tgz")
+        except FileNotFoundError:
+            pass
+        urllib.request.urlretrieve(
+            "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
+            "tests/ci_test.tgz",
+        )
+        if not os.path.exists("tests/ci_test.tgz"):
+            return 1
 
-    if not os.path.exists("tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"):
-        os.makedirs("tests/temp_data/data/test")
-        os.system(
-            "wget http://s3df.slac.stanford.edu/people/echarles/xfer/roman_rubin_2023_maglim_25.5_baseline_100k.hdf5 -o /dev/null"
-        )
-        os.makedirs('tests/temp_data/data/test', exist_ok=True)
-        os.system(
-            "mv roman_rubin_2023_maglim_25.5_baseline_100k.hdf5 tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"
-        )
+        status = subprocess.run(['tar', 'zxvf', 'tests/ci_test.tgz', '-C', 'tests'])
+        if status.returncode != 0:
+            return status.returncode
+
+    if not os.path.exists('tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet'):
+        return 2
     
+    if not os.path.exists("tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"):
+        os.makedirs("tests/temp_data/data/test", exist_ok=True)
+        urllib.request.urlretrieve(
+            "http://s3df.slac.stanford.edu/people/echarles/xfer/roman_rubin_2023_maglim_25.5_baseline_100k.hdf5",
+            "tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5",
+        )
+        if not os.path.exists('tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5'):
+            return 3
+
+        
     def teardown_project_area() -> None:
         if not os.environ.get("NO_TEARDOWN"):
             os.system("\\rm -rf tests/temp_data")
-            os.system("\\rm -f ci_test.tgz")
+            try:
+                os.unlink("tests/ci_test.tgz")
+            except FileNotFoundError:
+                pass          
 
     request.addfinalizer(teardown_project_area)
 
