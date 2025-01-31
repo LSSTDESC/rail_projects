@@ -1,4 +1,3 @@
-
 from click.testing import CliRunner, Result
 
 from rail.cli.rail_plot.plot_commands import plot_cli

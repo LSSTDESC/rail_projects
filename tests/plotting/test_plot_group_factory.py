@@ -1,4 +1,3 @@
-
 from rail.plotting.plot_group import RailPlotGroup
 from rail.plotting.plot_group_factory import RailPlotGroupFactory
 

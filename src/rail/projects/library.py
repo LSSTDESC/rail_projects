@@ -213,7 +213,9 @@ def setup_project_area() -> int:
         if not os.path.exists("tests/ci_test.tgz"):
             return 1
 
-        status = subprocess.run(["tar", "zxvf", "tests/ci_test.tgz", "-C", "tests"], check=False)
+        status = subprocess.run(
+            ["tar", "zxvf", "tests/ci_test.tgz", "-C", "tests"], check=False
+        )
         if status.returncode != 0:
             return status.returncode
 
@@ -232,7 +234,7 @@ def setup_project_area() -> int:
         ):
             return 3
     return 0
-        
+
 
 def teardown_project_area() -> None:
     if not os.environ.get("NO_TEARDOWN"):

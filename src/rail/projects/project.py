@@ -650,7 +650,7 @@ class RailProject(Configurable):
     def run_pipeline_single(
         self,
         pipeline_name: str,
-        run_mode: execution.RunMode = execution.RunMode.bash,        
+        run_mode: execution.RunMode = execution.RunMode.bash,
         **kwargs: Any,
     ) -> int:
 
@@ -658,24 +658,28 @@ class RailProject(Configurable):
         flavor = kwcopy.pop("flavor")
         sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
         script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
-        commands = self.make_pipeline_single_input_command(pipeline_name, flavor, **kwcopy)
+        commands = self.make_pipeline_single_input_command(
+            pipeline_name, flavor, **kwcopy
+        )
         try:
             statuscode = execution.handle_commands(run_mode, [commands], script_path)
         except Exception as msg:  # pragma: no cover
             print(msg)
             statuscode = 1
         return statuscode
-        
+
     def run_pipeline_catalog(
         self,
         pipeline_name: str,
-        run_mode: execution.RunMode = execution.RunMode.bash,                
+        run_mode: execution.RunMode = execution.RunMode.bash,
         **kwargs: Any,
     ) -> int:
 
         kwcopy = kwargs.copy()
         flavor = kwcopy.pop("flavor")
-        all_commands = self.make_pipeline_catalog_commands(pipeline_name, flavor, **kwcopy)
+        all_commands = self.make_pipeline_catalog_commands(
+            pipeline_name, flavor, **kwcopy
+        )
 
         ok = 0
         for commands, script_path in all_commands:
@@ -688,6 +692,5 @@ class RailProject(Configurable):
             except Exception as msg:  # pragma: no cover
                 print(msg)
                 ok |= 1
-                
-        return ok
 
+        return ok
