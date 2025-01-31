@@ -14,7 +14,9 @@ def check_get_func(func: Callable, check_dict: dict[str, Any]) -> None:
         func("does_not_exist")
 
 
-def test_project_class() -> None:
+def test_project_class(setup_project_area: int) -> None:
+    assert setup_project_area == 0
+
     project = RailProject.load_config("tests/ci_project.yaml")
 
     print(project)
