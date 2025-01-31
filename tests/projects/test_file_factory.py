@@ -5,10 +5,6 @@ from rail.projects.project_file_factory import RailProjectFileFactory
 from rail.projects.file_template import RailProjectFileInstance, RailProjectFileTemplate
 
 
-missing_ci_data = not os.path.exists(os.path.expandvars(("$HOME/xfer/ci_test.tgz")))
-
-
-@pytest.mark.skipif(missing_ci_data, reason="no ci data")
 def test_load_file_yaml(setup_project_area: int) -> None:
     assert setup_project_area == 0
 

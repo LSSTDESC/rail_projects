@@ -8,24 +8,24 @@
 SpecSelections:
   - SpecSelection:
       name: zCOSMOS
-      select: SpecSelection_zCOSMOS
-      module: rail.creation.degraders.spectroscopic_selections
+      Select: SpecSelection_zCOSMOS
+      Module: rail.creation.degraders.spectroscopic_selections
 #  - SpecSelection:
 #        name: GAMA:
-#        select: SpecSelection_GAMA
-#        module: rail.creation.degraders.spectroscopic_selections
+#        Select: SpecSelection_GAMA
+#        Module: rail.creation.degraders.spectroscopic_selections
 #  - SpecSelection:
 #        name: BOSS
-#        select: SpecSelection_BOSS
-#        module: rail.creation.degraders.spectroscopic_selections
+#        Select: SpecSelection_BOSS
+#        Module: rail.creation.degraders.spectroscopic_selections
 #  - SpecSelection:
 #        name: VVDSf02
-#        select: SpecSelection_VVDSf02
-#        module: rail.creation.degraders.spectroscopic_selections
+#        Select: SpecSelection_VVDSf02
+#        Module: rail.creation.degraders.yspectroscopic_selections
 #  - SpecSelection:
 #        name: HSC
-#        select: SpecSelection_HSC
-#        module: rail.creation.degraders.spectroscopic_selections
+#        Select: SpecSelection_HSC
+#        Module: rail.creation.degraders.spectroscopic_selections
 
 
 # These describe all the algorithms that estimate p(z) from table of fluxes

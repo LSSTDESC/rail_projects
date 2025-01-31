@@ -51,6 +51,10 @@ Files:
   - FileTemplate:
       name: train_file_zCOSMOS_100k
       path_template: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
+  # Small trainng file
+  - FileTemplate:
+      name: train_file_10
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_10.hdf5"
 
 
 # The next plots list all available algorithms of various types and assigns short names each of then
@@ -189,6 +193,7 @@ Pipelines:
       name: spec_selection
       input_catalog_template: degraded
       output_catalog_template: degraded
+      input_catalog_basename: output_dereddener_errors.pq      
       pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
       kwargs:
         selectors: ['all']
@@ -291,4 +296,9 @@ Subsamples:
   - Subsample:
       name: train_100k
       seed: 4321
+      num_objects: 100000
+  # Training subsample with 100k events, and a different seed to select the events
+  - Subsample:
+      name: train_10
+      seed: 5555
       num_objects: 100000

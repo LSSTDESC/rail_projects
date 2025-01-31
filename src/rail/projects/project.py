@@ -7,8 +7,6 @@ from typing import Any
 import yaml
 
 from ceci.config import StageParameter
-from rail.utils import catalog_utils
-from rail.core.stage import RailPipeline
 
 from . import name_utils, library
 from .configurable import Configurable
@@ -485,12 +483,12 @@ class RailProject(Configurable):
         status_code: int
             0 if ok, error code otherwise
         """
-        output_dir = self.get_common_path("project_scratch_dir")
         flavor_dict = self.get_flavor(flavor)
         pipelines_to_build = flavor_dict["pipelines"]
-        pipeline_overrides = flavor_dict["pipeline_overrides"]
+        pipeline_overrides = flavor_dict.get("pipeline_overrides", {})
         do_all = "all" in pipelines_to_build
 
+        ok = 0
         for pipeline_name, pipeline_info in self.get_pipelines().items():
             if not (do_all or pipeline_name in pipelines_to_build):
                 print(f"Skipping pipeline {pipeline_name} from flavor {flavor}")
@@ -504,75 +502,16 @@ class RailProject(Configurable):
                 else:
                     print(f"Skipping existing pipeline {output_yaml}")
                     continue
-            pipe_out_dir = os.path.dirname(output_yaml)
 
-            try:
-                os.makedirs(pipe_out_dir)
-            except FileExistsError:
-                pass
-
-            overrides = pipeline_overrides.get("default", {})
+            overrides = pipeline_overrides.get("default", {}).copy()
             overrides.update(**pipeline_overrides.get(pipeline_name, {}))
 
-            pipeline_kwargs = pipeline_info["kwargs"]
-            for key, val in pipeline_kwargs.items():
-                if isinstance(val, list) and "all" in val:
-                    if key == "selectors":
-                        pipeline_kwargs[key] = self.get_spec_selections()
-                    elif key == "algorithms":
-                        pipeline_kwargs[key] = self.get_pzalgorithms()
-                    elif key == "classifiers":
-                        pipeline_kwargs[key] = self.get_classifiers()
-                    elif key == "summarizers":
-                        pipeline_kwargs[key] = self.get_summarizers()
-                    elif key == "error_models":
-                        pipeline_kwargs[key] = self.get_error_models()
-
-            if overrides:
-                pipe_ctor_kwargs = overrides.pop("kwargs", {})
-                pz_algorithms = pipe_ctor_kwargs.pop("algorithms", None)
-
-                if pz_algorithms:
-                    orig_pz_algorithms = self.get_pzalgorithms().copy()
-                    pipe_ctor_kwargs["algorithms"] = {
-                        pz_algo_: orig_pz_algorithms[pz_algo_]
-                        for pz_algo_ in pz_algorithms
-                    }
-                    pipeline_kwargs.update(**pipe_ctor_kwargs)
-
-                stages_config = os.path.join(
-                    pipe_out_dir, f"{pipeline_name}_{flavor}_overrides.yml"
-                )
-                with open(stages_config, "w", encoding="utf-8") as fout:
-                    yaml.dump(overrides, fout)
-            else:
-                stages_config = None
-
-            pipeline_class = pipeline_info["pipeline_class"]
-            catalog_tag = flavor_dict["catalog_tag"]
-
-            if catalog_tag:
-                catalog_utils.apply_defaults(catalog_tag)
-
-            tokens = pipeline_class.split(".")
-            module = ".".join(tokens[:-1])
-            class_name = tokens[-1]
-            log_dir = f"{output_dir}/logs/{pipeline_name}"
-
-            print(f"Writing {output_yaml}")
-
-            __import__(module)
-            RailPipeline.build_and_write(
-                class_name,
-                output_yaml,
-                None,
-                stages_config,
-                output_dir,
-                log_dir,
-                **pipeline_kwargs,
+            pipeline_instance = pipeline_info.make_instance(
+                self, flavor, pipeline_overrides
             )
+            ok |= pipeline_instance.build(self)
 
-        return 0
+        return ok
 
     def subsample_data(
         self,
@@ -683,6 +622,27 @@ class RailProject(Configurable):
         reducer = reducer_class(**reducer_args.config.to_dict())
 
         if not dry_run:  # pragma: no cover
-            reducer(sources, sinks)
+            for source_, sink_ in zip(sources, sinks):
+                reducer(source_, sink_)
 
         return sinks
+
+    def make_pipeline_single_input_command(
+        self,
+        pipeline_name: str,
+        flavor: str,
+        **kwargs: Any,
+    ) -> list[str]:
+        pipeline_template = self.get_pipeline(pipeline_name)
+        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
+        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs)
+
+    def make_pipeline_catalog_commands(
+        self,
+        pipeline_name: str,
+        flavor: str,
+        **kwargs: Any,
+    ) -> list[tuple[list[list[str]], str]]:
+        pipeline_template = self.get_pipeline(pipeline_name)
+        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
+        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)

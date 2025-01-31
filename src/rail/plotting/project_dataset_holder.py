@@ -171,7 +171,8 @@ class RailProjectNZDatasetHolder(RailDatasetHolder):
             f"{self.config.extractor}"
             "( "
             f"{self.config.project}, "
-            f"{self.config.selection}_{self.config.flavor}_{self.config.algo}_{self.config.classifier}_{self.config.summarizer} "
+            f"{self.config.selection}_{self.config.flavor}_{self.config.algo}_"
+            f"{self.config.classifier}_{self.config.summarizer} "
             ")"
         )
         return ret_str

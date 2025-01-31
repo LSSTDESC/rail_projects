@@ -139,21 +139,11 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "photometric_errors"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["input_catalog_template"]
-    pipeline_catalog_config = (
-        project_scripts.PhotmetricErrorsPipelineCatalogConfiguration(
-            project,
-            source_catalog_tag=input_catalog_name,
-            sink_catalog_tag="degraded",
-        )
-    )
 
     for kw in iter_kwargs:
         ok |= project_scripts.run_pipeline_on_catalog(
             project,
             pipeline_name,
-            pipeline_catalog_config,
             **kw,
             **kwargs,
         )
@@ -173,20 +163,11 @@ def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "truth_to_observed"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["input_catalog_template"]
-    pipeline_catalog_config = project_scripts.SpectroscopicPipelineCatalogConfiguration(
-        project,
-        source_catalog_tag=input_catalog_name,
-        sink_catalog_tag="degraded",
-        source_catalog_basename="output_dereddener_errors.pq",
-    )
 
     for kw in iter_kwargs:
         ok |= project_scripts.run_pipeline_on_catalog(
             project,
             pipeline_name,
-            pipeline_catalog_config,
             **kw,
             **kwargs,
         )
@@ -206,19 +187,11 @@ def blending_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "blending"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["input_catalog_template"]
-    pipeline_catalog_config = project_scripts.BlendingPipelineCatalogConfiguration(
-        project,
-        source_catalog_tag=input_catalog_name,
-        sink_catalog_tag="degraded",
-    )
 
     for kw in iter_kwargs:
         ok |= project_scripts.run_pipeline_on_catalog(
             project,
             pipeline_name,
-            pipeline_catalog_config,
             **kw,
             **kwargs,
         )
@@ -238,20 +211,12 @@ def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "spec_selection"
-    pipeline_info = project.get_pipeline(pipeline_name)
-    input_catalog_name = pipeline_info["input_catalog_template"]
-    pipeline_catalog_config = project_scripts.SpectroscopicPipelineCatalogConfiguration(
-        project,
-        source_catalog_tag=input_catalog_name,
-        sink_catalog_tag="degraded",
-        source_catalog_basename="output_dereddener_errors.pq",
-    )
 
     for kw in iter_kwargs:
         ok |= project_scripts.run_pipeline_on_catalog(
             project,
             pipeline_name,
-            pipeline_catalog_config,
+            spec_selections=list(project.get_spec_selections().keys()),
             **kw,
             **kwargs,
         )
@@ -275,7 +240,6 @@ def inform_single(config_file: str, **kwargs: Any) -> int:
         ok |= project_scripts.run_pipeline_on_single_input(
             project,
             pipeline_name,
-            project_scripts.inform_input_callback,
             **kw,
             **kwargs,
         )
@@ -299,7 +263,6 @@ def estimate_single(config_file: str, **kwargs: Any) -> int:
         ok |= project_scripts.run_pipeline_on_single_input(
             project,
             pipeline_name,
-            project_scripts.estimate_input_callback,
             **kw,
             **kwargs,
         )
@@ -323,7 +286,6 @@ def evaluate_single(config_file: str, **kwargs: Any) -> int:
         ok |= project_scripts.run_pipeline_on_single_input(
             project,
             pipeline_name,
-            project_scripts.evaluate_input_callback,
             **kw,
             **kwargs,
         )
@@ -347,7 +309,6 @@ def pz_single(config_file: str, **kwargs: Any) -> int:
         ok |= project_scripts.run_pipeline_on_single_input(
             project,
             pipeline_name,
-            project_scripts.pz_input_callback,
             **kw,
             **kwargs,
         )
@@ -371,7 +332,6 @@ def tomography_single(config_file: str, **kwargs: Any) -> int:
         ok |= project_scripts.run_pipeline_on_single_input(
             project,
             pipeline_name,
-            project_scripts.tomography_input_callback,
             **kw,
             **kwargs,
         )
@@ -395,7 +355,6 @@ def sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
         ok |= project_scripts.run_pipeline_on_single_input(
             project,
             pipeline_name,
-            project_scripts.sompz_input_callback,
             **kw,
             **kwargs,
         )

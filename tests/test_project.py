@@ -88,29 +88,18 @@ def test_project_class() -> None:
     project.build_pipelines(flavor="baseline")
 
     catalog_files_truth = project.get_catalog_files("truth")
-    check_path = "tests/temp_data/data/ci_test_v1.1.3/10050/part-0.parquet"
+    check_path = "tests/temp_data/data/ci_test_v1.1.3/9925/part-0.parquet"
     assert check_path in catalog_files_truth
 
     catalog_files_reduced = project.get_catalog_files("reduced", selection="gold")
-    check_path = "tests/temp_data/data/ci_test_v1.1.3_gold/10050/part-0.pq"
+    check_path = "tests/temp_data/data/ci_test_v1.1.3_gold/9925/part-0.pq"
     assert check_path in catalog_files_reduced
 
     catalog_files_degraded = project.get_catalog_files(
         "degraded", selection="gold", flavor="baseline", basename="output.hdf5"
     )
-    check_path = "tests/temp_data/data/ci_test_v1.1.3_gold_baseline/10050/output.hdf5"
+    check_path = "tests/temp_data/data/ci_test_v1.1.3_gold_baseline/9925/output.hdf5"
     assert check_path in catalog_files_degraded
-
-    project.subsample_data(
-        catalog_template="degraded",
-        file_template="test_file_100k",
-        subsampler_class_name="random_subsampler",
-        subsample_name="test_100k",
-        dry_run=True,
-        flavor="baseline",
-        selection="gold",
-        basename="output.hdf5",
-    )
 
     project.reduce_data(
         catalog_template="truth",
@@ -118,5 +107,28 @@ def test_project_class() -> None:
         reducer_class_name="roman_rubin",
         input_selection="",
         selection="gold",
-        dry_run=True,
     )
+    
+    project.subsample_data(
+        catalog_template="reduced",
+        file_template="train_file_10",
+        subsampler_class_name="random_subsampler",
+        subsample_name="train_10",
+        flavor="baseline",
+        selection="gold",
+    )
+
+    single_ceci_command = project.make_pipeline_single_input_command(
+        pipeline_name="pz",
+        flavor="basline",
+        selection="gold",
+    )
+    assert single_ceci_command
+    
+    ceci_catalog_commands = project.make_pipeline_catalog_commands(
+        pipeline_name="spec_selection",
+        flavor="basline",
+        selection="gold",
+        spec_selections = list(project.get_spec_selections().keys()),
+    )
+    assert ceci_catalog_commands

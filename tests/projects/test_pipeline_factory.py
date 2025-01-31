@@ -23,12 +23,12 @@ def test_load_pipeline_yaml(setup_project_area: int) -> None:
 
     # Make sure the names of the pipeline_instances got loaded
     the_pipeline_instance_name = RailPipelineFactory.get_pipeline_instance_names()
-    assert "tomography_gold_baseline" in the_pipeline_instance_name
+    assert "tomography_baseline" in the_pipeline_instance_name
 
     # Make sure the pipeline_instances got loaded
     the_pipeline_instances = RailPipelineFactory.get_pipeline_instances()
     assert isinstance(
-        the_pipeline_instances["tomography_gold_baseline"], RailPipelineInstance
+        the_pipeline_instances["tomography_baseline"], RailPipelineInstance
     )
 
     # get a specfic pipeline_templates
@@ -42,7 +42,7 @@ def test_load_pipeline_yaml(setup_project_area: int) -> None:
 
     # get a specfic pipeline_instance
     the_pipeline_instance = RailPipelineFactory.get_pipeline_instance(
-        "tomography_gold_baseline"
+        "tomography_baseline"
     )
     assert isinstance(the_pipeline_instance, RailPipelineInstance)
 

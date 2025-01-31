@@ -8,10 +8,6 @@ from rail.plotting.plot_group import RailPlotGroup
 from rail.plotting.dataset_holder import RailDatasetHolder
 
 
-missing_ci_data = not os.path.exists(os.path.expandvars(("$HOME/xfer/ci_test.tgz")))
-
-
-@pytest.mark.skipif(missing_ci_data, reason="no ci data")
 def test_load_yaml(setup_project_area: int) -> None:
     assert setup_project_area == 0
     control.clear()
@@ -29,7 +25,6 @@ def test_load_yaml(setup_project_area: int) -> None:
     assert an_extractor
 
 
-@pytest.mark.skipif(missing_ci_data, reason="no ci data")
 def test_run(setup_project_area: int) -> None:
     assert setup_project_area == 0
     control.clear()

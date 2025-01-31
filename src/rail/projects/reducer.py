@@ -155,7 +155,7 @@ class RomanRubinReducer(RailReducer):
         self,
         input_catalog: str,
         output_catalog: str,
-    ) -> None:  # pragma: no cover
+    ) -> None:
         # FIXME: do this right
         if self.config.cuts:
             predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
@@ -213,4 +213,4 @@ class RomanRubinReducer(RailReducer):
         output_dir = os.path.dirname(output_catalog)
 
         os.makedirs(output_dir, exist_ok=True)
-        pq.write_table(table, output_dir)
+        pq.write_table(table, output_catalog)

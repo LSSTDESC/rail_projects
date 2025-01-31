@@ -47,7 +47,6 @@ def test_cli_reduce() -> None:
         "--output_catalog_template reduced "
         "--reducer_class_name roman_rubin "
         "--selection gold "
-        "--run_mode dry_run "
         "tests/ci_project.yaml",
     )
     check_result(result)
