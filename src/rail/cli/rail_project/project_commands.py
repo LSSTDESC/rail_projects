@@ -1,11 +1,14 @@
 from typing import Any
 
 import click
+import yaml
 
 from rail.core import __version__
 
-from rail.projects import RailProject
-from . import project_options, project_scripts
+from rail.projects import RailProject, library
+from rail.projects import execution
+
+from . import project_options
 
 
 @click.group()
@@ -18,7 +21,23 @@ def project_cli() -> None:
 @project_options.config_file()
 def inspect_command(config_file: str) -> int:
     """Inspect a rail pipeline project config"""
-    return project_scripts.inspect(config_file)
+    print("RAIL Project Library")
+    print(">>>>>>>>")
+    project = RailProject.load_config(config_file)
+    library.print_contents()
+    print("<<<<<<<<")
+    print(f"RAIL Project: {project}")
+    print(">>>>>>>>")
+    for key, val in project.config.items():
+        if key == "Flavors":
+            print(f"{key}:")
+            for flavor_ in val:
+                flavor_name = flavor_["Flavor"]["name"]
+                print(f"- {flavor_name}")
+            continue
+        print(yaml.dump({key: val}, indent=2))
+    print("<<<<<<<<")
+    return 0
 
 
 @project_cli.command(name="build")
@@ -68,7 +87,7 @@ def subsample_command(
             **kwargs,
         )
         hdf5_output = output_path.replace(".parquet", ".hdf5")
-        ok |= project_scripts.handle_command(
+        ok |= execution.handle_command(
             run_mode,
             [
                 "tables-io",
@@ -90,7 +109,7 @@ def sbatch_command(
     run_mode: project_options.RunMode, site: str, args: list[str]
 ) -> int:  # pragma: no cover
     """Wrap a rail_pipe command with site-based arguements for slurm"""
-    return project_scripts.sbatch_wrap(run_mode, site, args)
+    return execution.sbatch_wrap(run_mode, site, args)
 
 
 @project_cli.command(name="reduce")
@@ -141,8 +160,7 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     pipeline_name = "photometric_errors"
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
             **kw,
             **kwargs,
@@ -165,8 +183,7 @@ def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
     pipeline_name = "truth_to_observed"
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
             **kw,
             **kwargs,
@@ -189,8 +206,7 @@ def blending_pipeline(config_file: str, **kwargs: Any) -> int:
     pipeline_name = "blending"
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
             **kw,
             **kwargs,
@@ -213,8 +229,7 @@ def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
     pipeline_name = "spec_selection"
 
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_catalog(
-            project,
+        ok |= project.run_pipeline_catalog(
             pipeline_name,
             spec_selections=list(project.get_spec_selections().keys()),
             **kw,
@@ -237,8 +252,7 @@ def inform_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
             **kw,
             **kwargs,
@@ -260,8 +274,7 @@ def estimate_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
             **kw,
             **kwargs,
@@ -283,8 +296,7 @@ def evaluate_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
             **kw,
             **kwargs,
@@ -306,8 +318,7 @@ def pz_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
             **kw,
             **kwargs,
@@ -329,8 +340,7 @@ def tomography_single(config_file: str, **kwargs: Any) -> int:
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
             **kw,
             **kwargs,
@@ -352,8 +362,7 @@ def sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:
-        ok |= project_scripts.run_pipeline_on_single_input(
-            project,
+        ok |= project.run_pipeline_single(
             pipeline_name,
             **kw,
             **kwargs,

@@ -8,7 +8,7 @@ import yaml
 
 from ceci.config import StageParameter
 
-from . import name_utils, library
+from . import name_utils, library, execution
 from .configurable import Configurable
 from .catalog_template import RailProjectCatalogTemplate
 from .pipeline_holder import RailPipelineTemplate
@@ -646,3 +646,48 @@ class RailProject(Configurable):
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
         return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)
+
+    def run_pipeline_single(
+        self,
+        pipeline_name: str,
+        run_mode: execution.RunMode = execution.RunMode.bash,        
+        **kwargs: Any,
+    ) -> int:
+
+        kwcopy = kwargs.copy()
+        flavor = kwcopy.pop("flavor")
+        sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
+        script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
+        commands = self.make_pipeline_single_input_command(pipeline_name, flavor, **kwcopy)
+        try:
+            statuscode = execution.handle_commands(run_mode, [commands], script_path)
+        except Exception as msg:  # pragma: no cover
+            print(msg)
+            statuscode = 1
+        return statuscode
+        
+    def run_pipeline_catalog(
+        self,
+        pipeline_name: str,
+        run_mode: execution.RunMode = execution.RunMode.bash,                
+        **kwargs: Any,
+    ) -> int:
+
+        kwcopy = kwargs.copy()
+        flavor = kwcopy.pop("flavor")
+        all_commands = self.make_pipeline_catalog_commands(pipeline_name, flavor, **kwcopy)
+
+        ok = 0
+        for commands, script_path in all_commands:
+            try:
+                execution.handle_commands(
+                    run_mode,
+                    commands,
+                    script_path,
+                )
+            except Exception as msg:  # pragma: no cover
+                print(msg)
+                ok |= 1
+                
+        return ok
+

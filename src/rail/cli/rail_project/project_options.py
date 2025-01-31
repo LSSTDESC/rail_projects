@@ -1,6 +1,6 @@
-import enum
-
 import click
+
+from rail.projects.execution import RunMode
 
 from rail.cli.rail.options import (
     EnumChoice,
@@ -42,14 +42,6 @@ __all__: list[str] = [
     "truth_path",
     "seed",
 ]
-
-
-class RunMode(enum.Enum):
-    """Choose the run mode"""
-
-    dry_run = 0
-    bash = 1
-    slurm = 2
 
 
 args = PartialArgument(

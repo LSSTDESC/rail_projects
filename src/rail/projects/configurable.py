@@ -47,7 +47,7 @@ class Configurable:
     def get(self, key: str, default_value: Any | None = None) -> Any:
         try:
             return self[key]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             return default_value
 
     @property

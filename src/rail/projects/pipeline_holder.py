@@ -433,7 +433,7 @@ class RailPipelineTemplate(Configurable):
         pipeline_overrides: dict[str, Any],
     ) -> RailPipelineInstance:
         kwargs_copy = self.config.kwargs.copy()
-        if "kwargs" in pipeline_overrides:
+        if "kwargs" in pipeline_overrides:  # pragma: no cover
             kwargs_update = pipeline_overrides.pop("kwargs", {})
             kwargs_copy.update(**kwargs_update)
 

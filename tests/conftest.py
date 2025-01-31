@@ -1,12 +1,6 @@
-import os
-
-import urllib.request
-import subprocess
-
 import pytest
 
 from rail.projects import library
-
 
 @pytest.fixture(name="setup_project_area", scope="package")
 def setup_project_area(request: pytest.FixtureRequest) -> int:
