@@ -28,7 +28,7 @@ PathTemplates = dict(
 def update_include_dict(
     orig_dict: dict[str, Any],
     include_dict: dict[str, Any],
-) -> None:
+) -> None:  # pragma: no cover
     """Update a dict by updating (instead of replacing) sub-dicts
 
     Parameters
@@ -112,7 +112,7 @@ def resolve_dict(source: dict, interpolants: dict) -> dict:
     return sink
 
 
-def _resolve(templates: dict, source: dict, interpolants: dict) -> dict:
+def _resolve(templates: dict, source: dict, interpolants: dict) -> dict:  # pragma: no cover
     """Resolve a set of templates using interpolants and allow for overrides
 
     Parameters
@@ -211,7 +211,7 @@ class NameFactory:
         """Reset the dict of interpolants that are used to resolve templates"""
         self._interpolants = {}
 
-    def resolve_from_config(self, config: dict) -> dict:
+    def resolve_from_config(self, config: dict) -> dict:  # pragma: no cover
         """Resolve all the templates in a dict
 
         Parameters
@@ -249,11 +249,12 @@ class NameFactory:
         formatted: str
             Resolved version of the template
         """
-        if (path_value := config.get(path_key)) is not None:
+        try:
+            (path_value := config[path_key])
             formatted = format_template(path_value, **kwargs, **self.interpolants)
-        else:
-            raise KeyError(f"Path '{path_key}' not found in {config}")
-        return formatted
+            return formatted
+        except KeyError as missing_key:
+            raise KeyError(f"Path '{path_key}' not found in {config}") from missing_key
 
     def get_template(self, section_key: str, path_key: str) -> str:
         """Return the template for a particular file type

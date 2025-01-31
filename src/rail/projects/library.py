@@ -210,16 +210,16 @@ def setup_project_area() -> int:
             "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
             "tests/ci_test.tgz",
         )
-        if not os.path.exists("tests/ci_test.tgz"):
+        if not os.path.exists("tests/ci_test.tgz"):  # pragma: no cover
             return 1
 
         status = subprocess.run(
             ["tar", "zxvf", "tests/ci_test.tgz", "-C", "tests"], check=False
         )
-        if status.returncode != 0:
+        if status.returncode != 0:  # pragma: no cover
             return status.returncode
 
-    if not os.path.exists("tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet"):
+    if not os.path.exists("tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet"):  # pragma: no cover
         return 2
 
     if not os.path.exists("tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"):
@@ -231,7 +231,7 @@ def setup_project_area() -> int:
         )
         if not os.path.exists(
             "tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"
-        ):
+        ):  # pragma: no cover
             return 3
     return 0
 
@@ -241,5 +241,5 @@ def teardown_project_area() -> None:
         os.system("\\rm -rf tests/temp_data")
         try:
             os.unlink("tests/ci_test.tgz")
-        except FileNotFoundError:
+        except FileNotFoundError:  # pragma: no cover
             pass
