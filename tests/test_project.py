@@ -110,7 +110,7 @@ def test_project_class(setup_project_area: int) -> None:
         input_selection="",
         selection="gold",
     )
-    
+
     project.subsample_data(
         catalog_template="reduced",
         file_template="train_file_10",
@@ -126,11 +126,11 @@ def test_project_class(setup_project_area: int) -> None:
         selection="gold",
     )
     assert single_ceci_command
-    
+
     ceci_catalog_commands = project.make_pipeline_catalog_commands(
         pipeline_name="spec_selection",
         flavor="basline",
         selection="gold",
-        spec_selections = list(project.get_spec_selections().keys()),
+        spec_selections=list(project.get_spec_selections().keys()),
     )
     assert ceci_catalog_commands

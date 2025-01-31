@@ -331,9 +331,7 @@ def spectroscopic_selection_convert_commands(
     return convert_commands
 
 
-def blending_convert_commands(
-    sink_dir: str, **_kwargs: Any
-) -> list[list[str]]:
+def blending_convert_commands(sink_dir: str, **_kwargs: Any) -> list[list[str]]:
     convert_command = [
         "tables-io",
         "convert",
@@ -621,7 +619,7 @@ class RailPipelineInstance(Configurable):
         """
         pipeline_name = self.config.pipeline_template
         pipeline_info = project.get_pipeline(pipeline_name)
-        flavor=self.config.flavor
+        flavor = self.config.flavor
         pipeline_path = project.get_path(
             "pipeline_path", pipeline=pipeline_name, flavor=flavor, **kwargs
         )
@@ -631,20 +629,20 @@ class RailPipelineInstance(Configurable):
         source_catalog_files = project.get_catalog_files(
             pipeline_info.config.input_catalog_template,
             basename=pipeline_info.config.input_catalog_basename,
-            flavor=self.config.flavor,             
+            flavor=self.config.flavor,
             **kwargs,
         )
         sink_catalog_files = project.get_catalog_files(
             pipeline_info.config.output_catalog_template,
             basename=pipeline_info.config.output_catalog_basename,
-            flavor=self.config.flavor,             
+            flavor=self.config.flavor,
             **kwargs,
         )
 
         all_commands: list[tuple[list[list[str]], str]] = []
 
-        selection = kwargs['selection']
-        
+        selection = kwargs["selection"]
+
         for source_catalog, sink_catalog in zip(
             source_catalog_files, sink_catalog_files
         ):
@@ -664,7 +662,11 @@ class RailPipelineInstance(Configurable):
                 sink_dir,
                 **kwargs,
             )
-            iter_commands = [["mkdir", "-p", f"{sink_dir}"], ceci_commands, *convert_commands]
+            iter_commands = [
+                ["mkdir", "-p", f"{sink_dir}"],
+                ceci_commands,
+                *convert_commands,
+            ]
             all_commands.append((iter_commands, script_path))
 
         return all_commands

@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from rail.projects.catalog_factory import RailCatalogFactory

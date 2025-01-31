@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from rail.plotting.dataset_factory import RailDatasetFactory
