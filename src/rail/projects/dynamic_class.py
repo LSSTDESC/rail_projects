@@ -82,8 +82,8 @@ class DynamicClass:
 
         Returns
         -------
-        plotter: RailPlotter
-            Newly created plotter
+        object: T
+            Newly created object
 
         Notes
         -----

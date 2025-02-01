@@ -29,7 +29,7 @@ def test_load_yaml() -> None:
 
     # Make sure the plotter lists got loaded
     list_dict = RailPlotterFactory.get_plotter_list_dict()
-    assert len(list_dict["zestimate_v_ztrue"]) == 2
+    assert len(list_dict["zestimate_v_ztrue"].config.plotters) == 2
 
     # Get a plotter by name
     a_plotter = RailPlotterFactory.get_plotter("zestimate_v_ztrue_hist2d")
@@ -40,7 +40,8 @@ def test_load_yaml() -> None:
 
     # Get a plotter list by name
     a_plotter_list = RailPlotterFactory.get_plotter_list("zestimate_v_ztrue")
-    assert isinstance(a_plotter_list[0], pz_plotters.PZPlotterPointEstimateVsTrueHist2D)
+    plotters = a_plotter_list(RailPlotterFactory.instance())
+    assert isinstance(plotters[0], pz_plotters.PZPlotterPointEstimateVsTrueHist2D)
 
     with pytest.raises(KeyError):
         RailPlotterFactory.get_plotter_list("bad")

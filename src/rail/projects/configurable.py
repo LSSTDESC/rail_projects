@@ -12,6 +12,12 @@ class Configurable:
         name=StageParameter(str, 0.0, fmt="%s", msg="Name for the plotter"),
     )
 
+    yaml_tag: str = ""
+
+    @classmethod
+    def full_class_name(cls) -> str:
+        return f"{cls.__module__}.{cls.__name__}"
+
     def __init__(self, **kwargs: Any):
         """C'tor
 
@@ -57,3 +63,7 @@ class Configurable:
 
     def __repr__(self) -> str:
         return f"{self.config.name}"
+
+    def to_yaml_dict(self) -> dict[str, dict[str, Any]]:
+        """Create a yaml-convertable dict for this object"""
+        return {self.yaml_tag: self.config.to_dict()}

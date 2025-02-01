@@ -37,14 +37,8 @@ def run_command(config_file: str, **kwargs: Any) -> int:
 def inspect_command(config_file: str) -> int:
     """Inspect a configuration yaml file"""
     control.clear()
-    plot_groups = control.load_plot_group_yaml(config_file)
+    control.load_yaml(config_file)
     control.print_contents()
-    print("----------------")
-    print("Plot groups:")
-    for key, val in plot_groups.items():
-        print(f"  {key}:")
-        print(f"    PlotterList: {val.plotter_list_name}")
-        print(f"    DatasetList: {val.dataset_dict_name}")
     return 0
 
 

@@ -5,9 +5,10 @@ import os
 import yaml
 
 from .catalog_template import RailProjectCatalogInstance, RailProjectCatalogTemplate
+from .factory_mixin import RailFactoryMixin
 
 
-class RailCatalogFactory:
+class RailCatalogFactory(RailFactoryMixin):
     """Factory class to make catalogs
 
     Expected usage is that user will define a yaml file with the various
@@ -32,67 +33,15 @@ class RailCatalogFactory:
               iteration_vars: ['healpix']
     """
 
+    client_classes = [RailProjectCatalogTemplate, RailProjectCatalogInstance]
+
     _instance: RailCatalogFactory | None = None
 
     def __init__(self) -> None:
         """C'tor, build an empty RailDatasetFactory"""
-        self._catalog_templates: dict[str, RailProjectCatalogTemplate] = {}
-        self._catalog_instances: dict[str, RailProjectCatalogInstance] = {}
-
-    @classmethod
-    def instance(cls) -> RailCatalogFactory:
-        """Return the singleton instance of the factory"""
-        if cls._instance is None:
-            cls._instance = RailCatalogFactory()
-        return cls._instance
-
-    @classmethod
-    def clear(cls) -> None:
-        """Clear the contents of the factory"""
-        if cls._instance is None:
-            return
-        cls._instance.clear_instance()
-
-    @classmethod
-    def print_contents(cls) -> None:
-        """Print the contents of the factory"""
-        if cls._instance is None:
-            cls._instance = RailCatalogFactory()
-        cls._instance.print_instance_contents()
-
-    @classmethod
-    def load_yaml(cls, yaml_file: str) -> None:
-        """Load a yaml file
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read and load
-
-        Notes
-        -----
-        See class helpstring for yaml format
-        """
-        if cls._instance is None:
-            cls._instance = RailCatalogFactory()
-        cls._instance.load_instance_yaml(yaml_file)
-
-    @classmethod
-    def load_yaml_tag(cls, catalogs_config: list[dict[str, Any]]) -> None:
-        """Load from a yaml tag
-
-        Parameters
-        ----------
-        catalogs_config: list[dict[str, Any]]
-            Yaml tag used to load
-
-        Notes
-        -----
-        See class helpstring for yaml format
-        """
-        if cls._instance is None:
-            cls._instance = RailCatalogFactory()
-        cls._instance.load_catalogs_from_yaml_tag(catalogs_config)
+        RailFactoryMixin.__init__(self)
+        self._catalog_templates = self.add_dict(RailProjectCatalogTemplate)
+        self._catalog_instances = self.add_dict(RailProjectCatalogInstance)
 
     @classmethod
     def get_catalog_templates(cls) -> dict[str, RailProjectCatalogTemplate]:
@@ -168,11 +117,6 @@ class RailCatalogFactory:
         """Return the dictionary of catalog instances"""
         return self._catalog_instances
 
-    def clear_instance(self) -> None:
-        """Clear out the contents of the factory"""
-        self._catalog_templates.clear()
-        self._catalog_instances.clear()
-
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
         print("----------------")
@@ -186,57 +130,15 @@ class RailCatalogFactory:
         for template_name, catalog_instance in self.catalog_instances.items():
             print(f"  {template_name}: {catalog_instance}")
 
-    def _make_catalog_instance(self, **kwargs: Any) -> RailProjectCatalogInstance:
-        try:
-            name = kwargs["name"]
-        except KeyError as missing_key:
-            raise KeyError(
-                "CatalogInstance yaml block does not contain name for catalog_instance: "
-                f"{list(kwargs.keys())}"
-            ) from missing_key
-        if name in self._catalog_instances:  # pragma: no cover
-            raise KeyError(f"Dataset {name} is already defined")
-        catalog_instance = RailProjectCatalogInstance(**kwargs)
-        self._catalog_instances[name] = catalog_instance
-        return catalog_instance
-
-    def _make_catalog_template(self, **kwargs: Any) -> RailProjectCatalogTemplate:
-        try:
-            name = kwargs["name"]
-        except KeyError as missing_key:
-            raise KeyError(
-                "CatalogTemplate yaml block does not contain name for catalog_template: "
-                f"{list(kwargs.keys())}"
-            ) from missing_key
-        if name in self._catalog_templates:  # pragma: no cover
-            raise KeyError(f"Dataset {name} is already defined")
-        catalog_template = RailProjectCatalogTemplate(**kwargs)
-        self._catalog_templates[name] = catalog_template
-        return catalog_template
-
-    def load_catalog_template_from_yaml_tag(
-        self, catalog_template_config: dict[str, Any]
+    def add_catalog_instance(
+        self, catalog_instance: RailProjectCatalogInstance
     ) -> None:
-        """Load a dataset from a Dataset tag in yaml
+        self.add_to_dict(catalog_instance)
 
-        Paramters
-        ---------
-        catalog_template_config: dict[str, Any]
-            Yaml data in question
-        """
-        self._make_catalog_template(**catalog_template_config)
-
-    def load_catalog_instance_from_yaml_tag(
-        self, catalog_instance_config: dict[str, Any]
+    def add_catalog_template(
+        self, catalog_template: RailProjectCatalogTemplate
     ) -> None:
-        """Load a dataset from a Dataset tag in yaml
-
-        Paramters
-        ---------
-        catalog_instance_config: dict[str, Any]
-            Yaml data in question
-        """
-        self._make_catalog_instance(**catalog_instance_config)
+        self.add_to_dict(catalog_template)
 
     def load_catalogs_from_yaml_tag(
         self,
@@ -253,18 +155,7 @@ class RailCatalogFactory:
         -----
         See class description for yaml file syntax
         """
-        for catalogs_item in catalogs_config:
-            if "CatalogTemplate" in catalogs_item:
-                catalog_template_config = catalogs_item["CatalogTemplate"]
-                self.load_catalog_template_from_yaml_tag(catalog_template_config)
-            elif "CatalogInstance" in catalogs_item:
-                catalog_instance_config = catalogs_item["CatalogInstance"]
-                self.load_catalog_instance_from_yaml_tag(catalog_instance_config)
-            else:  # pragma: no cover
-                good_keys = ["CatalogTemplate", "CatalogInstance"]
-                raise KeyError(
-                    f"Expecting one of {good_keys} not: {catalogs_item.keys()})"
-                )
+        self.load_instance_yaml_tag(catalogs_config)
 
     def load_instance_yaml(self, yaml_file: str) -> None:
         """Read a yaml file and load the factory accordingly

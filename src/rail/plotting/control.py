@@ -22,24 +22,28 @@ from .plot_holder import RailPlotDict
 
 load_dataset_yaml = RailDatasetFactory.load_yaml
 
+load_dataset_yaml_tag = RailDatasetFactory.load_yaml_tag
+
 print_dataset_contents = RailDatasetFactory.print_contents
 
 get_datasets = RailDatasetFactory.get_datasets
 
 get_dataset_names = RailDatasetFactory.get_dataset_names
 
-get_dataset_dicts = RailDatasetFactory.get_dataset_dicts
+get_dataset_lists = RailDatasetFactory.get_dataset_lists
 
-get_dataset_dict_names = RailDatasetFactory.get_dataset_dict_names
+get_dataset_list_names = RailDatasetFactory.get_dataset_list_names
 
 get_dataset = RailDatasetFactory.get_dataset
 
-get_dataset_dict = RailDatasetFactory.get_dataset_dict
+get_dataset_list = RailDatasetFactory.get_dataset_list
 
 
 # Lift the RailPlotterFactory class methods
 
 load_plotter_yaml = RailPlotterFactory.load_yaml
+
+load_plotter_yaml_tag = RailPlotterFactory.load_yaml_tag
 
 print_plotter_contents = RailPlotterFactory.print_contents
 
@@ -59,6 +63,8 @@ get_plotter_list = RailPlotterFactory.get_plotter_list
 # Lift methods from the RailPlotGroupFactory
 
 load_plot_group_yaml = RailPlotGroupFactory.load_yaml
+
+load_plot_group_yaml_tag = RailPlotGroupFactory.load_yaml_tag
 
 make_plot_group_yaml = RailPlotGroupFactory.make_yaml
 
@@ -113,6 +119,7 @@ make_plots = RailPlotGroup.make_plots
 def clear() -> None:
     RailPlotterFactory.clear()
     RailDatasetFactory.clear()
+    RailPlotGroupFactory.clear()
 
 
 def print_contents() -> None:
@@ -121,6 +128,9 @@ def print_contents() -> None:
     print("----------------")
     print("")
     RailDatasetFactory.print_contents()
+    print("----------------")
+    print("")
+    RailPlotGroupFactory.print_contents()
     print("----------------")
 
 
@@ -181,7 +191,8 @@ def run(
     """
     clear()
     out_dict: dict[str, RailPlotDict] = {}
-    group_dict = load_plot_group_yaml(yaml_file)
+    load_yaml(yaml_file)
+    group_dict = get_plot_group_dict()
 
     include_groups = kwargs.pop("include_groups", None)
     exclude_groups = kwargs.pop("exclude_groups", None)
@@ -200,7 +211,7 @@ def run(
         plot_group = group_dict[group_]
         out_dict.update(plot_group(**kwargs))
         if make_html:
-            output_pages.append(f"plots_{plot_group.name}.html")
+            output_pages.append(f"plots_{plot_group.config.name}.html")
     if make_html:
         RailPlotGroup.make_html_index(
             os.path.join(outdir, "plot_index.html"), output_pages
@@ -252,3 +263,38 @@ def extract_datasets(
     )
     with open(output_yaml, "w", encoding="utf-8") as fout:
         yaml.dump(output_data, fout)
+
+
+def load_yaml(yaml_file: str) -> None:
+    """Read a yaml file and load the factory accordingly
+
+    Parameters
+    ----------
+    yaml_file: str
+        File to read
+
+    Notes
+    -----
+    See class description for yaml file syntax
+    """
+    with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
+        yaml_data = yaml.safe_load(fin)
+
+    includes = yaml_data.pop("Includes", [])
+    for include_ in includes:
+        load_yaml(os.path.expandvars(include_))
+
+    for yaml_key, yaml_item in yaml_data.items():
+        if yaml_key == "Data":
+            load_dataset_yaml_tag(yaml_item)
+        elif yaml_key == "Plots":
+            load_plotter_yaml_tag(yaml_item)
+        elif yaml_key == "PlotGroups":
+            load_plot_group_yaml_tag(yaml_item)
+        else:  # pragma: no cover
+            good_tags = [
+                "Data",
+                "Plots",
+                "PlotGroups",
+            ]
+            raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")

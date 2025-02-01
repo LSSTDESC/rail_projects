@@ -16,6 +16,7 @@ class RailProjectFileInstance(Configurable):
             str, None, fmt="%s", required=True, msg="Template for path to file"
         ),
     )
+    yaml_tag = "FileInstance"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -50,6 +51,7 @@ class RailProjectFileTemplate(Configurable):
             str, None, fmt="%s", required=True, msg="Template for path to file files"
         ),
     )
+    yaml_tag = "FileTemplate"
 
     def __init__(self, **kwargs: Any):
         """C'tor

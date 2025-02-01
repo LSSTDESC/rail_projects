@@ -412,6 +412,8 @@ class RailPipelineTemplate(Configurable):
         ),
     )
 
+    yaml_tag = "PipelineTemplate"
+
     def __init__(self, **kwargs: Any):
         """C'tor
 
@@ -477,6 +479,8 @@ class RailPipelineInstance(Configurable):
             msg="Parameters to override from template",
         ),
     )
+
+    yaml_tag = "PipelineInstance"
 
     def __init__(self, **kwargs: Any):
         """C'tor

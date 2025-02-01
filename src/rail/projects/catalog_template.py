@@ -22,6 +22,7 @@ class RailProjectCatalogInstance(Configurable):
             msg="Variables to iterate over to construct catalog",
         ),
     )
+    yaml_tag = "CatalogInstance"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -77,6 +78,7 @@ class RailProjectCatalogTemplate(Configurable):
             msg="Variables to iterate over to construct catalog",
         ),
     )
+    yaml_tag = "CatalogTemplate"
 
     def __init__(self, **kwargs: Any):
         """C'tor

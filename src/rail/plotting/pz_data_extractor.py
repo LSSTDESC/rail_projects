@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from rail.projects import RailProject
-
 from .data_extractor import RailProjectDataExtractor
 from .data_extraction_funcs import (
     get_pz_point_estimate_data,
@@ -66,7 +65,8 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         """
         dataset_list_name: str | None = kwargs.get("dataset_list_name")
         dataset_holder_class: str | None = kwargs.get("dataset_holder_class")
-        project: RailProject = kwargs.get("project")
+        project = kwargs['project']
+        assert isinstance(project, RailProject)
         selections = kwargs.get("selections")
         flavors = kwargs.get("flavors")
         split_by_flavor = kwargs.get("split_by_flavor", False)

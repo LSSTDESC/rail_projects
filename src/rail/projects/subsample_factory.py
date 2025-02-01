@@ -7,6 +7,7 @@ import yaml
 
 from ceci.config import StageParameter
 from .configurable import Configurable
+from .factory_mixin import RailFactoryMixin
 
 
 class RailSubsample(Configurable):
@@ -19,6 +20,7 @@ class RailSubsample(Configurable):
             int, None, fmt="%i", required=True, msg="Number of objects to pick"
         ),
     )
+    yaml_tag = "Subsample"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -35,7 +37,7 @@ class RailSubsample(Configurable):
         return f"N={self.config.num_objects} seed={self.config.seed}"
 
 
-class RailSubsampleFactory:
+class RailSubsampleFactory(RailFactoryMixin):
     """Factory class to make subsamples
 
     Expected usage is that user will define a yaml file with the various
@@ -47,66 +49,14 @@ class RailSubsampleFactory:
         num_objects: 100000
     """
 
+    client_classes = [RailSubsample]
+
     _instance: RailSubsampleFactory | None = None
 
     def __init__(self) -> None:
         """C'tor, build an empty RailDatasetFactory"""
-        self._subsamples: dict[str, RailSubsample] = {}
-
-    @classmethod
-    def instance(cls) -> RailSubsampleFactory:
-        """Return the singleton instance of the factory"""
-        if cls._instance is None:
-            cls._instance = RailSubsampleFactory()
-        return cls._instance
-
-    @classmethod
-    def clear(cls) -> None:
-        """Clear the contents of the factory"""
-        if cls._instance is None:
-            return
-        cls._instance.clear_instance()
-
-    @classmethod
-    def print_contents(cls) -> None:
-        """Print the contents of the factory"""
-        if cls._instance is None:
-            cls._instance = RailSubsampleFactory()
-        cls._instance.print_instance_contents()
-
-    @classmethod
-    def load_yaml(cls, yaml_file: str) -> None:
-        """Load a yaml file
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read and load
-
-        Notes
-        -----
-        See class helpstring for yaml format
-        """
-        if cls._instance is None:
-            cls._instance = RailSubsampleFactory()
-        cls._instance.load_instance_yaml(yaml_file)
-
-    @classmethod
-    def load_yaml_tag(cls, subsamples_config: list[dict[str, Any]]) -> None:
-        """Load from a yaml tag
-
-        Parameters
-        ----------
-        subsamples_config: list[dict[str, Any]]
-            Yaml tag used to load
-
-        Notes
-        -----
-        See class helpstring for yaml format
-        """
-        if cls._instance is None:
-            cls._instance = RailSubsampleFactory()
-        cls._instance.load_subsamples_from_yaml_tag(subsamples_config)
+        RailFactoryMixin.__init__(self)
+        self._subsamples = self.add_dict(RailSubsample)
 
     @classmethod
     def get_subsamples(cls) -> dict[str, RailSubsample]:
@@ -145,10 +95,6 @@ class RailSubsampleFactory:
         """Return the dictionary of subsample templates"""
         return self._subsamples
 
-    def clear_instance(self) -> None:
-        """Clear out the contents of the factory"""
-        self._subsamples.clear()
-
     def print_instance_contents(self) -> None:
         """Print the contents of the factory"""
         print("----------------")
@@ -156,29 +102,8 @@ class RailSubsampleFactory:
         for subsample_name, subsample in self.subsamples.items():
             print(f"  {subsample_name}: {subsample}")
 
-    def _make_subsample(self, **kwargs: Any) -> RailSubsample:
-        try:
-            name = kwargs["name"]
-        except KeyError as missing_key:
-            raise KeyError(
-                "SubsampleInstance yaml block does not contain name for subsample_instance: "
-                f"{list(kwargs.keys())}"
-            ) from missing_key
-        if name in self._subsamples:  # pragma: no cover
-            raise KeyError(f"RailSubsample {name} is already defined")
-        subsample = RailSubsample(**kwargs)
-        self._subsamples[name] = subsample
-        return subsample
-
-    def load_subsample_from_yaml_tag(self, subsample_config: dict[str, Any]) -> None:
-        """Load a dataset from a Subsample tag in yaml
-
-        Paramters
-        ---------
-        subsample_config: dict[str, Any]
-            Yaml data in question
-        """
-        self._make_subsample(**subsample_config)
+    def add_subsample(self, subsample: RailSubsample) -> None:
+        self.add_to_dict(subsample)
 
     def load_subsamples_from_yaml_tag(
         self,
@@ -195,15 +120,7 @@ class RailSubsampleFactory:
         -----
         See class description for yaml file syntax
         """
-        for subsamples_item in subsamples_config:
-            if "Subsample" in subsamples_item:
-                subsample_config = subsamples_item["Subsample"]
-                self.load_subsample_from_yaml_tag(subsample_config)
-            else:  # pragma: no cover
-                good_keys = ["Subsample"]
-                raise KeyError(
-                    f"Expecting one of {good_keys} not: {subsamples_item.keys()})"
-                )
+        self.load_instance_yaml_tag(subsamples_config)
 
     def load_instance_yaml(self, yaml_file: str) -> None:
         """Read a yaml file and load the factory accordingly

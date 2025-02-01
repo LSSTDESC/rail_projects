@@ -112,7 +112,9 @@ def resolve_dict(source: dict, interpolants: dict) -> dict:
     return sink
 
 
-def _resolve(templates: dict, source: dict, interpolants: dict) -> dict:  # pragma: no cover
+def _resolve(
+    templates: dict, source: dict, interpolants: dict
+) -> dict:  # pragma: no cover
     """Resolve a set of templates using interpolants and allow for overrides
 
     Parameters
@@ -250,7 +252,7 @@ class NameFactory:
             Resolved version of the template
         """
         try:
-            (path_value := config[path_key])
+            path_value = config[path_key]
             formatted = format_template(path_value, **kwargs, **self.interpolants)
             return formatted
         except KeyError as missing_key:

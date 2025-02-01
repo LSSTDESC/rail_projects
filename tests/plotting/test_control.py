@@ -13,7 +13,8 @@ def test_load_yaml(setup_project_area: int) -> None:
     control.clear()
 
     # Load the testing yaml file
-    plot_groups = control.load_plot_group_yaml("tests/ci_plot_groups.yaml")
+    control.load_yaml("tests/ci_plot_groups.yaml")
+    plot_groups = control.get_plot_group_dict()
 
     assert isinstance(
         plot_groups["zestimate_v_ztrue_test_plots"], control.RailPlotGroup

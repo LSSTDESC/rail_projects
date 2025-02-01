@@ -263,7 +263,8 @@ class RailProject(Configurable):
         if sub_algo_dict:
             return sub_algo_dict
         algo_names = self.config[algorithm_type]
-        all_algos = RailAlgorithmFactory.get_algorithms(algorithm_type)
+        # trim off the trailing 's'
+        all_algos = RailAlgorithmFactory.get_algorithms(algorithm_type[0:-1])
         use_algos = (
             list(all_algos.values())
             if "all" in algo_names
@@ -554,7 +555,7 @@ class RailProject(Configurable):
         output = hdf5_output.replace(".hdf5", ".parquet")
 
         subsampler_class = library.get_algorithm_class(
-            "Subsamplers", subsampler_class_name, "Subsample"
+            "Subsampler", subsampler_class_name, "Subsample"
         )
         subsampler_args = library.get_subsample(subsample_name)
         subsampler = subsampler_class(**subsampler_args.config.to_dict())
@@ -616,7 +617,7 @@ class RailProject(Configurable):
         )
 
         reducer_class = library.get_algorithm_class(
-            "Reducers", reducer_class_name, "Reduce"
+            "Reducer", reducer_class_name, "Reduce"
         )
         reducer_args = library.get_selection(selection)
         reducer = reducer_class(**reducer_args.config.to_dict())
@@ -653,7 +654,6 @@ class RailProject(Configurable):
         run_mode: execution.RunMode = execution.RunMode.bash,
         **kwargs: Any,
     ) -> int:
-
         kwcopy = kwargs.copy()
         flavor = kwcopy.pop("flavor")
         sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
@@ -674,7 +674,6 @@ class RailProject(Configurable):
         run_mode: execution.RunMode = execution.RunMode.bash,
         **kwargs: Any,
     ) -> int:
-
         kwcopy = kwargs.copy()
         flavor = kwcopy.pop("flavor")
         all_commands = self.make_pipeline_catalog_commands(

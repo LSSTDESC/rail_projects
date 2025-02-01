@@ -7,7 +7,7 @@ import urllib.request
 import subprocess
 import yaml
 
-from .algorithm_factory import RailAlgorithmFactory, ALGORITHM_TYPES_AND_TAGS
+from .algorithm_factory import RailAlgorithmFactory, ALGORITHM_TYPES
 from .catalog_factory import RailCatalogFactory
 from .pipeline_factory import RailPipelineFactory
 from .project_file_factory import RailProjectFileFactory
@@ -187,10 +187,10 @@ def load_yaml(yaml_file: str) -> None:
             load_catalog_yaml_tag(yaml_item)
         elif yaml_key == "Pipelines":
             load_pipeline_yaml_tag(yaml_item)
-        elif yaml_key in ALGORITHM_TYPES_AND_TAGS:
-            load_algorithm_yaml_tag(yaml_key, yaml_item)
+        elif yaml_key in ALGORITHM_TYPES:
+            load_algorithm_yaml_tag(yaml_item)
         else:  # pragma: no cover
-            good_tags = list(ALGORITHM_TYPES_AND_TAGS.keys()) + [
+            good_tags = ALGORITHM_TYPES + [
                 "Subsamples",
                 "Selections",
                 "Files",
@@ -219,7 +219,9 @@ def setup_project_area() -> int:
         if status.returncode != 0:  # pragma: no cover
             return status.returncode
 
-    if not os.path.exists("tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet"):  # pragma: no cover
+    if not os.path.exists(
+        "tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet"
+    ):  # pragma: no cover
         return 2
 
     if not os.path.exists("tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"):

@@ -1,10 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from types import GenericAlias
 
+from ceci.config import StageParameter
+
+from rail.projects import RailProject
 from rail.projects.configurable import Configurable
 from rail.projects.dynamic_class import DynamicClass
+
+if TYPE_CHECKING:
+    from .dataset_factory import RailDatasetFactory
 
 
 class RailDatasetHolder(Configurable, DynamicClass):
@@ -13,6 +19,8 @@ class RailDatasetHolder(Configurable, DynamicClass):
     extractor_inputs: dict = {}
 
     sub_classes: dict[str, type[DynamicClass]] = {}
+
+    yaml_tag = "Dataset"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -71,3 +79,72 @@ class RailDatasetHolder(Configurable, DynamicClass):
                 raise TypeError(
                     f"{key} provided to RailDatasetHolder was {type(data)}, expected {expected_type}"
                 )
+
+
+class RailDatasetListHolder(Configurable):
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
+        datasets=StageParameter(
+            list,
+            [],
+            fmt="%s",
+            msg="List of datasets to include",
+        ),
+    )
+
+    yaml_tag = "DatasetList"
+
+    def __init__(self, **kwargs: Any):
+        """C'tor
+
+        Parameters
+        ----------
+        kwargs: Any
+            Configuration parameters for this RailAlgorithmHolder, must match
+            class.config_options data members
+        """
+        Configurable.__init__(self, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.config.datasets}"
+
+    def __call__(self, dataset_factory: RailDatasetFactory) -> list[RailDatasetHolder]:
+        the_list = [
+            dataset_factory.get_dataset(name_) for name_ in self.config.datasets
+        ]
+        return the_list
+
+
+class RailProjectHolder(Configurable):
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
+        yaml_file=StageParameter(
+            str,
+            None,
+            fmt="%s",
+            required=True,
+            msg="path to project yaml file",
+        ),
+    )
+
+    yaml_tag = "Project"
+
+    def __init__(self, **kwargs: Any):
+        """C'tor
+
+        Parameters
+        ----------
+        kwargs: Any
+            Configuration parameters for this RailAlgorithmHolder, must match
+            class.config_options data members
+        """
+        Configurable.__init__(self, **kwargs)
+        self._project: RailProject | None = None
+
+    def __repr__(self) -> str:
+        return f"{self.config.yaml_file}"
+
+    def __call__(self) -> RailProject:
+        if self._project is None:
+            self._project = RailProject.load_config(self.config.yaml_file)
+        return self._project
