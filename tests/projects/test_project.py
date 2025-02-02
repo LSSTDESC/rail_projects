@@ -1,7 +1,9 @@
+import os
 from typing import Any, Callable
 
 import pytest
-from rail.projects import RailProject
+
+from rail.projects.project import RailFlavor, RailProject
 
 
 def check_get_func(func: Callable, check_dict: dict[str, Any]) -> None:
@@ -46,9 +48,14 @@ def test_project_class(setup_project_area: int) -> None:
 
     selections = project.get_selections()
     check_get_func(project.get_selection, selections)
+    project.clear_cache()
+    check_get_func(project.get_selection, selections)
     all_selections = project.get_selection_args(["all"])
     assert set(all_selections) == set(selections.keys())
     assert project.get_selection_args(["dummy"])[0] == "dummy"
+
+    subsamples = project.get_subsamples()
+    check_get_func(project.get_subsample, subsamples)
 
     itr = project.generate_kwargs_iterable(
         selections=all_selections,
@@ -134,3 +141,29 @@ def test_project_class(setup_project_area: int) -> None:
         spec_selections=list(project.get_spec_selections().keys()),
     )
     assert ceci_catalog_commands
+
+    project.write_yaml("tests/temp.yaml")
+
+    RailProject.projects.clear()
+
+    project = RailProject.load_config("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+    project.get_file_for_flavor("baseline", "test")
+
+    project.add_flavor(
+        RailFlavor(
+            name="test_flavor",
+            catalog_tag="roman_rubin",
+            pipelines=["pz"],
+        )
+    )
+    with pytest.raises(KeyError):
+        project.add_flavor(
+            RailFlavor(
+                name="test_flavor",
+                catalog_tag="roman_rubin",
+                pipelines=["pz"],
+            )
+        )
+
+    flavor_info = project.get_flavor("test_flavor")

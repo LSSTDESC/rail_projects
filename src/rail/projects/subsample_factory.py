@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from typing import Any
-import os
-import yaml
-
 
 from ceci.config import StageParameter
+
 from .configurable import Configurable
 from .factory_mixin import RailFactoryMixin
 
 
 class RailSubsample(Configurable):
+    """Paramters for a simple data subsample
+
+    This is just defined as a random number seed and a number of objects
+    """
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Subsample name"),
         seed=StageParameter(
@@ -48,6 +51,8 @@ class RailSubsampleFactory(RailFactoryMixin):
         seed: 1234
         num_objects: 100000
     """
+
+    yaml_tag = "Subsamples"
 
     client_classes = [RailSubsample]
 
@@ -90,58 +95,11 @@ class RailSubsampleFactory(RailFactoryMixin):
                 f"{list(cls.instance().subsamples.keys())}"
             ) from msg
 
+    @classmethod
+    def add_subsample(cls, subsample: RailSubsample) -> None:
+        cls.instance().add_to_dict(subsample)
+
     @property
     def subsamples(self) -> dict[str, RailSubsample]:
         """Return the dictionary of subsample templates"""
         return self._subsamples
-
-    def print_instance_contents(self) -> None:
-        """Print the contents of the factory"""
-        print("----------------")
-        print("Subsamples:")
-        for subsample_name, subsample in self.subsamples.items():
-            print(f"  {subsample_name}: {subsample}")
-
-    def add_subsample(self, subsample: RailSubsample) -> None:
-        self.add_to_dict(subsample)
-
-    def load_subsamples_from_yaml_tag(
-        self,
-        subsamples_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "Subsamples" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        subsamples_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(subsamples_config)
-
-    def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-
-        try:
-            subsamples_config = yaml_data["Subsamples"]
-        except KeyError as missing_key:
-            raise KeyError(
-                f"Did not find key Subsamples in {yaml_file}"
-            ) from missing_key
-
-        self.load_subsamples_from_yaml_tag(subsamples_config)

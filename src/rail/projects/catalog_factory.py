@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-import os
-import yaml
-
 from .catalog_template import RailProjectCatalogInstance, RailProjectCatalogTemplate
 from .factory_mixin import RailFactoryMixin
 
@@ -14,24 +10,26 @@ class RailCatalogFactory(RailFactoryMixin):
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
     Catalogs:
-        - CatalogTemplate
-              name: truth
-              path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
-              iteration_vars: ['healpix']
-        - CatalogTemplate
-              name: reduced
-              path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
-              iteration_vars: ['healpix']
+      - CatalogTemplate
+          name: truth
+          path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
+          iteration_vars: ['healpix']
+      - CatalogTemplate
+          name: reduced
+          path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
+          iteration_vars: ['healpix']
 
     Or the used can specifiy particular catalog instances where everything except the
     interation_vars are resolved
 
     Catalogs:
-        - CatalogTemplate
-              name: truth_roman_rubin_v1.1.3_gold
-              path_template: "full_path_to_catalog/{healpix}/part-0.parquet"
-              iteration_vars: ['healpix']
+      - CatalogTemplate
+          name: truth_roman_rubin_v1.1.3_gold
+          path_template: "full_path_to_catalog/{healpix}/part-0.parquet"
+          iteration_vars: ['healpix']
     """
+
+    yaml_tag: str = "Catalogs"
 
     client_classes = [RailProjectCatalogTemplate, RailProjectCatalogInstance]
 
@@ -107,6 +105,16 @@ class RailCatalogFactory(RailFactoryMixin):
                 f"{list(cls.instance().catalog_instances.keys())}"
             ) from msg
 
+    @classmethod
+    def add_catalog_instance(cls, catalog_instance: RailProjectCatalogInstance) -> None:
+        """Add a particular catalog instance to the factory"""
+        cls.instance().add_to_dict(catalog_instance)
+
+    @classmethod
+    def add_catalog_template(cls, catalog_template: RailProjectCatalogTemplate) -> None:
+        """Add a particular catalog template to the factory"""
+        cls.instance().add_to_dict(catalog_template)
+
     @property
     def catalog_templates(self) -> dict[str, RailProjectCatalogTemplate]:
         """Return the dictionary of catalog templates"""
@@ -121,60 +129,4 @@ class RailCatalogFactory(RailFactoryMixin):
         """Print the contents of the factory"""
         print("----------------")
         print("Catalogs")
-        print("----------------")
-        print("CatalogTemplates:")
-        for template_name, catalog_template in self.catalog_templates.items():
-            print(f"  {template_name}: {catalog_template}")
-        print("----------------")
-        print("CatalogInstances:")
-        for template_name, catalog_instance in self.catalog_instances.items():
-            print(f"  {template_name}: {catalog_instance}")
-
-    def add_catalog_instance(
-        self, catalog_instance: RailProjectCatalogInstance
-    ) -> None:
-        self.add_to_dict(catalog_instance)
-
-    def add_catalog_template(
-        self, catalog_template: RailProjectCatalogTemplate
-    ) -> None:
-        self.add_to_dict(catalog_template)
-
-    def load_catalogs_from_yaml_tag(
-        self,
-        catalogs_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "Catalogs" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        catalogs_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(catalogs_config)
-
-    def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-
-        try:
-            catalogs_config = yaml_data["Catalogs"]
-        except KeyError as missing_key:
-            raise KeyError(f"Did not find key Catalogs in {yaml_file}") from missing_key
-
-        self.load_catalogs_from_yaml_tag(catalogs_config)
+        RailFactoryMixin.print_instance_contents(self)

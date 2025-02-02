@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, TypeVar, TYPE_CHECKING
-import os
-import yaml
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from rail.projects import RailProject
 from rail.projects.factory_mixin import RailFactoryMixin
 
-from .dataset_holder import RailProjectHolder, RailDatasetHolder, RailDatasetListHolder
+from .dataset_holder import RailDatasetHolder, RailDatasetListHolder, RailProjectHolder
 
 if TYPE_CHECKING:
     from rail.projects.configurable import Configurable
@@ -52,6 +50,8 @@ class RailDatasetFactory(RailFactoryMixin):
             - gold_baseline_test
             - blend_baseline_test
     """
+
+    yaml_tag: str = "Data"
 
     client_classes = [RailProjectHolder, RailDatasetHolder, RailDatasetListHolder]
 
@@ -143,6 +143,21 @@ class RailDatasetFactory(RailFactoryMixin):
                 f"{list(cls.instance().dataset_lists.keys())}"
             ) from msg
 
+    @classmethod
+    def add_project(cls, project_holder: RailProjectHolder) -> None:
+        """Add a particular RailProjectHolder to the factory"""
+        cls.instance().add_to_dict(project_holder)
+
+    @classmethod
+    def add_dataset(cls, dataset_holder: RailDatasetHolder) -> None:
+        """Add a particular RailDatasetHolder to the factory"""
+        cls.instance().add_to_dict(dataset_holder)
+
+    @classmethod
+    def add_dataset_list(cls, dataset_list: RailDatasetListHolder) -> None:
+        """Add a particular RailDatasetListHolder to the factory"""
+        cls.instance().add_to_dict(dataset_list)
+
     @property
     def projects(self) -> dict[str, RailProjectHolder]:
         """Return the dictionary of RailProjects"""
@@ -158,21 +173,6 @@ class RailDatasetFactory(RailFactoryMixin):
         """Return the dictionary of lists of datasets"""
         return self._dataset_lists
 
-    def print_instance_contents(self) -> None:
-        """Print the contents of the factory"""
-        print("----------------")
-        print("Projects:")
-        for project_name, project in self.projects.items():
-            print(f"  {project_name}: {project}")
-        print("----------------")
-        print("Datasets:")
-        for dataset_name, dataset in self.datasets.items():
-            print(f"  {dataset_name}: {dataset}")
-        print("----------------")
-        print("DatasetLists")
-        for dataset_list_name, dataset_lists in self._dataset_lists.items():
-            print(f"  {dataset_list_name}: {dataset_lists}")
-
     def load_object_from_yaml_tag(
         self, configurable_class: type[C], yaml_tag: dict[str, Any]
     ) -> None:
@@ -182,51 +182,3 @@ class RailDatasetFactory(RailFactoryMixin):
             the_object()
             return
         RailFactoryMixin.load_object_from_yaml_tag(self, configurable_class, yaml_tag)
-
-    def add_project(self, project_holder: RailProjectHolder) -> None:
-        self.add_to_dict(project_holder)
-
-    def add_dataset(self, dataset_holder: RailDatasetHolder) -> None:
-        self.add_to_dict(dataset_holder)
-
-    def add_dataset_list(self, dataset_list: RailDatasetListHolder) -> None:
-        self.add_to_dict(dataset_list)
-
-    def load_data_from_yaml_tag(
-        self,
-        data_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "Data" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        data_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(data_config)
-
-    def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See `RailDatasetFactory.load_yaml` for yaml file syntax
-        """
-        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-
-        try:
-            data_config = yaml_data["Data"]
-        except KeyError as missing_key:
-            raise KeyError(f"Did not find key Data in {yaml_file}") from missing_key
-
-        self.load_data_from_yaml_tag(data_config)

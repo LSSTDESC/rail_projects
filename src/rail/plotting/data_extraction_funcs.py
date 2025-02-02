@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import glob
 import os
 from typing import Any
-import glob
 
 import numpy as np
-import tables_io
 import qp
+import tables_io
 
 from rail.projects import RailProject
 

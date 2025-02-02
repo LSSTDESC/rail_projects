@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
-import re
 import yaml
 
 from rail.projects.factory_mixin import RailFactoryMixin
 
 from .dataset_factory import RailDatasetFactory
-from .plotter_factory import RailPlotterFactory
 from .plot_group import RailPlotGroup
+from .plotter_factory import RailPlotterFactory
 
 
 class RailPlotGroupFactory(RailFactoryMixin):
@@ -29,6 +29,8 @@ class RailPlotGroupFactory(RailFactoryMixin):
           plotter_list_name: janky_plots
           dataset_dict_name: janky_data
     """
+
+    yaml_tag: str = "PlotGroups"
 
     client_classes = [RailPlotGroup]
 
@@ -93,6 +95,11 @@ class RailPlotGroupFactory(RailFactoryMixin):
         return list(cls.instance().plot_groups.keys())
 
     @classmethod
+    def add_plot_group(cls, plot_group: RailPlotGroup) -> None:
+        """Add a particular RailPlotGroup to the factory"""
+        cls.instance().add_to_dict(plot_group)
+
+    @classmethod
     def get_plot_group(cls, key: str) -> RailPlotGroup:
         """Return a project by name"""
         return cls.instance().plot_groups[key]
@@ -101,16 +108,6 @@ class RailPlotGroupFactory(RailFactoryMixin):
     def plot_groups(self) -> dict[str, RailPlotGroup]:
         """Return the dictionary of RailProjects"""
         return self._plot_groups
-
-    def print_instance_contents(self) -> None:
-        """Print the contents of the factory"""
-        print("RailPlotGroups:")
-        for plot_group_name, plot_group in self.plot_groups.items():
-            print(f"  {plot_group_name}: {plot_group}")
-        print("----------------")
-
-    def add_plot_group(self, plot_group: RailPlotGroup) -> None:
-        self.add_to_dict(plot_group)
 
     def make_instance_yaml(
         self,
@@ -174,49 +171,3 @@ class RailPlotGroupFactory(RailFactoryMixin):
             )
         with open(output_yaml, "w", encoding="utf-8") as fout:
             yaml.dump(output, fout)
-
-    def load_plot_groups_from_yaml_tag(
-        self,
-        plot_group_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "PlotGroups" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        plot_group_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(plot_group_config)
-
-    def load_instance_yaml(
-        self,
-        yaml_file: str,
-    ) -> None:
-        """Read a yaml file and load build the RailPlotGroup objects
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Returns
-        -------
-        out_dict: dict[str, RailPlotGroup]
-            Newly created RailPlotGroups
-
-        Notes
-        -----
-        See class description for yaml syntax
-        """
-        with open(yaml_file, encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-        try:
-            plots_config = yaml_data["PlotGroups"]
-        except KeyError as missing_key:
-            raise KeyError(f"Did not find key Plots in {yaml_file}") from missing_key
-
-        self.load_plot_groups_from_yaml_tag(plots_config)

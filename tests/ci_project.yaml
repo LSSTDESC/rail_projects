@@ -1,10 +1,10 @@
-# Include other configuration files
-Includes:
-  - tests/ci_project_common.yaml
-
 Project:
 
   Name: ci_test
+
+  # Include other configuration files
+  Includes:
+    - tests/ci_project_common.yaml
 
   PathTemplates: {}
 

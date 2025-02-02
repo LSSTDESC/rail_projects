@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-import os
-import yaml
-
-from .file_template import RailProjectFileInstance, RailProjectFileTemplate
 from .factory_mixin import RailFactoryMixin
+from .file_template import RailProjectFileInstance, RailProjectFileTemplate
 
 
 class RailProjectFileFactory(RailFactoryMixin):
@@ -15,17 +11,19 @@ class RailProjectFileFactory(RailFactoryMixin):
     datasets that they wish to use with the following example syntax:
     Files:
       - FileTemplate:
-            name: test_file_100k
-            path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+          name: test_file_100k
+          path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
 
     Or the used can specifiy particular file instances where everything except the
     interation_vars are resolved
 
     Files:
       - FileInstance
-            name: test_file_100k_roman_rubin_v1.1.3_gold
-            path: <full_path_to_file>
+          name: test_file_100k_roman_rubin_v1.1.3_gold
+          path: <full_path_to_file>
     """
+
+    yaml_tag: str = "Files"
 
     client_classes = [RailProjectFileInstance, RailProjectFileTemplate]
 
@@ -101,6 +99,16 @@ class RailProjectFileFactory(RailFactoryMixin):
                 f"{list(cls.instance().file_instances.keys())}"
             ) from msg
 
+    @classmethod
+    def add_file_instance(cls, file_instance: RailProjectFileInstance) -> None:
+        """Add a particular RailProjectFileInstance to the factory"""
+        cls.instance().add_to_dict(file_instance)
+
+    @classmethod
+    def add_file_template(cls, file_template: RailProjectFileTemplate) -> None:
+        """Add a particular RailProjectFileTemplate to the factory"""
+        cls.instance().add_to_dict(file_template)
+
     @property
     def file_templates(self) -> dict[str, RailProjectFileTemplate]:
         """Return the dictionary of file templates"""
@@ -115,56 +123,4 @@ class RailProjectFileFactory(RailFactoryMixin):
         """Print the contents of the factory"""
         print("----------------")
         print("Files:")
-        print("----------------")
-        print("FileTemplates:")
-        for template_name, file_template in self.file_templates.items():
-            print(f"  {template_name}: {file_template}")
-        print("----------------")
-        print("FileInstances:")
-        for template_name, file_instance in self.file_instances.items():
-            print(f"  {template_name}: {file_instance}")
-
-    def add_file_instance(self, file_instance: RailProjectFileInstance) -> None:
-        self.add_to_dict(file_instance)
-
-    def add_catalog_template(self, file_template: RailProjectFileTemplate) -> None:
-        self.add_to_dict(file_template)
-
-    def load_files_from_yaml_tag(
-        self,
-        files_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "Files" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        files_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(files_config)
-
-    def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-
-        try:
-            files_config = yaml_data["Files"]
-        except KeyError as missing_key:
-            raise KeyError(f"Did not find key Files in {yaml_file}") from missing_key
-
-        self.load_files_from_yaml_tag(files_config)
+        RailFactoryMixin.print_instance_contents(self)

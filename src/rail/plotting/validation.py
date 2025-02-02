@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from typing import Any
 from types import GenericAlias
+from typing import Any
 
 
 def validate_inputs(a_class: type, expected_inputs: dict, **kwargs: Any) -> None:
+    """Validate that the kwargs given to a class contructor
+    match the expected inputs
+
+    Raises
+    ------
+    TypeError if a kwarg is not of the expected type
+
+    KeyError is a kwaags is not in the set of expected inptus
+    """
     for key, expected_type in expected_inputs.items():
         try:
             data = kwargs[key]

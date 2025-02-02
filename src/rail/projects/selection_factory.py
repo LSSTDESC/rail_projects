@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from typing import Any
-import os
-import yaml
-
 
 from ceci.config import StageParameter
+
 from .configurable import Configurable
 from .factory_mixin import RailFactoryMixin
 
 
 class RailSelection(Configurable):
+    """Paramters for a simple data selection
+
+    This is just defined as a dict of cuts
+    """
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Selection name"),
         cuts=StageParameter(
@@ -46,8 +49,10 @@ class RailSelectionFactory(RailFactoryMixin):
       - Selection:
           name: maglim_25.5
           cuts:
-                maglim_i: [null, 25.5]
+            maglim_i: [null, 25.5]
     """
+
+    yaml_tag = "Selections"
 
     client_classes = [RailSelection]
 
@@ -90,58 +95,11 @@ class RailSelectionFactory(RailFactoryMixin):
                 f"{list(cls.instance().selections.keys())}"
             ) from msg
 
+    @classmethod
+    def add_selection(cls, selection: RailSelection) -> None:
+        cls.instance().add_to_dict(selection)
+
     @property
     def selections(self) -> dict[str, RailSelection]:
         """Return the dictionary of selection templates"""
         return self._selections
-
-    def print_instance_contents(self) -> None:
-        """Print the contents of the factory"""
-        print("----------------")
-        print("Selections:")
-        for selection_name, selection in self.selections.items():
-            print(f"  {selection_name}: {selection}")
-
-    def add_selection(self, selection: RailSelection) -> None:
-        self.add_to_dict(selection)
-
-    def load_selections_from_yaml_tag(
-        self,
-        selections_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "Selections" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        selections_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(selections_config)
-
-    def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-
-        try:
-            selections_config = yaml_data["Selections"]
-        except KeyError as missing_key:
-            raise KeyError(
-                f"Did not find key Selections in {yaml_file}"
-            ) from missing_key
-
-        self.load_selections_from_yaml_tag(selections_config)

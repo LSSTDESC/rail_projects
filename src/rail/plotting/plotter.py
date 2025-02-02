@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ceci.config import StageParameter
 
@@ -12,8 +12,8 @@ from .plot_holder import RailPlotDict
 from .validation import validate_inputs
 
 if TYPE_CHECKING:
-    from .plot_holder import RailPlotHolder
     from .dataset_holder import RailDatasetHolder
+    from .plot_holder import RailPlotHolder
     from .plotter_factory import RailPlotterFactory
 
 
@@ -204,6 +204,12 @@ class RailPlotter(Configurable, DynamicClass):
             Plot name, following the pattern f"{prefix}{self._name}{plot_name}"
         """
         return f"{prefix}{self.config.name}{plot_name}"
+
+    def to_yaml_dict(self) -> dict[str, dict[str, Any]]:
+        """Create a yaml-convertable dict for this object"""
+        yaml_dict = Configurable.to_yaml_dict(self)
+        yaml_dict[self.yaml_tag].update(class_name=f"{self.full_class_name()}")
+        return yaml_dict
 
     @classmethod
     def _validate_inputs(cls, **kwargs: Any) -> None:

@@ -1,12 +1,12 @@
 from typing import Any
 
 import click
-
+from rail.cli.rail import options
 from rail.core import __version__
 
-from rail.cli.rail import options
 from rail.cli.rail_project import project_options
 from rail.plotting import control
+
 from . import plot_options
 
 

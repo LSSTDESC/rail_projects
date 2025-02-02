@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import os
-
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import yaml
-
 from ceci.config import StageParameter
-from rail.utils import catalog_utils
 from rail.core.stage import RailPipeline
+from rail.utils import catalog_utils
 
 from .configurable import Configurable
 

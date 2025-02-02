@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from rail.projects.algorithm_factory import RailAlgorithmFactory
@@ -20,7 +22,8 @@ def test_load_algorithm_yaml(setup_project_area: int) -> None:
     assert "PZAlgorithm" in the_algo_types
 
     the_pz_algos = RailAlgorithmFactory.get_algorithms("PZAlgorithm")
-    assert isinstance(the_pz_algos["knn"], RailPZAlgorithmHolder)
+    knn_algo = the_pz_algos["knn"]
+    assert isinstance(knn_algo, RailPZAlgorithmHolder)
 
     the_pz_algo_names = RailAlgorithmFactory.get_algorithm_names("PZAlgorithm")
     assert "knn" in the_pz_algo_names
@@ -33,4 +36,18 @@ def test_load_algorithm_yaml(setup_project_area: int) -> None:
     )
     assert knn_estimator
 
+    # Test the interactive stuff
     RailAlgorithmFactory.clear()
+    RailAlgorithmFactory.add_algorithm(knn_algo)
+
+    check_algo = RailAlgorithmFactory.get_algorithm("PZAlgorithm", "knn")
+    assert isinstance(check_algo, type(knn_algo))
+
+    # check writing the yaml dict
+    RailAlgorithmFactory.write_yaml("tests/temp.yaml")
+    RailAlgorithmFactory.clear()
+    RailAlgorithmFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_algo = RailAlgorithmFactory.get_algorithm("PZAlgorithm", "knn")
+    assert isinstance(check_algo, type(knn_algo))

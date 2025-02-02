@@ -1,21 +1,20 @@
 from __future__ import annotations
 
-from typing import Any
 import os
+
 import yaml
 
 from .algorithm_holder import (
     RailAlgorithmHolder,
-    RailPZAlgorithmHolder,
-    RailSpecSelectionAlgorithmHolder,
     RailClassificationAlgorithmHolder,
-    RailSummarizerAlgorithmHolder,
     RailErrorModelAlgorithmHolder,
-    RailSubsamplerAlgorithmHolder,
+    RailPZAlgorithmHolder,
     RailReducerAlgorithmHolder,
+    RailSpecSelectionAlgorithmHolder,
+    RailSubsamplerAlgorithmHolder,
+    RailSummarizerAlgorithmHolder,
 )
 from .factory_mixin import RailFactoryMixin
-
 
 ALGORITHM_TYPES: list[str] = [
     "SpecSelections",
@@ -34,10 +33,25 @@ class RailAlgorithmFactory(RailFactoryMixin):
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
 
+    SpecSelections:
+      - SpecSelection:
+          name: zCOSMOS
+          Select: SpecSelection_zCOSMOS
+          Module: rail.creation.degraders.spectroscopic_selections
 
-    Or the used can specifiy particular catalog instances where everything except the
-    interation_vars are resolved
+    PZAlgorithms:
+      - PZAlgorithm:
+          name: trainz
+          Estimate: TrainZEstimator
+          Inform: TrainZInformer
+          Module: rail.estimation.algos.train_z
+      - PZAlgorithm:
+          name: simplenn
+          Estimate: SklNeurNetEstimator
+          Inform: SklNeurNetInformer
+          Module: rail.estimation.algos.sklearn_neurnet
 
+    and so on.
     """
 
     client_classes = [
@@ -91,6 +105,11 @@ class RailAlgorithmFactory(RailFactoryMixin):
         algorithm_holder = cls.get_algorithm(algorithm_type, algo_name)
         return algorithm_holder(key)
 
+    @classmethod
+    def add_algorithm(cls, algorithm: RailAlgorithmHolder) -> None:
+        """Add a particular aglorithm to the factory"""
+        cls.instance().add_to_dict(algorithm)
+
     @property
     def algorithm_holder_dict(self) -> dict[str, dict[str, RailAlgorithmHolder]]:
         """Return the dictionary of catalog templates"""
@@ -100,51 +119,27 @@ class RailAlgorithmFactory(RailFactoryMixin):
         """Print the contents of the factory"""
         print("----------------")
         print("Algorithms")
-        for algorithm_type, algo_dict in self.algorithm_holder_dict.items():
-            print("----------------")
-            print(f"{algorithm_type}:")
-            for algorithm_name, algorithm in algo_dict.items():
-                print(f"  {algorithm_name}: {algorithm}")
-
-    def add_algorithm(self, algorithm: RailAlgorithmHolder) -> None:
-        self.add_to_dict(algorithm)
-
-    def load_instance_algorithm_type_from_yaml_tag(
-        self,
-        yaml_item_value: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_item_value: list[dict[str, Any]],
-            Instance of the algorithm
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(yaml_item_value)
+        RailFactoryMixin.print_instance_contents(self)
 
     def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
         with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
             yaml_data = yaml.safe_load(fin)
 
         for yaml_item_key, yaml_item_value in yaml_data.items():
             if yaml_item_key in ALGORITHM_TYPES:
-                self.load_instance_algorithm_type_from_yaml_tag(yaml_item_value)
+                self.load_instance_yaml_tag(
+                    yaml_item_value, f"{yaml_file}#{yaml_item_key})"
+                )
             else:  # pragma: no cover
                 raise KeyError(
                     f"Expecting one of {ALGORITHM_TYPES} not: {yaml_item_key})"
                 )
+
+    def to_instance_yaml_dict(self) -> dict:
+        ret_dict: dict[str, list] = {}
+        for a_dict_name, a_dict in self._the_dicts.items():
+            sub_list: list[dict] = []
+            for value_ in a_dict.values():
+                sub_list.append(value_.to_yaml_dict())
+            ret_dict[f"{a_dict_name}s"] = sub_list
+        return ret_dict

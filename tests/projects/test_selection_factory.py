@@ -1,6 +1,8 @@
+import os
+
 import pytest
 
-from rail.projects.selection_factory import RailSelectionFactory, RailSelection
+from rail.projects.selection_factory import RailSelection, RailSelectionFactory
 
 
 def test_load_selection_yaml(setup_project_area: int) -> None:
@@ -27,4 +29,19 @@ def test_load_selection_yaml(setup_project_area: int) -> None:
     with pytest.raises(KeyError):
         RailSelectionFactory.get_selection("bad")
 
+    # Test the interactive stuff
     RailSelectionFactory.clear()
+
+    RailSelectionFactory.add_selection(the_selection)
+
+    check_selection = RailSelectionFactory.get_selection("gold")
+    assert isinstance(check_selection, type(the_selection))
+
+    # check writing the yaml dict
+    RailSelectionFactory.write_yaml("tests/temp.yaml")
+    RailSelectionFactory.clear()
+    RailSelectionFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_selection = RailSelectionFactory.get_selection("gold")
+    assert isinstance(check_selection, type(the_selection))

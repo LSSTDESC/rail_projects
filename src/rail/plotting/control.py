@@ -2,20 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Any
 import os
+from typing import Any
+
 import yaml
 
 from rail.projects import RailProject
+from rail.projects.factory_mixin import RailFactoryMixin
 
-from .dataset_factory import RailDatasetFactory
-from .plotter_factory import RailPlotterFactory
-from .plot_group_factory import RailPlotGroupFactory
 from .data_extractor import RailProjectDataExtractor
+from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder
-from .plotter import RailPlotter
 from .plot_group import RailPlotGroup
+from .plot_group_factory import RailPlotGroupFactory
 from .plot_holder import RailPlotDict
+from .plotter import RailPlotter
+from .plotter_factory import RailPlotterFactory
+
+THE_FACTORIES: list[type[RailFactoryMixin]] = [
+    RailPlotterFactory,
+    RailDatasetFactory,
+    RailPlotGroupFactory,
+]
+
+YAML_HANDLERS: dict[str, type[RailFactoryMixin]] = {
+    factory.yaml_tag: factory for factory in THE_FACTORIES
+}
 
 
 # Lift the RailDatasetFactory class methods
@@ -38,6 +50,12 @@ get_dataset = RailDatasetFactory.get_dataset
 
 get_dataset_list = RailDatasetFactory.get_dataset_list
 
+add_dataset = RailDatasetFactory.add_dataset
+
+add_dataset_list = RailDatasetFactory.add_dataset_list
+
+add_project = RailDatasetFactory.add_project
+
 
 # Lift the RailPlotterFactory class methods
 
@@ -47,17 +65,21 @@ load_plotter_yaml_tag = RailPlotterFactory.load_yaml_tag
 
 print_plotter_contents = RailPlotterFactory.print_contents
 
-get_plotter_dict = RailPlotterFactory.get_plotter_dict
+get_plotters = RailPlotterFactory.get_plotters
 
 get_plotter_names = RailPlotterFactory.get_plotter_names
 
-get_plotter_list_dict = RailPlotterFactory.get_plotter_list_dict
+get_plotter_lists = RailPlotterFactory.get_plotter_lists
 
 get_plotter_list_names = RailPlotterFactory.get_plotter_list_names
 
 get_plotter = RailPlotterFactory.get_plotter
 
 get_plotter_list = RailPlotterFactory.get_plotter_list
+
+add_plotter = RailPlotterFactory.add_plotter
+
+add_plotter_list = RailPlotterFactory.add_plotter_list
 
 
 # Lift methods from the RailPlotGroupFactory
@@ -75,6 +97,8 @@ get_plot_group_dict = RailPlotGroupFactory.get_plot_groups
 get_plot_group_names = RailPlotGroupFactory.get_plot_group_names
 
 get_plot_group = RailPlotGroupFactory.get_plot_group
+
+add_plot_group = RailPlotGroupFactory.add_plot_group
 
 
 # Lift methods from RailProjectDataExtractor
@@ -117,21 +141,17 @@ make_plots = RailPlotGroup.make_plots
 
 # Define a few additional functions
 def clear() -> None:
-    RailPlotterFactory.clear()
-    RailDatasetFactory.clear()
-    RailPlotGroupFactory.clear()
+    """Clean all the factories"""
+    for factory_ in THE_FACTORIES:
+        factory_.clear()
 
 
 def print_contents() -> None:
     """Print the contents of the factories"""
-    RailPlotterFactory.print_contents()
-    print("----------------")
-    print("")
-    RailDatasetFactory.print_contents()
-    print("----------------")
-    print("")
-    RailPlotGroupFactory.print_contents()
-    print("----------------")
+    for factory_ in THE_FACTORIES:
+        factory_.print_contents()
+        print("----------------")
+        print("")
 
 
 def print_classes() -> None:
@@ -285,16 +305,35 @@ def load_yaml(yaml_file: str) -> None:
         load_yaml(os.path.expandvars(include_))
 
     for yaml_key, yaml_item in yaml_data.items():
-        if yaml_key == "Data":
-            load_dataset_yaml_tag(yaml_item)
-        elif yaml_key == "Plots":
-            load_plotter_yaml_tag(yaml_item)
-        elif yaml_key == "PlotGroups":
-            load_plot_group_yaml_tag(yaml_item)
+        if yaml_key == RailDatasetFactory.yaml_tag:
+            load_dataset_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailPlotterFactory.yaml_tag:
+            load_plotter_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailPlotGroupFactory.yaml_tag:
+            load_plot_group_yaml_tag(yaml_item, yaml_file)
         else:  # pragma: no cover
             good_tags = [
-                "Data",
-                "Plots",
-                "PlotGroups",
+                RailDatasetFactory.yaml_tag,
+                RailPlotterFactory.yaml_tag,
+                RailPlotGroupFactory.yaml_tag,
             ]
             raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")
+
+
+def write_yaml(yaml_file: str) -> None:
+    """Write the current contents for the factories to a yaml file
+
+    Parameters
+    ----------
+    yaml_file: str
+        File to write
+
+    Notes
+    -----
+    See class description for yaml file syntax
+    """
+    yaml_dict: dict[str, dict] = {}
+    for a_factory in THE_FACTORIES:
+        yaml_dict.update(**a_factory.to_yaml_dict())
+    with open(os.path.expandvars(yaml_file), mode="w", encoding="utf-8") as fout:
+        yaml.dump(yaml_dict, fout)

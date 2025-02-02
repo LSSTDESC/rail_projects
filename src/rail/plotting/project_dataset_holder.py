@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-
 from ceci.config import StageParameter
+
 from rail.projects import RailProject
 
-from .dataset_holder import RailDatasetHolder
 from .data_extractor import RailProjectDataExtractor
 from .dataset_factory import RailDatasetFactory
+from .dataset_holder import RailDatasetHolder
 
 
 class RailProjectDatasetHolder(RailDatasetHolder):

@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-import os
-import yaml
-
-from .pipeline_holder import RailPipelineTemplate, RailPipelineInstance
 from .factory_mixin import RailFactoryMixin
+from .pipeline_holder import RailPipelineInstance, RailPipelineTemplate
 
 
 class RailPipelineFactory(RailFactoryMixin):
@@ -14,7 +10,7 @@ class RailPipelineFactory(RailFactoryMixin):
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
 
-    PipelineTemplates:
+    Pipelines:
       - PipelineTemplate:
             name: pz:
             pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
@@ -30,8 +26,9 @@ class RailPipelineFactory(RailFactoryMixin):
             kwargs:
                 algorithms: ['all']
 
-    Pipe
     """
+
+    yaml_tag: str = "Pipelines"
 
     client_classes = [RailPipelineTemplate, RailPipelineInstance]
 
@@ -107,6 +104,16 @@ class RailPipelineFactory(RailFactoryMixin):
                 f"{list(cls.instance().pipeline_instances.keys())}"
             ) from msg
 
+    @classmethod
+    def add_pipeline_instance(cls, pipeline_instance: RailPipelineInstance) -> None:
+        """Add a particular PipelineInstance to the factory"""
+        cls.instance().add_to_dict(pipeline_instance)
+
+    @classmethod
+    def add_pipeline_template(cls, pipeline_template: RailPipelineTemplate) -> None:
+        """Add a particular PipelineTemplate to the factory"""
+        cls.instance().add_to_dict(pipeline_template)
+
     @property
     def pipeline_templates(self) -> dict[str, RailPipelineTemplate]:
         """Return the dictionary of pipeline templates"""
@@ -121,58 +128,4 @@ class RailPipelineFactory(RailFactoryMixin):
         """Print the contents of the factory"""
         print("----------------")
         print("Pipelines:")
-        print("----------------")
-        print("PipelineTemplates:")
-        for template_name, pipeline_template in self.pipeline_templates.items():
-            print(f"  {template_name}: {pipeline_template}")
-        print("----------------")
-        print("PipelineInstances:")
-        for template_name, pipeline_instance in self.pipeline_instances.items():
-            print(f"  {template_name}: {pipeline_instance}")
-
-    def add_pipeline_instance(self, pipeline_instance: RailPipelineInstance) -> None:
-        self.add_to_dict(pipeline_instance)
-
-    def add_pipeline_template(self, pipeline_template: RailPipelineTemplate) -> None:
-        self.add_to_dict(pipeline_template)
-
-    def load_pipelines_from_yaml_tag(
-        self,
-        pipelines_config: list[dict[str, Any]],
-    ) -> None:
-        """Read a yaml "Pipelines" tag and load the factory accordingy
-
-        Parameters
-        ----------
-        pipelines_config: list[dict[str, Any]]
-            Yaml tag to load
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        self.load_instance_yaml_tag(pipelines_config)
-
-    def load_instance_yaml(self, yaml_file: str) -> None:
-        """Read a yaml file and load the factory accordingly
-
-        Parameters
-        ----------
-        yaml_file: str
-            File to read
-
-        Notes
-        -----
-        See class description for yaml file syntax
-        """
-        with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
-            yaml_data = yaml.safe_load(fin)
-
-        try:
-            pipelines_config = yaml_data["Pipelines"]
-        except KeyError as missing_key:
-            raise KeyError(
-                f"Did not find key Pipelines in {yaml_file}"
-            ) from missing_key
-
-        self.load_pipelines_from_yaml_tag(pipelines_config)
+        RailFactoryMixin.print_instance_contents(self)

@@ -1,11 +1,13 @@
+import os
+
 import pytest
 
-from rail.plotting.dataset_factory import RailDatasetFactory
 from rail.plotting.data_extractor import RailProjectDataExtractor
+from rail.plotting.dataset_factory import RailDatasetFactory
 from rail.plotting.dataset_holder import (
-    RailProjectHolder,
     RailDatasetHolder,
     RailDatasetListHolder,
+    RailProjectHolder,
 )
 
 
@@ -29,6 +31,9 @@ def test_load_yaml(setup_project_area: int) -> None:
     # Make sure the projects got loaded
     the_dict = RailDatasetFactory.get_projects()
     assert isinstance(the_dict["ci_test"], RailProjectHolder)
+
+    a_project_holder = RailDatasetFactory.get_project("ci_test")
+    assert isinstance(a_project_holder, RailProjectHolder)
 
     # Make sure the names of the datasets got loaded
     the_dataset_names = RailDatasetFactory.get_dataset_names()
@@ -59,3 +64,33 @@ def test_load_yaml(setup_project_area: int) -> None:
     # Make sure the  datasets lists got loaded
     the_dataset_lists = RailDatasetFactory.get_dataset_lists()
     assert isinstance(the_dataset_lists["baseline_test"], RailDatasetListHolder)
+
+    # Test the interactive stuff
+    RailDatasetFactory.clear()
+
+    RailDatasetFactory.add_project(a_project_holder)
+    check_project_holder = RailDatasetFactory.get_project("ci_test")
+    assert isinstance(check_project_holder, RailProjectHolder)
+
+    RailDatasetFactory.add_dataset(the_dataset)
+    RailDatasetFactory.add_dataset_list(
+        RailDatasetListHolder(name="test_list", datasets=[the_dataset.config.name])
+    )
+
+    check_dataset = RailDatasetFactory.get_dataset("blend_baseline_knn")
+    assert isinstance(check_dataset, type(the_dataset))
+
+    check_list = RailDatasetFactory.get_dataset_list("test_list")
+    assert the_dataset.config.name in check_list.config.datasets
+
+    # check writing the yaml dict
+    RailDatasetFactory.write_yaml("tests/temp.yaml")
+    RailDatasetFactory.clear()
+    RailDatasetFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_dataset = RailDatasetFactory.get_dataset("blend_baseline_knn")
+    assert isinstance(check_dataset, type(the_dataset))
+
+    check_list = RailDatasetFactory.get_dataset_list("test_list")
+    assert the_dataset.config.name in check_list.config.datasets

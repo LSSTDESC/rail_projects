@@ -7,8 +7,8 @@ from ceci.stage import PipelineStage
 
 from .configurable import Configurable
 from .dynamic_class import DynamicClass
-from .subsampler import RailSubsampler
 from .reducer import RailReducer
+from .subsampler import RailSubsampler
 
 
 class RailAlgorithmHolder(Configurable, DynamicClass):

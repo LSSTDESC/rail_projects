@@ -5,16 +5,16 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from ceci.config import StageParameter
 from jinja2 import Environment, FileSystemLoader, Template
 
-from ceci.config import StageParameter
 from rail.projects.configurable import Configurable
 
 from .dataset_factory import RailDatasetFactory
-from .plotter_factory import RailPlotterFactory
-from .plotter import RailPlotter
-from .plot_holder import RailPlotDict, RailPlotHolder
 from .dataset_holder import RailDatasetHolder
+from .plot_holder import RailPlotDict, RailPlotHolder
+from .plotter import RailPlotter
+from .plotter_factory import RailPlotterFactory
 
 HTML_TEMPLATE_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "html_templates"
@@ -22,8 +22,10 @@ HTML_TEMPLATE_DIR = os.path.join(
 
 
 class RailPlotGroup(Configurable):
-    """Defining of a group on plots to make
-    with a particular dataset
+    """Class defining of a group on plots to make
+    with a particular list of coherent datasets
+
+
     """
 
     jinja_env: Environment | None = None
@@ -72,6 +74,7 @@ class RailPlotGroup(Configurable):
         return self._dataset_list
 
     def find_plot(self, dataset_name: str, plotter_name: str) -> RailPlotHolder:
+        """Find a particular plot"""
         try:
             sub_dict = self._plots[dataset_name]
         except KeyError as msg:
@@ -87,6 +90,7 @@ class RailPlotGroup(Configurable):
             ) from msg
 
     def find_plot_path(self, dataset_name: str, plotter_name: str) -> str | None:
+        """Find a particular plot and get the path to the associated file"""
         return self.find_plot(dataset_name, plotter_name).path
 
     def make_plots(
@@ -116,7 +120,7 @@ class RailPlotGroup(Configurable):
         self,
         outdir: str,
     ) -> dict[str, RailPlotDict]:
-        """Make a set of plots
+        """Find a set of plots
 
         Parameters
         ----------
@@ -153,6 +157,16 @@ class RailPlotGroup(Configurable):
         outfile: str,
         output_pages: list[str],
     ) -> None:
+        """Make the html index page for a list of other pages
+
+        Parameters
+        ----------
+        outfile: str
+            Html file to write
+
+        output_pages: list[str]
+            Set of pages to include in the index
+        """
         cls._load_jinja()
         assert cls.jinja_index_template is not None
 
@@ -165,6 +179,14 @@ class RailPlotGroup(Configurable):
         self,
         outfile: str,
     ) -> None:
+        """Make the html page to display the plots made by this plot group
+
+        Parameters
+        ----------
+        outfile: str
+            Html file to write
+        """
+
         self._load_jinja()
         assert self.jinja_template is not None
 

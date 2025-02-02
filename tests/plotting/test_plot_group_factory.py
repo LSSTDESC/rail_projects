@@ -1,3 +1,5 @@
+import os
+
 from rail.plotting.plot_group import RailPlotGroup
 from rail.plotting.plot_group_factory import RailPlotGroupFactory
 
@@ -20,3 +22,20 @@ def test_load_yaml(setup_project_area: int) -> None:
 
     the_plot_group = RailPlotGroupFactory.get_plot_group("accuracy_v_ztrue")
     assert isinstance(the_plot_group, RailPlotGroup)
+
+    # Test the interactive stuff
+    RailPlotGroupFactory.clear()
+
+    RailPlotGroupFactory.add_plot_group(the_plot_group)
+
+    check_plot_group = RailPlotGroupFactory.get_plot_group("accuracy_v_ztrue")
+    assert isinstance(check_plot_group, RailPlotGroup)
+
+    # check writing the yaml dict
+    RailPlotGroupFactory.write_yaml("tests/temp.yaml")
+    RailPlotGroupFactory.clear()
+    RailPlotGroupFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_plot_group = RailPlotGroupFactory.get_plot_group("accuracy_v_ztrue")
+    assert isinstance(check_plot_group, RailPlotGroup)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from matplotlib.figure import Figure
 
@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 class RailPlotHolder:
-    """Simple class for wrapping matplotlib Figure"""
+    """Simple class for wrapping matplotlib Figure
+
+    This includes the path to where the figure is saved
+    """
 
     def __init__(
         self,

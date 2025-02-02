@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import itertools
 import os
 from typing import Any
-import itertools
 
 from ceci.config import StageParameter
 
@@ -10,6 +10,21 @@ from .configurable import Configurable
 
 
 class RailProjectCatalogInstance(Configurable):
+    """Simple class for holding information need to make a coherent catalog
+    of files using a templated file name and iteration_vars to fill in
+    the interpolation in the file name.
+
+    For example the path_template might be 'a_file/{healpix}/data.parqut'
+    and the interation_vars would be ['healpix'].
+
+    When called with a dict such as healpix : [3433, 3344] it would the
+    path_template would get expanded out to two files:
+
+    a_file/3433/data.parqut
+    a_file/3344/data.parqut
+
+    """
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
         path_template=StageParameter(
@@ -64,7 +79,20 @@ class RailProjectCatalogInstance(Configurable):
 
 
 class RailProjectCatalogTemplate(Configurable):
-    """Simple class for holding a template for a catalog associated with a project"""
+    """Simple class for holding a template for a catalog associated with a project
+
+    The makes a coherent catalog of files using a templated file name, interpolants,
+    and iteration_vars to fill in the interpolation in the file name.
+
+    For example the path_template might be 'a_file/{healpix}/{flavor}_data.hdf5'
+    and the interpolants would be ['flavor'] and interation_vars would be ['healpix'].
+
+    When called with a dict such as flavor: 'baseline, healpix : [3433, 3344] it would the
+    path_template would get expanded out to two files:
+
+    a_file/3433/baseline_data.hdf5
+    a_file/3344/baseline_data.hdf5
+    """
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),

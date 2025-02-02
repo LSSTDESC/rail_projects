@@ -1,3 +1,5 @@
+""" Functions to execute pipeline and other shell commands """
+
 import enum
 import os
 import subprocess
