@@ -18,6 +18,9 @@ import sys
 import pkgutil
 import rail.projects
 import rail.plotting
+import rail.cli.rail_plot
+import rail.cli.rail_project
+
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -179,10 +182,8 @@ def run_apidoc(_):
     cur_dir = os.path.normpath(os.path.dirname(__file__))
     output_path = os.path.join(cur_dir, 'api')
 
-    top_dir = os.path.abspath(os.path.join(os.path.dirname(rail.projects.__file__), '..'))
-    
-    #paramlist = ['--separate', '--implicit-namespaces', '--no-toc', '-M', '-o', output_path, '-f', top_dir]
-    paramlist = ['--separate', '--implicit-namespaces', '-M', '-o', output_path, '-f', top_dir]
+    src_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'src', 'rail'))    
+    paramlist = ['--separate', '--implicit-namespaces', '-M', '-o', output_path, '-f', src_path]
     print(f"running {paramlist}")
     apidoc_main(paramlist)
 
