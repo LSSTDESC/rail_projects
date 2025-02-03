@@ -26,8 +26,10 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
             msg="Name of associated module",
         ),
     )
+    
     sub_classes: dict[str, type[DynamicClass]] = {}
-
+    """Dictionary of sub_classes"""
+    
     def __init__(self, **kwargs: Any):
         """C'tor
 

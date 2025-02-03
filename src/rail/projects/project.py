@@ -9,6 +9,7 @@ from ceci.config import StageParameter
 
 from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
+from .algorithm_holder import RailReducerAlgorithmHolder
 from .catalog_factory import RailCatalogFactory
 from .catalog_template import RailProjectCatalogTemplate
 from .configurable import Configurable
@@ -16,6 +17,7 @@ from .file_template import RailProjectFileTemplate
 from .pipeline_factory import RailPipelineFactory
 from .pipeline_holder import RailPipelineTemplate
 from .project_file_factory import RailProjectFileFactory
+from .reducer import RailReducer
 from .selection_factory import RailSelection, RailSelectionFactory
 from .subsample_factory import RailSubsample, RailSubsampleFactory
 
@@ -294,16 +296,14 @@ class RailProject(Configurable):
         inputs: dict
             Input to the pipeline
 
-        output_dir: str = "."
+        output_dir: str, default="."
             Pipeline output directory
 
-        log_dir: str = "."
+        log_dir: str, default="."
             Pipeline log directory
 
-        Keywords
-        --------
-        These are appended to the command in key=value pairs
-
+        **kwargs
+            These are appended to the command in key=value pairs
         """
 
         if config is None:
@@ -372,9 +372,8 @@ class RailProject(Configurable):
         dry_run: bool
             If true, do not actually run
 
-        Keywords
-        --------
-        Used to provide values for additional interpolants.
+        **kwargs
+            Used to provide values for additional interpolants.
 
         Returns
         -------
@@ -392,9 +391,11 @@ class RailProject(Configurable):
         reducer_class = library.get_algorithm_class(
             "Reducer", reducer_class_name, "Reduce"
         )
+        assert issubclass(reducer_class, RailReducer)
+        
         reducer_args = library.get_selection(selection)
         reducer = reducer_class(**reducer_args.config.to_dict())
-
+        
         if not dry_run:  # pragma: no cover
             for source_, sink_ in zip(sources, sinks):
                 reducer(source_, sink_)

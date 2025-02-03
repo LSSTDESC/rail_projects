@@ -44,7 +44,7 @@ class RailProjectCatalogInstance(Configurable):
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs: Any
             Configuration parameters for this RailProjectCatalogInstance, must match
             class.config_options data members
         """
@@ -56,8 +56,28 @@ class RailProjectCatalogInstance(Configurable):
         return f"{self.config.path_template}"
 
     def __call__(self, **kwargs: dict[str, Any]) -> list[str]:
+        """Resolve the list of files in this catalog
+
+        :meta public:
+        
+        Parameters
+        ----------
+        **kwargs:
+            Set of interpolants and iteration_vars needed to resolve the catalog
+        
+        Returns
+        -------
+        List of resolved catalog files
+
+        Notes
+        -----
+        By default this will used cached values, to override this and force rechecking
+        use update=True keyword argument
+        """
+        update = kwargs.pop("update", False)
         if self._file_list is not None:
-            return self._file_list
+            if not update:
+                return self._file_list
         iterations = itertools.product(*[kwargs.get(key, []) for key in kwargs])
         self._file_list = []
         for iteration_args in iterations:
@@ -67,7 +87,23 @@ class RailProjectCatalogInstance(Configurable):
         return self._file_list
 
     def check_files(self, **kwargs: dict[str, Any]) -> list[bool]:
-        update = kwargs.pop("update", False)
+        """Check if the files in the catalog exist
+
+        Parameters
+        ----------
+        **kwargs:
+            Set of interpolants and iteration_vars needed to resolve the catalog
+
+        Returns
+        -------
+        List of True/False values for existance of each file in catalog
+
+        Notes
+        -----
+        By default this will used cached values, to override this and force rechecking
+        use update=True keyword argument
+        """
+        update = kwargs.get("update", False)
         if self._file_exists is not None:
             if not update:
                 return self._file_exists
