@@ -1,6 +1,6 @@
-************
+============
 Fix an Issue
-************
+============
 
 The typical workflow for fixing a specific issue will look something like the following:
 

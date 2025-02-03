@@ -1,10 +1,14 @@
-=========================================================================
+#########################################################################
 rail_projects: a toolkit for managing `RAIL`-based data analysis projects
-=========================================================================
+#########################################################################
 
-----
-RAIL
-----
+***********
+Description
+***********
+
+`rail_projects` is a tool-kit to manage RAIL-baseed data analysis
+projects. 
+
 
 RAIL is a flexible open-source software library providing tools to produce at-scale photometric redshift data products, including uncertainties and summary statistics, and stress-test them under realistically complex systematics.
 
@@ -19,15 +23,6 @@ See `guideline for citing RAIL
 guidance on citing RAIL and the underlying algorithms.
 
 
----------------
-`rail_projects`
----------------
-
-`rail_projects` is a tool-kit to manage RAIL-baseed data analysis
-projects. 
-
-
-
 .. toctree::
    :maxdepth: 1
    :caption: Getting Started
@@ -39,9 +34,10 @@ projects.
    :maxdepth: 1
    :caption: Concepts
 
-   source/rail_project	     
+   source/rail_project
+   source/pipelines
+   source/flavors
    source/components
-   source/factories
 
 .. toctree::
    :maxdepth: 1

@@ -1,8 +1,39 @@
+************************************
+components, factories, and libraries
+************************************
+
+**components**
+
+Doing series of related studies using RAIL requires many pieces, such
+as the lists of algorithms available, sets of analysis pipelines we
+might run, types of plots we might make, types of data we can extract
+from out analyses, references to particular files or sets of files we
+want to use for out analysses, and so for.   In general we call these
+analysis components, and we need ways to keep track of them.
+
+We have implemented interfaces to allow us to read and write
+components to yaml files.  
+
+
+**factories**
+
+A Factory is a python class that can make specific type or types of
+components, assign names to each, and keep track of what it has made.
+
+
+**libraries**:
+
+A library is the collection of all the components that have been
+loaded.  Typically there are collected into one, or a few yaml
+configuration files to allow users to load them easily.
+
+
 *******************
-Analysis components
+Analysis Components
 *******************
 
 
+=========================
 Analysis component basics
 =========================
 
@@ -16,7 +47,7 @@ The basic interface to analysis components is the :py:class:`rail.projects.confi
 4. mechansims to read/write the component to yaml, including the ``yaml_tag`` class member defining the yaml tag that marks a block of yaml as defining an object of a particular type of component.
 
 
-
+============================
 File and Catalog definitions
 ============================
 
@@ -76,7 +107,7 @@ When called with a dict such as `{flavor: baseline, healpix : [3433, 3344]}` the
 `a_file/3344/baseline_data.hdf5`
 
 
-
+=====================
 Algorithm definitions
 =====================
 
@@ -178,7 +209,7 @@ Subsample
 :py:class:`rail.projects.subsample_factor.RailSubsample` just provides parameters such as the random number seed and number of object requested need by subsamplers.
 
 
-
+================
 Plot definitions
 ================
 
@@ -201,6 +232,7 @@ types of plots.
 
 
 
+===========================
 Plotting dataset defintions
 ===========================
 
@@ -227,7 +259,7 @@ Project
 
 
 
-
+======================
 Plot Group definitions
 ======================
 
@@ -236,3 +268,83 @@ PlotGroup
 ---------
 
 :py:class:`rail.plotting.plot_group.RailPlotGroup` defines a set of plots to make by iterating over a `PlotterList` and a `DatasetList`.
+
+
+
+*********
+Factories
+*********
+    
+
+==============
+Factory basics
+==============
+
+A Factory is a python class that can make specific type or types of
+components, assign names to each, and keep track of what it has made.
+
+The basic interface to Factories is the :py:class:`rail.projects.factory_mixin.FactoryMixin` class, which defines a few things,
+
+1. The "Factory pattern" of having a singleton instance of the factory that manages all the components of particular types, and class methods to interact with the instance.
+2. A `client_classes` class member object specifying what types of components a particular factory manages.
+3. Methods to add objects to a factory, and reset the factory contents.
+4. Interfaces for reading and writing objects to and from yaml files.
+5. Type validation, to ensure that only the correct types of objects are created or added to factories.
+
+
+==================
+Specific Factories
+==================
+
+.. list-table:: Title
+   :widths: 45 5 45
+   :header-rows: 1
+
+   * - Factory Class
+     - Yaml Tag
+     - Managed Classes
+   * - :py:class:`rail.projects.project_file_factory.RailProjectFileFactory`
+     - `Files`
+     - `RailProjectFileInstance`, `RailProjectFileTemplate`
+   * - :py:class:`rail.projects.catalog_factory.RailCatalogFactory`
+     - `Catalogs`
+     - `RailProjectCatalogInstance`, `RailProjectCatalogTemplate`
+   * - :py:class:`rail.projects.subsample_factory.RailSubsampleFactory`
+     - `Subsamples`
+     - `RailSubsample`
+   * - :py:class:`rail.projects.selection_factory.RailSelectionFactory`
+     - `Selections`
+     - `RailSelection`
+   * - :py:class:`rail.projects.algorithm_factory.RailAlgorithmFactory`
+     - `PZAlgorithms`
+     - `RailPZAlgorithmHolder`
+   * - 
+     - `Classifiers`
+     - `RailClassificationAlgorithmHolder`
+   * - 
+     - `Summarizers`
+     - `RailSummarizerAlgorithmHolder`
+   * - 
+     - `SpecSelections`
+     - `RailSpecSelectionAlgorithmHolder`
+   * - 
+     - `ErrorModels`
+     - `RailErrorModelAlgorithmHolder`
+   * - 
+     - `Subsamplers`
+     - `RailSubsamplerAlgorithmHolder`
+   * - 
+     - `Reducers`
+     - `RailReducerAlgorithmHolder`
+   * - :py:class:`rail.projects.pipeline_factory.RailPipelineFactory`
+     - `Pipelines`
+     - `RailPipelineTemplate`, `RailPipelineInstance`
+   * - :py:class:`rail.plotting.plotter_factory.RailPlotterFactory`
+     - `Plots`
+     - `RailPlotter`, `RailPlotterList`
+   * - :py:class:`rail.plotting.dataset_factory.RailDatasetFactory`
+     - `Data`
+     - `RailDatasetHolder`, `RailDatasetListHolder`, `RailProjectHolder`
+   * - :py:class:`rail.plotting.plot_group_factory.RailPlotGroupFactory`
+     - `PlotGroups`
+     - `RailPlotGroup`

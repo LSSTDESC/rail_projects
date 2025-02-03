@@ -2,7 +2,7 @@
 RailProject
 ***********
 
-
+==================
 RailProject basics
 ==================
 
@@ -23,7 +23,7 @@ A `RailProject` basically specifies which `Pipelines` to run under which
 `Flavors`, and keeps track of the outputs.
 
 
-
+==========================
 Rail Project Functionality
 ==========================
 
@@ -67,6 +67,7 @@ RailProject.run_pipeline_catalog
 Run a pipeline on a catalog of files
 
 
+==========================
 Rail Project Configuration
 ==========================
 
