@@ -56,9 +56,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+tests/temp_data/
 tests/ci_test.tgz
-tests/temp_data
-
 
 # backups
 *~
@@ -82,6 +81,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/api/
+docs/examples
 
 # PyBuilder
 .pybuilder/

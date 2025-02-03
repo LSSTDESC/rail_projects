@@ -29,24 +29,28 @@ from out analyses, references to particular files or sets of files we
 want to use for out analysses, and so for.   In general we call these
 analysis components, and we need ways to keep track of them.
 
+We have implemented interfaces to allow us to read and write
+components to yaml files.  
+
 
 **factories**
 
-A factory is a python class that can make specific type or types of
+A Factory is a python class that can make specific type or types of
 components, assign names to each, and keep track of what it has made.
 
 
 **libraries**:
 
-A library is 
+A library is the collection of all the components that have been
+loaded.  Typically there are collected into one, or a few yaml
+configuration files to allow users to load them easily.
 
 
 **projects**:
 
-
-
-Organizational philosophy and included functionality
-****************************************************
+A ``RailProject`` is the basic user interface class, which lets users
+define and run a series of analysis pipelines in a set of different
+analysis variants (called 'flavors').  
 
 
 

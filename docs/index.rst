@@ -28,13 +28,20 @@ projects.
 
 
 
-
 .. toctree::
    :maxdepth: 1
    :caption: Getting Started
 
    source/overview
    source/installation
+  
+.. toctree::
+   :maxdepth: 1
+   :caption: Concepts
+
+   source/rail_project	     
+   source/components
+   source/factories
 
 .. toctree::
    :maxdepth: 1

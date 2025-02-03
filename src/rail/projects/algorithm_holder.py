@@ -12,7 +12,9 @@ from .subsampler import RailSubsampler
 
 
 class RailAlgorithmHolder(Configurable, DynamicClass):
-    """Simple class for holding an algorithm by name"""
+    """Simple class for holding an algorithm by name
+    add keeping track of the associated python classes.
+    """
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Algorithm name"),
