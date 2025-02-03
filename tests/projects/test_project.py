@@ -167,3 +167,4 @@ def test_project_class(setup_project_area: int) -> None:
         )
 
     flavor_info = project.get_flavor("test_flavor")
+    assert flavor_info

@@ -33,23 +33,26 @@ class RailAlgorithmFactory(RailFactoryMixin):
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
 
-    SpecSelections:
-      - SpecSelection:
-          name: zCOSMOS
-          Select: SpecSelection_zCOSMOS
-          Module: rail.creation.degraders.spectroscopic_selections
+    .. highlight:: yaml
+    .. code-block:: yaml
 
-    PZAlgorithms:
-      - PZAlgorithm:
-          name: trainz
-          Estimate: TrainZEstimator
-          Inform: TrainZInformer
-          Module: rail.estimation.algos.train_z
-      - PZAlgorithm:
-          name: simplenn
-          Estimate: SklNeurNetEstimator
-          Inform: SklNeurNetInformer
-          Module: rail.estimation.algos.sklearn_neurnet
+      SpecSelections:
+        - SpecSelection:
+            name: zCOSMOS
+            Select: SpecSelection_zCOSMOS
+            Module: rail.creation.degraders.spectroscopic_selections
+
+      PZAlgorithms:
+        - PZAlgorithm:
+            name: trainz
+            Estimate: TrainZEstimator
+            Inform: TrainZInformer
+            Module: rail.estimation.algos.train_z
+        - PZAlgorithm:
+            name: simplenn
+            Estimate: SklNeurNetEstimator
+            Inform: SklNeurNetInformer
+            Module: rail.estimation.algos.sklearn_neurnet
 
     and so on.
     """

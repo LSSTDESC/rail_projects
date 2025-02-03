@@ -45,11 +45,15 @@ class RailSelectionFactory(RailFactoryMixin):
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Selections:
-      - Selection:
-          name: maglim_25.5
-          cuts:
-            maglim_i: [null, 25.5]
+
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Selections:
+        - Selection:
+            name: maglim_25.5
+            cuts:
+              maglim_i: [null, 25.5]
     """
 
     yaml_tag = "Selections"
