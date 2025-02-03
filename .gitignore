@@ -37,6 +37,11 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# docs stuff
+docs/_build
+docs/api
+docs/examples
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -51,6 +56,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+tests/ci_test.tgz
+tests/temp_data
+
 
 # backups
 *~

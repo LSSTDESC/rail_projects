@@ -62,20 +62,34 @@ class RailFlavor(Configurable):
 
 class RailProject(Configurable):
     """Main analysis driver class, this collects all the elements
-    run a collection of studies using RAIL
+    run a collection of studies using RAIL.
 
-    --------------
+    The key concepts are:
+
+    1. analysis 'Flavors', which are versions of
+    similar analyses with slightly different parameter settings and/or
+    input files.
+
+    2. ceci 'Pipelines", which run blocks of analysis code
+
+    A RailProject basically specifies which Pipelines to run under which
+    flavors, and keeps track of the outputs.
+
+
+    =============
     Functionality
-    --------------
+    =============
     RailProject.load_config()
         Read a yaml file and create a RailProject
 
     reduce_data()
         Make a reduced catalog from an input catalog by applying a selction
-        and trimming unwanted colums
+        and trimming unwanted colums.  This is run before the analysis pipelines.
 
     subsample_data()
-        Subsample data from a catalog to make a testing or training file
+        Subsample data from a catalog to make a testing or training file.
+        This is run after catalog level pipelines, but before pipeliens run
+        on indvidudal training/ testing samples
 
     build_pipelines()
         Build ceci pipeline yaml files
@@ -86,18 +100,25 @@ class RailProject(Configurable):
     run_pipeline_catalog()
         Run a pipeline on a catalog of files
 
-    --------------
+    =============
     Configuration
-    --------------
+    =============
 
     Most of these element come from the shared library of elements,
     which is accesible from rail.projects.library
 
-    --------------
+    --------------------------
+    Shared configuration files
+    --------------------------
+
     Includes: list[str]
         List of shared configuration files to load
 
-    --------------
+
+    ------------------------
+    Project analysis flavors
+    ------------------------
+
     Baseline: dict[str, Any]
         Baseline configuration for this project.
         This is included in all the other analysis flavors
@@ -105,9 +126,12 @@ class RailProject(Configurable):
     Flavors: list[dict[str, Any]]
         List of all the analysis flavors that have been defined in this project
 
-    --------------
-    Bookkeeping elements, used to define the file paths for the
-    project.
+
+    --------------------
+    Bookkeeping elements
+    --------------------
+
+    These used to define the file paths for the project.
 
     PathTemplates: dict[str, str]
         Overrides for templates used to construct file paths
@@ -118,7 +142,10 @@ class RailProject(Configurable):
     IterationVars: dict[str, list[str]]
         Iteration variables to construct the catalogs
 
-    --------------
+
+    ---------------
+    Shared elements
+    ---------------
     Things that are pulled from the library, each of these is just a list
     of the names of things that are defined in the library that
     can be used in this project.  The default is to use all the
@@ -257,8 +284,8 @@ class RailProject(Configurable):
     ) -> list[str]:
         """Generate a ceci command to run a pipeline
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         pipeline_path: str
             Path to the pipline yaml file
 
@@ -274,8 +301,10 @@ class RailProject(Configurable):
         log_dir: str = "."
             Pipeline log directory
 
-        **kwargs: Any
-            These are appended to the command in key=value pairs
+        Keywords
+        --------
+        These are appended to the command in key=value pairs
+
         """
 
         if config is None:
@@ -346,12 +375,13 @@ class RailProject(Configurable):
 
         Keywords
         --------
-        Used to provide values for additional interpolants, e.g.,
+        Used to provide values for additional interpolants.
 
         Returns
         -------
         sinks: list[str]
             Paths to output files
+
         """
         sources = self.get_catalog_files(
             catalog_template, selection=input_selection, **kwargs

@@ -9,24 +9,31 @@ class RailCatalogFactory(RailFactoryMixin):
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Catalogs:
-      - CatalogTemplate
-          name: truth
-          path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
-          iteration_vars: ['healpix']
-      - CatalogTemplate
-          name: reduced
-          path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
-          iteration_vars: ['healpix']
+
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Catalogs:
+        - CatalogTemplate
+            name: truth
+            path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
+            iteration_vars: ['healpix']
+        - CatalogTemplate
+            name: reduced
+            path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
+            iteration_vars: ['healpix']
 
     Or the used can specifiy particular catalog instances where everything except the
     interation_vars are resolved
 
-    Catalogs:
-      - CatalogTemplate
-          name: truth_roman_rubin_v1.1.3_gold
-          path_template: "full_path_to_catalog/{healpix}/part-0.parquet"
-          iteration_vars: ['healpix']
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Catalogs:
+        - CatalogTemplate
+            name: truth_roman_rubin_v1.1.3_gold
+            path_template: "full_path_to_catalog/{healpix}/part-0.parquet"
+            iteration_vars: ['healpix']
     """
 
     yaml_tag: str = "Catalogs"

@@ -9,18 +9,25 @@ class RailProjectFileFactory(RailFactoryMixin):
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Files:
-      - FileTemplate:
-          name: test_file_100k
-          path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Files:
+        - FileTemplate:
+            name: test_file_100k
+            path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
 
     Or the used can specifiy particular file instances where everything except the
     interation_vars are resolved
 
-    Files:
-      - FileInstance
-          name: test_file_100k_roman_rubin_v1.1.3_gold
-          path: <full_path_to_file>
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Files:
+        - FileInstance
+            name: test_file_100k_roman_rubin_v1.1.3_gold
+            path: <full_path_to_file>
     """
 
     yaml_tag: str = "Files"

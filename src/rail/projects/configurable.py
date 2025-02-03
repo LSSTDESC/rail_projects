@@ -10,16 +10,17 @@ class Configurable:
 
     This implements:
 
-    1. being able to define parameters that are attached to a class,
+    1. being able to define parameters that are attached to a class
     2. being able to create an object of that class from a dict with the required paramters
     3. checking that all the required parameters are present and of the correct types
     4. check that there are no additional parameters given
-    3. being able to write a snapshot of the current values of the paramters to yaml
+    5. being able to write a snapshot of the current values of the paramters to yaml
 
-    Subclasses should
+    Subclasses should:
 
     1. add parameters to the config_options class member
     2. set the yaml_tag class member to a unique value
+
     """
 
     config_options: dict[str, StageParameter] = dict(

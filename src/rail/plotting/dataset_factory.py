@@ -18,37 +18,45 @@ class RailDatasetFactory(RailFactoryMixin):
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Data:
-      - Project:
-         name: some_project
-         yaml_file: /path/to/rail_project_file
-      - Dataset:
-          name: gold_baseline_test
-          class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-          extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
-          project: some_project
-          selection: gold
-          flavor: baseline
-          tag: test
-          algos: ['all']
-      - Dataset:
-          name: blend_baseline_test
-          class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-          exctractor: rail.plottings.pz_data_extractor.PZPointEstimateDataExtractor
-          project: some_project
-          selection: blend
-          flavor: baseline
-          tag: test
-          algos: ['all']
+
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Data:
+        - Project:
+           name: some_project
+           yaml_file: /path/to/rail_project_file
+        - Dataset:
+            name: gold_baseline_test
+            class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
+            extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
+            project: some_project
+            selection: gold
+            flavor: baseline
+            tag: test
+            algos: ['all']
+        - Dataset:
+            name: blend_baseline_test
+            class: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
+            exctractor: rail.plottings.pz_data_extractor.PZPointEstimateDataExtractor
+            project: some_project
+            selection: blend
+            flavor: baseline
+            tag: test
+            algos: ['all']
 
     And group them into lists of dataset that can be run over particular types
     of data, using the following example syntax:
 
-      - DatasetList:
-          name: baseline_test
-          datasets:
-            - gold_baseline_test
-            - blend_baseline_test
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Data:
+        - DatasetList:
+            name: baseline_test
+            datasets:
+              - gold_baseline_test
+              - blend_baseline_test
     """
 
     yaml_tag: str = "Data"
