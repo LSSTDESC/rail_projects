@@ -18,25 +18,33 @@ class RailPlotterFactory(RailFactoryMixin):
     Expected usage is that user will define a yaml file with the various
     plotters that they wish to use with the following example syntax:
 
-    - Plotter:
-          name: zestimate_v_ztrue_hist2d
-          class_name: rail.plotters.pz_plotters.PZPlotterPointEstimateVsTrueHist2D
-          z_min: 0.0
-          z_max: 3.0
-          n_zbins: 150
-    - Plotter:
-          name: zestimate_v_ztrue_profile
-          class_name: rail.plotters.pz_plotters.PZPlotterPointEstimateVsTrueProfile
-          z_min: 0.0
-          z_max: 3.0
-          n_zbins: 60
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Plots:
+        - Plotter:
+            name: zestimate_v_ztrue_hist2d
+            class_name: rail.plotters.pz_plotters.PZPlotterPointEstimateVsTrueHist2D
+            z_min: 0.0
+            z_max: 3.0
+            n_zbins: 150
+      - Plotter:
+            name: zestimate_v_ztrue_profile
+            class_name: rail.plotters.pz_plotters.PZPlotterPointEstimateVsTrueProfile
+            z_min: 0.0
+            z_max: 3.0
+            n_zbins: 60
 
     And group them into lists of plotter that can be run over particular types
     of data, using the following example syntax:
 
-    - PlotterList:
-          name: z_estimate_v_z_true
-          plotters:
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Plots:
+        - PlotterList:
+            name: z_estimate_v_z_true
+            plotters:
               - zestimate_v_ztrue_hist2d
               - zestimate_v_ztrue_profile
     """

@@ -21,7 +21,11 @@ class RailPlotter(Configurable, DynamicClass):
     """Base class for making matplotlib plot
 
     The main function in this class is:
-    __call__(prefix: str, kwargs**: Any) -> dict[str, RailPlotHolder]
+
+    .. highlight:: python
+    .. code-block:: python
+
+      __call__(prefix: str, kwargs**: Any) -> dict[str, RailPlotHolder]
 
     This function will make a set of plots and return them in a dict.
     prefix is string that gets prepended to plot names.
@@ -31,16 +35,29 @@ class RailPlotter(Configurable, DynamicClass):
 
     Sub-classes should implement
 
-    config_options: a dict[str, `ceci.StageParameter`] that
-    will be used to configure things like the axes binning, selection functions,
+    .. highlight:: python
+    .. code-block:: python
+
+      config_options: dict[str, ceci.StageParameter]
+
+    that will be used to configure things like the axes binning, selection functions,
     and other plot-specfic options
 
-    _inputs: a dict [str, type] that specifics the inputs
+    .. highlight:: python
+    .. code-block:: python
+
+      _inputs: dict[str, type]
+
+    that specifics the inputs
     that the sub-classes expect, this is used the check the kwargs
-    that are passed to the __call__ function.
+    that are passed to the `__call__` function.
 
     A function:
-    _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
+
+    .. highlight:: python
+    .. code-block:: python
+
+      _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
 
     That actually makes the plots.  It does not need to do the checking
     that the correct kwargs have been given.

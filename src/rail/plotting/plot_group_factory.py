@@ -15,19 +15,24 @@ from .plotter_factory import RailPlotterFactory
 class RailPlotGroupFactory(RailFactoryMixin):
     """Factory class to make plot_groups
 
-    The yaml file should look something like this:. .
-    Includes:
-      - <path_to_yaml_file_defining_plotter_lists>
-      - <path_to_yaml_file defining_dataset_lists>
-    PlotGroups:
-      - PlotGroup:
-          name: some_name
-          plotter_list_name: nice_plots
-          dataset_dict_name: nice_data
-      - PlotGroup:
-          name: some_other_name
-          plotter_list_name: janky_plots
-          dataset_dict_name: janky_data
+    The yaml file should look something like this:
+
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Includes:
+        - <path_to_yaml_file_defining_plotter_lists>
+        - <path_to_yaml_file defining_dataset_lists>
+
+      PlotGroups:
+        - PlotGroup:
+            name: some_name
+            plotter_list_name: nice_plots
+            dataset_dict_name: nice_data
+        - PlotGroup:
+            name: some_other_name
+            plotter_list_name: janky_plots
+            dataset_dict_name: janky_data
     """
 
     yaml_tag: str = "PlotGroups"

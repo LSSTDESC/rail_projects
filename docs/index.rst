@@ -34,8 +34,7 @@ projects.
 
    source/overview
    source/installation
-
-   
+  
 .. toctree::
    :maxdepth: 1
    :caption: Concepts
@@ -44,7 +43,6 @@ projects.
    source/components
    source/factories
 
-   
 .. toctree::
    :maxdepth: 1
    :caption: Contributing

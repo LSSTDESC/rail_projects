@@ -10,21 +10,24 @@ class RailPipelineFactory(RailFactoryMixin):
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
 
-    Pipelines:
-      - PipelineTemplate:
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Pipelines:
+        - PipelineTemplate:
             name: pz:
             pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
-                input_catalog_template: degraded
+              input_catalog_template: degraded
             output_catalog_template: degraded
             input_file_templates:
-                input_train:
-                    flavor: baseline
-                    tag: train
-                input_test:
-                    flavor: baseline
-                    tag: test
+              input_train:
+                flavor: baseline
+                tag: train
+              input_test:
+                flavor: baseline
+                tag: test
             kwargs:
-                algorithms: ['all']
+              algorithms: ['all']
 
     """
 

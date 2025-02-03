@@ -45,11 +45,15 @@ class RailSubsampleFactory(RailFactoryMixin):
 
     Expected usage is that user will define a yaml file with the various
     datasets that they wish to use with the following example syntax:
-    Subsamples:
-      - Subsample:
-        name: test_100k
-        seed: 1234
-        num_objects: 100000
+
+    .. highlight:: yaml
+    .. code-block:: yaml
+
+      Subsamples:
+        - Subsample:
+          name: test_100k
+          seed: 1234
+          num_objects: 100000
     """
 
     yaml_tag = "Subsamples"
