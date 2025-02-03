@@ -61,10 +61,21 @@ class RailFlavor(Configurable):
 
 
 class RailProject(Configurable):
-    """Main analysis driver class, this collects all the elements
-    run a collection of studies using RAIL
+    """Main analysis driver class, this collects all the elements needed to
+    run a collection of studies using RAIL.
 
-    --------------
+    The key concepts are:
+
+    1. analysis 'Flavors', which are versions of
+    similar analyses with slightly different parameter settings and/or
+    input files.
+
+    2. ceci 'Pipelines', which run blocks of analysis code
+
+    A RailProject basically specifies which Pipelines to run under which
+    flavors, and keeps track of the outputs.
+
+
     Functionality
     --------------
     RailProject.load_config()
