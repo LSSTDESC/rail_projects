@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-
 from rail.projects import RailProject
 
-from .data_extractor import RailProjectDataExtractor
 from .data_extraction_funcs import (
     get_tomo_bins_nz_estimate_data,
     get_tomo_bins_true_nz_data,
 )
+from .data_extractor import RailProjectDataExtractor
 
 
 class NZTomoBinDataExtractor(RailProjectDataExtractor):

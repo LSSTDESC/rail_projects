@@ -2,11 +2,9 @@ from typing import Any
 
 import click
 import yaml
-
 from rail.core import __version__
 
-from rail.projects import RailProject, library
-from rail.projects import execution
+from rail.projects import RailProject, execution, library
 
 from . import project_options
 

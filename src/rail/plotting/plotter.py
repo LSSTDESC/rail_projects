@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from ceci.config import StageParameter
 
 from rail.projects.configurable import Configurable
 from rail.projects.dynamic_class import DynamicClass
@@ -10,8 +12,9 @@ from .plot_holder import RailPlotDict
 from .validation import validate_inputs
 
 if TYPE_CHECKING:
-    from .plot_holder import RailPlotHolder
     from .dataset_holder import RailDatasetHolder
+    from .plot_holder import RailPlotHolder
+    from .plotter_factory import RailPlotterFactory
 
 
 class RailPlotter(Configurable, DynamicClass):
@@ -46,6 +49,8 @@ class RailPlotter(Configurable, DynamicClass):
     inputs: dict = {}
 
     sub_classes: dict[str, type[DynamicClass]] = {}
+
+    yaml_tag = "Plotter"
 
     @staticmethod
     def iterate_plotters(
@@ -86,7 +91,7 @@ class RailPlotter(Configurable, DynamicClass):
     @staticmethod
     def iterate(
         plotters: list[RailPlotter],
-        data_dict: dict[str, RailDatasetHolder],
+        datasets: list[RailDatasetHolder],
         **kwargs: Any,
     ) -> dict[str, RailPlotDict]:
         """Utility function to several plotters of several data sets
@@ -96,7 +101,7 @@ class RailPlotter(Configurable, DynamicClass):
         plotters: list[RailPlotter]
             Plotters to run
 
-        data_dict: dict[str, RailDatasetHolder]
+        datasets: list[RailDatasetHolder]
             Prefixes and datasets to iterate over
 
         Returns
@@ -105,9 +110,9 @@ class RailPlotter(Configurable, DynamicClass):
             Dictionary of the newly created figures
         """
         out_dict: dict[str, RailPlotDict] = {}
-        for key, val in data_dict.items():
-            out_dict[key] = RailPlotter.iterate_plotters(
-                key, plotters, "", val, **kwargs
+        for val in datasets:
+            out_dict[val.config.name] = RailPlotter.iterate_plotters(
+                val.config.name, plotters, "", val, **kwargs
             )
         return out_dict
 
@@ -200,6 +205,12 @@ class RailPlotter(Configurable, DynamicClass):
         """
         return f"{prefix}{self.config.name}{plot_name}"
 
+    def to_yaml_dict(self) -> dict[str, dict[str, Any]]:
+        """Create a yaml-convertable dict for this object"""
+        yaml_dict = Configurable.to_yaml_dict(self)
+        yaml_dict[self.yaml_tag].update(class_name=f"{self.full_class_name()}")
+        return yaml_dict
+
     @classmethod
     def _validate_inputs(cls, **kwargs: Any) -> None:
         validate_inputs(cls, cls.inputs, **kwargs)
@@ -210,3 +221,37 @@ class RailPlotter(Configurable, DynamicClass):
         **kwargs: Any,
     ) -> dict[str, RailPlotHolder]:
         raise NotImplementedError()
+
+
+class RailPlotterList(Configurable):
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="PlotterList name"),
+        plotters=StageParameter(
+            list,
+            [],
+            fmt="%s",
+            msg="List of plotter to include",
+        ),
+    )
+
+    yaml_tag = "PlotterList"
+
+    def __init__(self, **kwargs: Any):
+        """C'tor
+
+        Parameters
+        ----------
+        kwargs: Any
+            Configuration parameters for this RailPlotterListHolder, must match
+            class.config_options data members
+        """
+        Configurable.__init__(self, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.config.plotters}"
+
+    def __call__(self, plotter_factory: RailPlotterFactory) -> list[RailPlotter]:
+        the_list = [
+            plotter_factory.get_plotter(name_) for name_ in self.config.plotters
+        ]
+        return the_list

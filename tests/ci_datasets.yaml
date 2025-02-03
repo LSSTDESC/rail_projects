@@ -1,13 +1,15 @@
 # This file describes the datasets that we can use with the rail_plotting module
 
-# This is the project we can extract the data sets from
-- Project:
+Data:
+
+  # This is the project we can extract the data sets from
+  - Project:
       name: ci_test
       yaml_file: tests/ci_project.yaml
 
 
-# These are specific datasets that combine a set of point estimates with true redshifts
-- Dataset:
+  # These are specific datasets that combine a set of point estimates with true redshifts
+  - Dataset:
       name: blend_baseline_trainz
       class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
       extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
@@ -16,7 +18,7 @@
       flavor: baseline
       tag: test
       algo: trainz
-- Dataset:
+  - Dataset:
       name: blend_baseline_knn
       class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
       extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
@@ -25,7 +27,7 @@
       flavor: baseline
       tag: test
       algo: knn
-- Dataset:
+  - Dataset:
       name: blend_baseline_fzboost
       class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
       extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
@@ -35,33 +37,33 @@
       tag: test
       algo: fzboost
 
-# This groups these three datasets together, for bookkeeping purposes
-- DatasetList:
+  # This groups these three datasets together, for bookkeeping purposes
+  - DatasetList:
       name: baseline_test
       datasets:
-          - blend_baseline_trainz
-          - blend_baseline_knn
-          - blend_baseline_fzboost
+        - blend_baseline_trainz
+        - blend_baseline_knn
+        - blend_baseline_fzboost
 
 
-# This is a dataset that has multiple point estimates combined with true redshifts
-- Dataset:
+  # This is a dataset that has multiple point estimates combined with true redshifts
+  - Dataset:
       name: blend_baseline_all
       class_name: rail.plotting.project_dataset_holder.RailProjectMultiDatasetHolder
       extractor: rail.plotting.pz_data_extractor.PZMultiPointEstimateDataExtractor
       datasets:
-          - blend_baseline_trainz
-          - blend_baseline_knn
-          - blend_baseline_fzboost
+        - blend_baseline_trainz
+        - blend_baseline_knn
+        - blend_baseline_fzboost
 
-# This makes a group of just one dataset
-- DatasetList:
+  # This makes a group of just one dataset
+  - DatasetList:
       name: baseline_merged
       datasets:
           - blend_baseline_all
 
-# This is a dataset of all n(z) estimates for a set of tomographic bins
-- Dataset:
+  # This is a dataset of all n(z) estimates for a set of tomographic bins
+  - Dataset:
       name: blend_baseline_tomo_knn_equal_count_naive_stack
       class_name: rail.plotting.project_dataset_holder.RailProjectNZDatasetHolder
       extractor: rail.plotting.nz_data_extractor.NZTomoBinDataExtractor
@@ -72,8 +74,8 @@
       classifier: equal_count
       summarizer: naive_stack
 
-# This makes a group of just one dataset, containing the n(z) dataset above
-- DatasetList:
+  # This makes a group of just one dataset, containing the n(z) dataset above
+  - DatasetList:
       name: blend_baseline_tomo_knn
       datasets:
-          - blend_baseline_tomo_knn_equal_count_naive_stack
+        - blend_baseline_tomo_knn_equal_count_naive_stack

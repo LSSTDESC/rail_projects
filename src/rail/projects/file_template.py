@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-
 import os
+from typing import Any
 
 from ceci.config import StageParameter
 
@@ -10,12 +9,15 @@ from .configurable import Configurable
 
 
 class RailProjectFileInstance(Configurable):
+    """Simple class for holding information about a single file"""
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="File name"),
         path=StageParameter(
             str, None, fmt="%s", required=True, msg="Template for path to file"
         ),
     )
+    yaml_tag = "FileInstance"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -33,6 +35,13 @@ class RailProjectFileInstance(Configurable):
         return self._config.path
 
     def check_file(self, **kwargs: dict[str, Any]) -> bool:
+        """Check to see if the file exists
+
+        Notes
+        -----
+        When called more than once, this uses the cached value unless called with
+        update=True
+        """
         update = kwargs.pop("update", False)
         if self._file_exists is not None:
             if not update:
@@ -42,7 +51,15 @@ class RailProjectFileInstance(Configurable):
 
 
 class RailProjectFileTemplate(Configurable):
-    """Simple class for holding a template for a file associated with a project"""
+    """Simple class for holding a template that can be resolved to a single file
+
+    For example the path_template might be 'a_file/{flavor}_data.hdf5'
+    and the interpolants would be ['flavor']
+
+    When called with a dict such as flavor: 'baseline
+    path_template would get expanded out to
+    a_file/baseline_data.hdf5
+    """
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
@@ -50,6 +67,7 @@ class RailProjectFileTemplate(Configurable):
             str, None, fmt="%s", required=True, msg="Template for path to file files"
         ),
     )
+    yaml_tag = "FileTemplate"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -65,6 +83,7 @@ class RailProjectFileTemplate(Configurable):
     def make_file_instance(
         self, name: str, **kwargs: dict[str, Any]
     ) -> RailProjectFileInstance:
+        """Resolve the interpolants and construct and RailProjectFileInstance"""
         formatted_path = self.config.path_template.format(**kwargs)
         return RailProjectFileInstance(
             name=name,

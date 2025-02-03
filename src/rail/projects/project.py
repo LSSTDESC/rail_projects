@@ -1,27 +1,43 @@
 from __future__ import annotations
 
-import os
 import itertools
+import os
 from typing import Any
 
 import yaml
-
 from ceci.config import StageParameter
 
-from . import name_utils, library, execution
-from .configurable import Configurable
-from .catalog_template import RailProjectCatalogTemplate
-from .pipeline_holder import RailPipelineTemplate
-from .selection_factory import RailSelection
-from .file_template import RailProjectFileTemplate
+from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
+from .catalog_template import RailProjectCatalogTemplate
+from .configurable import Configurable
+from .file_template import RailProjectFileTemplate
 from .pipeline_factory import RailPipelineFactory
+from .pipeline_holder import RailPipelineTemplate
 from .project_file_factory import RailProjectFileFactory
-from .selection_factory import RailSelectionFactory
+from .selection_factory import RailSelection, RailSelectionFactory
+from .subsample_factory import RailSubsample, RailSubsampleFactory
 
 
 class RailFlavor(Configurable):
+    """Description of a single analysis variation
+
+    This includes
+
+    a name for the variant, used to construct filenames
+
+    a 'catalog_tag', which identifies format of the data being used, and sets
+    the expected names of columns accordingly
+
+    a list of 'pipelines' that can be run in this variant
+
+    a list of 'file_aliases' that can be used to specify the
+    input files used in this variant
+
+    a dict of 'pipeline_overrides' that modify the behavior of the various pipelines
+    """
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Flavor name"),
         catalog_tag=StageParameter(
@@ -45,16 +61,102 @@ class RailFlavor(Configurable):
 
 
 class RailProject(Configurable):
+    """Main analysis driver class, this collects all the elements
+    run a collection of studies using RAIL
+
+    --------------
+    Functionality
+    --------------
+    RailProject.load_config()
+        Read a yaml file and create a RailProject
+
+    reduce_data()
+        Make a reduced catalog from an input catalog by applying a selction
+        and trimming unwanted colums
+
+    subsample_data()
+        Subsample data from a catalog to make a testing or training file
+
+    build_pipelines()
+        Build ceci pipeline yaml files
+
+    run_pipeline_single()
+        Run a pipeline on a single file
+
+    run_pipeline_catalog()
+        Run a pipeline on a catalog of files
+
+    --------------
+    Configuration
+    --------------
+
+    Most of these element come from the shared library of elements,
+    which is accesible from rail.projects.library
+
+    --------------
+    Includes: list[str]
+        List of shared configuration files to load
+
+    --------------
+    Baseline: dict[str, Any]
+        Baseline configuration for this project.
+        This is included in all the other analysis flavors
+
+    Flavors: list[dict[str, Any]]
+        List of all the analysis flavors that have been defined in this project
+
+    --------------
+    Bookkeeping elements, used to define the file paths for the
+    project.
+
+    PathTemplates: dict[str, str]
+        Overrides for templates used to construct file paths
+
+    CommonPaths: dict[str, str]
+        Defintions of common paths used to construct file paths
+
+    IterationVars: dict[str, list[str]]
+        Iteration variables to construct the catalogs
+
+    --------------
+    Things that are pulled from the library, each of these is just a list
+    of the names of things that are defined in the library that
+    can be used in this project.  The default is to use all the
+    items defined in the library.
+
+    Catalogs: list[str] These are actually CatalogTemplates
+    Files: list[str] These are actually FileTemplates
+    Pipelines: list[str] These are actually PipelineTemplates
+    Reducers: list[str] These reduce the input data catalog
+    Subsamplers: list[str] These subsample catalogs to get individual files
+    Selections: list[str] These are the selection parameters
+    Subsamples: list[str] These are the subsample parameters
+    PZAlgorithms: list[str]
+    SpecSelections: list[str]
+    Classifiers: list[str]
+    Summarizers: list[str]
+    ErrorModels: list[str]
+    """
+
     config_options: dict[str, StageParameter] = dict(
         Name=StageParameter(str, None, fmt="%s", required=True, msg="Project name"),
-        PathTemplates=StageParameter(
-            dict, {}, fmt="%s", required=True, msg="File path templates"
+        Includes=StageParameter(list, [], fmt="%s", msg="Files to include"),
+        Baseline=StageParameter(
+            dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
         ),
+        Flavors=StageParameter(list, [], fmt="%s", msg="Analysis variants"),
+        PathTemplates=StageParameter(dict, {}, fmt="%s", msg="File path templates"),
         CommonPaths=StageParameter(
             dict, {}, fmt="%s", required=True, msg="Paths to shared directories"
         ),
         IterationVars=StageParameter(
             dict, {}, fmt="%s", msg="Iteration variables to use"
+        ),
+        Selections=StageParameter(
+            list, ["all"], fmt="%s", msg="Data selections to use"
+        ),
+        Subsamples=StageParameter(
+            list, ["all"], fmt="%s", msg="Subsample defintions to use"
         ),
         Catalogs=StageParameter(
             list, ["all"], fmt="%s", msg="Catalog templates to use"
@@ -66,9 +168,6 @@ class RailProject(Configurable):
         Reducers=StageParameter(list, ["all"], fmt="%s", msg="Data reducers to use"),
         Subsamplers=StageParameter(
             list, ["all"], fmt="%s", msg="Data subsamplers to use"
-        ),
-        Selections=StageParameter(
-            list, ["all"], fmt="%s", msg="Data selections to use"
         ),
         PZAlgorithms=StageParameter(
             list, ["all"], fmt="%s", msg="p(z) algorithms to use"
@@ -85,11 +184,11 @@ class RailProject(Configurable):
         ErrorModels=StageParameter(
             list, ["all"], fmt="%s", msg="Photometric ErrorModels to use"
         ),
-        Baseline=StageParameter(
-            dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
-        ),
-        Flavors=StageParameter(list, [], fmt="%s", msg="Analysis variants"),
     )
+
+    yaml_tag: str = "Project"
+
+    projects: dict[str, RailProject] = {}
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -101,6 +200,10 @@ class RailProject(Configurable):
             class.config_options data members
         """
         Configurable.__init__(self, **kwargs)
+
+        for include_ in self.config.Includes:
+            library.load_yaml(os.path.expandvars(include_))
+
         self.name_factory = name_utils.NameFactory(
             config=self.config,
             templates=self.config.PathTemplates,
@@ -112,10 +215,87 @@ class RailProject(Configurable):
         self._pipeline_templates: dict[str, RailPipelineTemplate] | None = None
         self._algorithms: dict[str, dict[str, dict[str, str]]] = {}
         self._selections: dict[str, RailSelection] | None = None
+        self._subsamples: dict[str, RailSubsample] | None = None
         self._flavors: dict[str, RailFlavor] | None = None
 
     def __repr__(self) -> str:
         return f"{self.config.Name}"
+
+    def clear_cache(self) -> None:
+        """Reset all the cached configurable items"""
+        self._catalog_templates = None
+        self._file_templates = None
+        self._pipeline_templates = None
+        self._algorithms = {}
+        self._selections = None
+        self._subsamples = None
+        self._flavors = None
+
+    @staticmethod
+    def generate_kwargs_iterable(**iteration_dict: Any) -> list[dict]:
+        """Generate an a list of kwargs dicts to from a dict of lists"""
+        iteration_vars = list(iteration_dict.keys())
+        iterations = itertools.product(
+            *[iteration_dict.get(key, []) for key in iteration_vars]
+        )
+        iteration_kwarg_list = []
+        for iteration_args in iterations:
+            iteration_kwargs = {
+                iteration_vars[i]: iteration_args[i] for i in range(len(iteration_vars))
+            }
+            iteration_kwarg_list.append(iteration_kwargs)
+        return iteration_kwarg_list
+
+    @staticmethod
+    def generate_ceci_command(
+        pipeline_path: str,
+        config: str | None,
+        inputs: dict,
+        output_dir: str = ".",
+        log_dir: str = ".",
+        **kwargs: Any,
+    ) -> list[str]:
+        """Generate a ceci command to run a pipeline
+
+        Paramters
+        ---------
+        pipeline_path: str
+            Path to the pipline yaml file
+
+        config: str | None
+            Path to the pipeline config yaml file
+
+        inputs: dict
+            Input to the pipeline
+
+        output_dir: str = "."
+            Pipeline output directory
+
+        log_dir: str = "."
+            Pipeline log directory
+
+        **kwargs: Any
+            These are appended to the command in key=value pairs
+        """
+
+        if config is None:
+            config = pipeline_path.replace(".yaml", "_config.yml")
+
+        command_line = [
+            "ceci",
+            f"{pipeline_path}",
+            f"config={config}",
+            f"output_dir={output_dir}",
+            f"log_dir={log_dir}",
+        ]
+
+        for key, val in inputs.items():
+            command_line.append(f"inputs.{key}={val}")
+
+        for key, val in kwargs.items():
+            command_line.append(f"{key}={val}")
+
+        return command_line
 
     @property
     def name(self) -> str:
@@ -126,14 +306,334 @@ class RailProject(Configurable):
         """Create and return a RailProject from a yaml config file"""
         with open(os.path.expandvars(config_file), "r", encoding="utf-8") as fp:
             config_orig = yaml.safe_load(fp)
-        includes = config_orig.get("Includes", [])
-        # FIXME, make this recursive to allow for multiple layers of includes
-        for include_ in includes:
-            library.load_yaml(os.path.expandvars(include_))
 
         project_config = config_orig.get("Project")
         project = RailProject(**project_config)
+        RailProject.projects[project.name] = project
         return project
+
+    def reduce_data(
+        self,
+        catalog_template: str,
+        output_catalog_template: str,
+        reducer_class_name: str,
+        input_selection: str,
+        selection: str,
+        dry_run: bool = False,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Reduce some data
+
+        Parameters
+        ----------
+        catalog_template: str
+            Tag for the input catalog
+
+        output_catalog_template: str
+            Which label to apply to output dataset
+
+        reducer_class_name: str,
+            Name of the class to use for subsampling
+
+        input_selection: str,
+            Selection to use for the input
+
+        selection: str,
+            Selection to apply
+
+        dry_run: bool
+            If true, do not actually run
+
+        Keywords
+        --------
+        Used to provide values for additional interpolants, e.g.,
+
+        Returns
+        -------
+        sinks: list[str]
+            Paths to output files
+        """
+        sources = self.get_catalog_files(
+            catalog_template, selection=input_selection, **kwargs
+        )
+        sinks = self.get_catalog_files(
+            output_catalog_template, selection=selection, **kwargs
+        )
+
+        reducer_class = library.get_algorithm_class(
+            "Reducer", reducer_class_name, "Reduce"
+        )
+        reducer_args = library.get_selection(selection)
+        reducer = reducer_class(**reducer_args.config.to_dict())
+
+        if not dry_run:  # pragma: no cover
+            for source_, sink_ in zip(sources, sinks):
+                reducer(source_, sink_)
+
+        return sinks
+
+    def subsample_data(
+        self,
+        catalog_template: str,
+        file_template: str,
+        subsampler_class_name: str,
+        subsample_name: str,
+        dry_run: bool = False,
+        **kwargs: dict[str, Any],
+    ) -> str:
+        """Subsammple some data
+
+        Parameters
+        ----------
+        catalog_template: str
+            Tag for the input catalog
+
+        file_template: str
+            Which label to apply to output dataset
+
+        subsampler_class_name: str,
+            Name of the class to use for subsampling
+
+        subsample_name: str,
+            Name of the subsample to create
+
+        dry_run: bool
+            If true, do not actually run
+
+        Keywords
+        --------
+        Used to provide values for additional interpolants, e.g., flavor, basename, etc...
+
+        Returns
+        -------
+        output_path: str
+            Path to output file
+        """
+        hdf5_output = self.get_file(file_template, **kwargs)
+        output = hdf5_output.replace(".hdf5", ".parquet")
+
+        subsampler_class = library.get_algorithm_class(
+            "Subsampler", subsampler_class_name, "Subsample"
+        )
+        subsampler_args = library.get_subsample(subsample_name)
+        subsampler = subsampler_class(**subsampler_args.config.to_dict())
+
+        sources = self.get_catalog_files(catalog_template, **kwargs)
+
+        # output_dir = os.path.dirname(output)
+        if not dry_run:  # pragma: no cover
+            subsampler(sources, output)
+
+        return output
+
+    def build_pipelines(
+        self,
+        flavor: str = "baseline",
+        *,
+        force: bool = False,
+    ) -> int:
+        """Build ceci pipeline configuraiton files for this project
+
+        Parameters
+        ----------
+        flavor: str
+            Which analysis flavor to draw from
+
+        force: bool
+            Force overwriting of existing pipeline files
+
+        Returns
+        -------
+        status_code: int
+            0 if ok, error code otherwise
+        """
+        flavor_dict = self.get_flavor(flavor)
+        pipelines_to_build = flavor_dict["pipelines"]
+        pipeline_overrides = flavor_dict.get("pipeline_overrides", {})
+        do_all = "all" in pipelines_to_build
+
+        ok = 0
+        for pipeline_name, pipeline_info in self.get_pipelines().items():
+            if not (do_all or pipeline_name in pipelines_to_build):
+                print(f"Skipping pipeline {pipeline_name} from flavor {flavor}")
+                continue
+            output_yaml = self.get_path(
+                "pipeline_path", pipeline=pipeline_name, flavor=flavor
+            )
+            if os.path.exists(output_yaml):  # pragma: no cover
+                if force:
+                    print(f"Overwriting existing pipeline {output_yaml}")
+                else:
+                    print(f"Skipping existing pipeline {output_yaml}")
+                    continue
+
+            overrides = pipeline_overrides.get("default", {}).copy()
+            overrides.update(**pipeline_overrides.get(pipeline_name, {}))
+
+            pipeline_instance = pipeline_info.make_instance(
+                self, flavor, pipeline_overrides
+            )
+            ok |= pipeline_instance.build(self)
+
+        return ok
+
+    def make_pipeline_single_input_command(
+        self,
+        pipeline_name: str,
+        flavor: str,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Build the command to run pipeline on a single file
+
+        Parameters
+        ----------
+        pipeline_name: str
+            Pipeline in question
+
+        flavor: str
+            Flavor to apply
+
+        **kwargs: Any
+            Other interpolants, such as selection
+
+        Returns
+        -------
+        command_list: list[str]
+            Tokens in the command line, usable by subprocess.run()
+        """
+        pipeline_template = self.get_pipeline(pipeline_name)
+        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
+        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs)
+
+    def make_pipeline_catalog_commands(
+        self,
+        pipeline_name: str,
+        flavor: str,
+        **kwargs: Any,
+    ) -> list[tuple[list[list[str]], str]]:
+        """Build the commands to run pipeline on a catalog
+
+        Parameters
+        ----------
+        pipeline_name: str
+            Pipeline in question
+
+        flavor: str
+            Flavor to apply
+
+        **kwargs: Any
+            Other interpolants, such as selection
+
+        Returns
+        -------
+        command_list: list[tuple[list[list[str]], str]
+            List of pairs of series of commands and potential location for slurm batch file
+        """
+        pipeline_template = self.get_pipeline(pipeline_name)
+        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
+        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)
+
+    def run_pipeline_single(
+        self,
+        pipeline_name: str,
+        run_mode: execution.RunMode = execution.RunMode.bash,
+        **kwargs: Any,
+    ) -> int:
+        """Run pipeline on a single file
+
+        Parameters
+        ----------
+        pipeline_name: str
+            Pipeline in question
+
+        run_mode: execution.RunMode
+            How to run the pipeline (e.g., in bash, or in slurm)
+
+        **kwargs: Any
+            Other interpolants, such as selection
+
+        Returns
+        -------
+        status: int
+            0 for success, error code otherwise
+        """
+        kwcopy = kwargs.copy()
+        flavor = kwcopy.pop("flavor")
+        sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
+        script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
+        commands = self.make_pipeline_single_input_command(
+            pipeline_name, flavor, **kwcopy
+        )
+        try:
+            statuscode = execution.handle_commands(run_mode, [commands], script_path)
+        except Exception as msg:  # pragma: no cover
+            print(msg)
+            statuscode = 1
+        return statuscode
+
+    def run_pipeline_catalog(
+        self,
+        pipeline_name: str,
+        run_mode: execution.RunMode = execution.RunMode.bash,
+        **kwargs: Any,
+    ) -> int:
+        """Run pipeline on a catalog
+
+        Parameters
+        ----------
+        pipeline_name: str
+            Pipeline in question
+
+        run_mode: execution.RunMode
+            How to run the pipeline (e.g., in bash, or in slurm)
+
+        **kwargs: Any
+            Other interpolants, such as selection
+
+        Returns
+        -------
+        status: int
+            0 for success, error code otherwise
+        """
+
+        kwcopy = kwargs.copy()
+        flavor = kwcopy.pop("flavor")
+        all_commands = self.make_pipeline_catalog_commands(
+            pipeline_name, flavor, **kwcopy
+        )
+
+        ok = 0
+        for commands, script_path in all_commands:
+            try:
+                execution.handle_commands(
+                    run_mode,
+                    commands,
+                    script_path,
+                )
+            except Exception as msg:  # pragma: no cover
+                print(msg)
+                ok |= 1
+
+        return ok
+
+    def add_flavor(self, flavor: RailFlavor) -> None:
+        """Add a new flavor to the Project"""
+        if self._flavors is None:  # pragma: no cover
+            self._flavors = {}
+        if flavor.config.name in self._flavors:
+            raise KeyError(
+                f"Flavor {flavor.config.name} already in RailProject {self.name}"
+            )
+        self.config["Flavors"].append(flavor.config.to_dict())
+        flavor_dict = self.config.Baseline.copy()
+        flavor_dict.update(flavor.config.to_dict())
+        self._flavors[flavor.config.name] = RailFlavor(**flavor_dict)
+
+    def write_yaml(self, yaml_file: str) -> None:
+        """Write this project to a yaml file"""
+        the_dict = self.to_yaml_dict()
+        with open(os.path.expandvars(yaml_file), "w", encoding="utf-8") as fout:
+            yaml.dump(the_dict, fout)
 
     def get_path_templates(self) -> dict:
         """Return the dictionary of templates used to construct paths"""
@@ -258,12 +758,38 @@ class RailProject(Configurable):
                 f"Known values are {list(selections.keys())}"
             ) from missing_key
 
+    def get_subsamples(self) -> dict[str, RailSubsample]:
+        """Get the dictionary describing all the subsamples"""
+        if self._subsamples is not None:
+            return self._subsamples
+        sel_names = (
+            RailSubsampleFactory.get_subsample_names()
+            if "all" in self.config.Subsamples
+            else self.config.Subsamples
+        )
+        self._subsamples = {
+            name_: RailSubsampleFactory.get_subsample(name_) for name_ in sel_names
+        }
+        return self._subsamples
+
+    def get_subsample(self, name: str) -> RailSubsample:
+        """Get a particular subsample by name"""
+        subsamples = self.get_subsamples()
+        try:
+            return subsamples[name]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"Subsample '{name}' not found in {self}. "
+                f"Known values are {list(subsamples.keys())}"
+            ) from missing_key
+
     def get_algorithms(self, algorithm_type: str) -> dict[str, dict[str, str]]:
         sub_algo_dict = self._algorithms.get(algorithm_type, {})
         if sub_algo_dict:
             return sub_algo_dict
         algo_names = self.config[algorithm_type]
-        all_algos = RailAlgorithmFactory.get_algorithms(algorithm_type)
+        # trim off the trailing 's'
+        all_algos = RailAlgorithmFactory.get_algorithms(algorithm_type[0:-1])
         use_algos = (
             list(all_algos.values())
             if "all" in algo_names
@@ -420,277 +946,3 @@ class RailProject(Configurable):
         if "all" in selections:
             return list(selection_dict.keys())
         return selections
-
-    def generate_kwargs_iterable(self, **iteration_dict: Any) -> list[dict]:
-        iteration_vars = list(iteration_dict.keys())
-        iterations = itertools.product(
-            *[iteration_dict.get(key, []) for key in iteration_vars]
-        )
-        iteration_kwarg_list = []
-        for iteration_args in iterations:
-            iteration_kwargs = {
-                iteration_vars[i]: iteration_args[i] for i in range(len(iteration_vars))
-            }
-            iteration_kwarg_list.append(iteration_kwargs)
-        return iteration_kwarg_list
-
-    def generate_ceci_command(
-        self,
-        pipeline_path: str,
-        config: str | None,
-        inputs: dict,
-        output_dir: str = ".",
-        log_dir: str = ".",
-        **kwargs: Any,
-    ) -> list[str]:
-        if config is None:
-            config = pipeline_path.replace(".yaml", "_config.yml")
-
-        command_line = [
-            "ceci",
-            f"{pipeline_path}",
-            f"config={config}",
-            f"output_dir={output_dir}",
-            f"log_dir={log_dir}",
-        ]
-
-        for key, val in inputs.items():
-            command_line.append(f"inputs.{key}={val}")
-
-        for key, val in kwargs.items():
-            command_line.append(f"{key}={val}")
-
-        return command_line
-
-    def build_pipelines(
-        self,
-        flavor: str = "baseline",
-        *,
-        force: bool = False,
-    ) -> int:
-        """Build ceci pipeline configuraiton files for this project
-
-        Parameters
-        ----------
-        flavor: str
-            Which analysis flavor to draw from
-
-        force: bool
-            Force overwriting of existing pipeline files
-
-        Returns
-        -------
-        status_code: int
-            0 if ok, error code otherwise
-        """
-        flavor_dict = self.get_flavor(flavor)
-        pipelines_to_build = flavor_dict["pipelines"]
-        pipeline_overrides = flavor_dict.get("pipeline_overrides", {})
-        do_all = "all" in pipelines_to_build
-
-        ok = 0
-        for pipeline_name, pipeline_info in self.get_pipelines().items():
-            if not (do_all or pipeline_name in pipelines_to_build):
-                print(f"Skipping pipeline {pipeline_name} from flavor {flavor}")
-                continue
-            output_yaml = self.get_path(
-                "pipeline_path", pipeline=pipeline_name, flavor=flavor
-            )
-            if os.path.exists(output_yaml):  # pragma: no cover
-                if force:
-                    print(f"Overwriting existing pipeline {output_yaml}")
-                else:
-                    print(f"Skipping existing pipeline {output_yaml}")
-                    continue
-
-            overrides = pipeline_overrides.get("default", {}).copy()
-            overrides.update(**pipeline_overrides.get(pipeline_name, {}))
-
-            pipeline_instance = pipeline_info.make_instance(
-                self, flavor, pipeline_overrides
-            )
-            ok |= pipeline_instance.build(self)
-
-        return ok
-
-    def subsample_data(
-        self,
-        catalog_template: str,
-        file_template: str,
-        subsampler_class_name: str,
-        subsample_name: str,
-        dry_run: bool = False,
-        **kwargs: dict[str, Any],
-    ) -> str:
-        """Subsammple some data
-
-        Parameters
-        ----------
-        catalog_template: str
-            Tag for the input catalog
-
-        file_template: str
-            Which label to apply to output dataset
-
-        subsampler_class_name: str,
-            Name of the class to use for subsampling
-
-        subsample_name: str,
-            Name of the subsample to create
-
-        dry_run: bool
-            If true, do not actually run
-
-        Keywords
-        --------
-        Used to provide values for additional interpolants, e.g., flavor, basename, etc...
-
-        Returns
-        -------
-        output_path: str
-            Path to output file
-        """
-        hdf5_output = self.get_file(file_template, **kwargs)
-        output = hdf5_output.replace(".hdf5", ".parquet")
-
-        subsampler_class = library.get_algorithm_class(
-            "Subsamplers", subsampler_class_name, "Subsample"
-        )
-        subsampler_args = library.get_subsample(subsample_name)
-        subsampler = subsampler_class(**subsampler_args.config.to_dict())
-
-        sources = self.get_catalog_files(catalog_template, **kwargs)
-
-        # output_dir = os.path.dirname(output)
-        if not dry_run:  # pragma: no cover
-            subsampler(sources, output)
-
-        return output
-
-    def reduce_data(
-        self,
-        catalog_template: str,
-        output_catalog_template: str,
-        reducer_class_name: str,
-        input_selection: str,
-        selection: str,
-        dry_run: bool = False,
-        **kwargs: Any,
-    ) -> list[str]:
-        """Reduce some data
-
-        Parameters
-        ----------
-        catalog_template: str
-            Tag for the input catalog
-
-        output_catalog_template: str
-            Which label to apply to output dataset
-
-        reducer_class_name: str,
-            Name of the class to use for subsampling
-
-        input_selection: str,
-            Selection to use for the input
-
-        selection: str,
-            Selection to apply
-
-        dry_run: bool
-            If true, do not actually run
-
-        Keywords
-        --------
-        Used to provide values for additional interpolants, e.g.,
-
-        Returns
-        -------
-        sinks: list[str]
-            Paths to output files
-        """
-        sources = self.get_catalog_files(
-            catalog_template, selection=input_selection, **kwargs
-        )
-        sinks = self.get_catalog_files(
-            output_catalog_template, selection=selection, **kwargs
-        )
-
-        reducer_class = library.get_algorithm_class(
-            "Reducers", reducer_class_name, "Reduce"
-        )
-        reducer_args = library.get_selection(selection)
-        reducer = reducer_class(**reducer_args.config.to_dict())
-
-        if not dry_run:  # pragma: no cover
-            for source_, sink_ in zip(sources, sinks):
-                reducer(source_, sink_)
-
-        return sinks
-
-    def make_pipeline_single_input_command(
-        self,
-        pipeline_name: str,
-        flavor: str,
-        **kwargs: Any,
-    ) -> list[str]:
-        pipeline_template = self.get_pipeline(pipeline_name)
-        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
-        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs)
-
-    def make_pipeline_catalog_commands(
-        self,
-        pipeline_name: str,
-        flavor: str,
-        **kwargs: Any,
-    ) -> list[tuple[list[list[str]], str]]:
-        pipeline_template = self.get_pipeline(pipeline_name)
-        pipeline_instance = pipeline_template.make_instance(self, flavor, {})
-        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)
-
-    def run_pipeline_single(
-        self,
-        pipeline_name: str,
-        run_mode: execution.RunMode = execution.RunMode.bash,
-        **kwargs: Any,
-    ) -> int:
-
-        kwcopy = kwargs.copy()
-        flavor = kwcopy.pop("flavor")
-        sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
-        script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
-        commands = self.make_pipeline_single_input_command(
-            pipeline_name, flavor, **kwcopy
-        )
-        try:
-            statuscode = execution.handle_commands(run_mode, [commands], script_path)
-        except Exception as msg:  # pragma: no cover
-            print(msg)
-            statuscode = 1
-        return statuscode
-
-    def run_pipeline_catalog(
-        self,
-        pipeline_name: str,
-        run_mode: execution.RunMode = execution.RunMode.bash,
-        **kwargs: Any,
-    ) -> int:
-
-        kwcopy = kwargs.copy()
-        flavor = kwcopy.pop("flavor")
-        all_commands = self.make_pipeline_catalog_commands(
-            pipeline_name, flavor, **kwcopy
-        )
-
-        ok = 0
-        for commands, script_path in all_commands:
-            try:
-                execution.handle_commands(
-                    run_mode,
-                    commands,
-                    script_path,
-                )
-            except Exception as msg:  # pragma: no cover
-                print(msg)
-                ok |= 1
-
-        return ok

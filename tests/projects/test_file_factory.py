@@ -1,8 +1,9 @@
 import os
+
 import pytest
 
-from rail.projects.project_file_factory import RailProjectFileFactory
 from rail.projects.file_template import RailProjectFileInstance, RailProjectFileTemplate
+from rail.projects.project_file_factory import RailProjectFileFactory
 
 
 def test_load_file_yaml(setup_project_area: int) -> None:
@@ -63,4 +64,23 @@ def test_load_file_yaml(setup_project_area: int) -> None:
     with pytest.raises(KeyError):
         RailProjectFileFactory.get_file_instance("bad")
 
+    # Test the interactive stuff
     RailProjectFileFactory.clear()
+    RailProjectFileFactory.add_file_template(the_file_template)
+    RailProjectFileFactory.add_file_instance(the_file_instance)
+
+    check_file_instance = RailProjectFileFactory.get_file_instance(
+        "test_file_baseline_100k_ci_test_blend"
+    )
+    assert isinstance(check_file_instance, type(the_file_instance))
+
+    # check writing the yaml dict
+    RailProjectFileFactory.write_yaml("tests/temp.yaml")
+    RailProjectFileFactory.clear()
+    RailProjectFileFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_file_instance = RailProjectFileFactory.get_file_instance(
+        "test_file_baseline_100k_ci_test_blend"
+    )
+    assert isinstance(check_file_instance, type(check_file_instance))

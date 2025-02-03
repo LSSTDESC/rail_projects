@@ -1,7 +1,4 @@
-from rail.cli.rail.options import (
-    PartialOption,
-)
-
+from rail.cli.rail.options import PartialOption
 
 __all__: list[str] = [
     "purge_plots",

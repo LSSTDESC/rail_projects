@@ -1,13 +1,7 @@
 import click
+from rail.cli.rail.options import EnumChoice, PartialArgument, PartialOption
 
 from rail.projects.execution import RunMode
-
-from rail.cli.rail.options import (
-    EnumChoice,
-    PartialOption,
-    PartialArgument,
-)
-
 
 __all__: list[str] = [
     "RunMode",

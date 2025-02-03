@@ -2,11 +2,23 @@ from __future__ import annotations
 
 from typing import Any, TypeVar
 
-
 T = TypeVar("T", bound="DynamicClass")
 
 
 class DynamicClass:
+    """Base class for classes that will create objects of sub-classes dynamically
+
+    This implements:
+
+    1. keeping track of all the loaded sub-classes,
+    2. being able to load a new sub-class from the python module and class name
+    3. being able to create an object of sub-class from a dict
+
+    Subclasses that serve as parent classes to several addtional sub-classes should
+
+    1. override the sub_classes to keep track of their sub-classes
+    """
+
     sub_classes: dict[str, type[DynamicClass]] = {}
 
     def __init_subclass__(cls) -> None:
@@ -82,8 +94,8 @@ class DynamicClass:
 
         Returns
         -------
-        plotter: RailPlotter
-            Newly created plotter
+        object: T
+            Newly created object
 
         Notes
         -----

@@ -1,18 +1,33 @@
-"""Functions to control plot making in the context of a RailProject"""
+"""Functions to manage various objects associated to RailProjects"""
 
 from __future__ import annotations
 
 import os
-import urllib.request
 import subprocess
+import urllib.request
+
 import yaml
 
-from .algorithm_factory import RailAlgorithmFactory, ALGORITHM_TYPES_AND_TAGS
+from .algorithm_factory import ALGORITHM_TYPES, RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
+from .factory_mixin import RailFactoryMixin
 from .pipeline_factory import RailPipelineFactory
 from .project_file_factory import RailProjectFileFactory
 from .selection_factory import RailSelectionFactory
 from .subsample_factory import RailSubsampleFactory
+
+THE_FACTORIES: list[type[RailFactoryMixin]] = [
+    RailAlgorithmFactory,
+    RailCatalogFactory,
+    RailPipelineFactory,
+    RailProjectFileFactory,
+    RailSelectionFactory,
+    RailSubsampleFactory,
+]
+
+YAML_HANDLERS: dict[str, type[RailFactoryMixin]] = {
+    factory.yaml_tag: factory for factory in THE_FACTORIES
+}
 
 
 # Lift the RailAlgorithmFactory class methods
@@ -131,33 +146,17 @@ get_subsample = RailSubsampleFactory.get_subsample
 
 # Define a few additional functions
 def clear() -> None:
-    RailAlgorithmFactory.clear()
-    RailCatalogFactory.clear()
-    RailPipelineFactory.clear()
-    RailProjectFileFactory.clear()
-    RailSelectionFactory.clear()
-    RailSubsampleFactory.clear()
+    """Clean all the factories"""
+    for factory_ in THE_FACTORIES:
+        factory_.clear()
 
 
 def print_contents() -> None:
     """Print the contents of the factories"""
-    RailAlgorithmFactory.print_contents()
-    print("----------------")
-    print("")
-    RailCatalogFactory.print_contents()
-    print("----------------")
-    print("")
-    RailPipelineFactory.print_contents()
-    print("----------------")
-    print("")
-    RailProjectFileFactory.print_contents()
-    print("----------------")
-    print("")
-    RailSelectionFactory.print_contents()
-    print("----------------")
-    print("")
-    RailSubsampleFactory.print_contents()
-    print("----------------")
+    for factory_ in THE_FACTORIES:
+        factory_.print_contents()
+        print("----------------")
+        print("")
 
 
 def load_yaml(yaml_file: str) -> None:
@@ -177,30 +176,49 @@ def load_yaml(yaml_file: str) -> None:
         yaml_data = yaml.safe_load(fin)
 
     for yaml_key, yaml_item in yaml_data.items():
-        if yaml_key == "Selections":
-            load_selection_yaml_tag(yaml_item)
-        elif yaml_key == "Subsamples":
-            load_subsample_yaml_tag(yaml_item)
-        elif yaml_key == "Files":
-            load_project_file_yaml_tag(yaml_item)
-        elif yaml_key == "Catalogs":
-            load_catalog_yaml_tag(yaml_item)
-        elif yaml_key == "Pipelines":
-            load_pipeline_yaml_tag(yaml_item)
-        elif yaml_key in ALGORITHM_TYPES_AND_TAGS:
-            load_algorithm_yaml_tag(yaml_key, yaml_item)
+        if yaml_key == RailSelectionFactory.yaml_tag:
+            load_selection_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailSubsampleFactory.yaml_tag:
+            load_subsample_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailProjectFileFactory.yaml_tag:
+            load_project_file_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailCatalogFactory.yaml_tag:
+            load_catalog_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailPipelineFactory.yaml_tag:
+            load_pipeline_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key in ALGORITHM_TYPES:
+            load_algorithm_yaml_tag(yaml_item, f"{yaml_file}#{yaml_key}")
         else:  # pragma: no cover
-            good_tags = list(ALGORITHM_TYPES_AND_TAGS.keys()) + [
-                "Subsamples",
-                "Selections",
-                "Files",
-                "Catalogs",
-                "Pipelines",
+            good_tags = ALGORITHM_TYPES + [
+                RailSelectionFactory.yaml_tag,
+                RailSubsampleFactory.yaml_tag,
+                RailProjectFileFactory.yaml_tag,
+                RailCatalogFactory.yaml_tag,
+                RailPipelineFactory.yaml_tag,
             ]
             raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")
 
 
-def setup_project_area() -> int:
+def write_yaml(yaml_file: str) -> None:
+    """Write the current contents for the factories to a yaml file
+
+    Parameters
+    ----------
+    yaml_file: str
+        File to write
+
+    Notes
+    -----
+    See class description for yaml file syntax
+    """
+    yaml_dict: dict[str, dict] = {}
+    for a_factory in THE_FACTORIES:
+        yaml_dict.update(**a_factory.to_yaml_dict())
+    with open(os.path.expandvars(yaml_file), mode="w", encoding="utf-8") as fout:
+        yaml.dump(yaml_dict, fout)
+
+
+def setup_project_area() -> int:  # pragma: no cover
     if not os.path.exists("tests/temp_data"):
         try:
             os.unlink("tests/ci_test.tgz")
@@ -210,16 +228,16 @@ def setup_project_area() -> int:
             "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
             "tests/ci_test.tgz",
         )
-        if not os.path.exists("tests/ci_test.tgz"):  # pragma: no cover
+        if not os.path.exists("tests/ci_test.tgz"):
             return 1
 
         status = subprocess.run(
             ["tar", "zxvf", "tests/ci_test.tgz", "-C", "tests"], check=False
         )
-        if status.returncode != 0:  # pragma: no cover
+        if status.returncode != 0:
             return status.returncode
 
-    if not os.path.exists("tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet"):  # pragma: no cover
+    if not os.path.exists("tests/temp_data/data/ci_test_v1.1.3/9924/part-0.parquet"):
         return 2
 
     if not os.path.exists("tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"):
@@ -231,15 +249,15 @@ def setup_project_area() -> int:
         )
         if not os.path.exists(
             "tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"
-        ):  # pragma: no cover
+        ):
             return 3
     return 0
 
 
-def teardown_project_area() -> None:
+def teardown_project_area() -> None:  # pragma: no cover
     if not os.environ.get("NO_TEARDOWN"):
         os.system("\\rm -rf tests/temp_data")
         try:
             os.unlink("tests/ci_test.tgz")
-        except FileNotFoundError:  # pragma: no cover
+        except FileNotFoundError:
             pass

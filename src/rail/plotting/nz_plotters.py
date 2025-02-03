@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import os
 from typing import Any
+
 import numpy as np
 import qp
-from matplotlib import pyplot as plt
 from ceci.config import StageParameter
+from matplotlib import pyplot as plt
 
-from .plotter import RailPlotter
-from .plot_holder import RailPlotHolder
 from .dataset_holder import RailDatasetHolder
+from .plot_holder import RailPlotHolder
+from .plotter import RailPlotter
 
 
 class NZPlotterTomoBins(RailPlotter):

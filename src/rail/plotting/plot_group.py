@@ -5,27 +5,48 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from ceci.config import StageParameter
 from jinja2 import Environment, FileSystemLoader, Template
 
+from rail.projects.configurable import Configurable
+
 from .dataset_factory import RailDatasetFactory
-from .plotter_factory import RailPlotterFactory
-from .plotter import RailPlotter
-from .plot_holder import RailPlotDict, RailPlotHolder
 from .dataset_holder import RailDatasetHolder
+from .plot_holder import RailPlotDict, RailPlotHolder
+from .plotter import RailPlotter
+from .plotter_factory import RailPlotterFactory
 
 HTML_TEMPLATE_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), "html_templates"
 )
 
 
-class RailPlotGroup:
-    """Defining of a group on plots to make
-    with a particular dataset
+class RailPlotGroup(Configurable):
+    """Class defining of a group on plots to make
+    with a particular list of coherent datasets
+
+
     """
 
     jinja_env: Environment | None = None
     jinja_template: Template | None = None
     jinja_index_template: Template | None = None
+
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(
+            str, None, fmt="%s", required=True, msg="PlotGroupName name"
+        ),
+        plotter_list_name=StageParameter(
+            str, None, fmt="%s", required=True, msg="PlotterList name"
+        ),
+        dataset_list_name=StageParameter(
+            str, None, fmt="%s", required=True, msg="DatasetList name"
+        ),
+        outdir=StageParameter(str, ".", fmt="%s", msg="Output directory"),
+        figtype=StageParameter(str, "png", fmt="%s", msg="Plot type"),
+    )
+
+    yaml_tag = "PlotGroup"
 
     @classmethod
     def _load_jinja(cls) -> None:
@@ -35,35 +56,25 @@ class RailPlotGroup:
         cls.jinja_template = cls.jinja_env.get_template("plot_group_table.html")
         cls.jinja_index_template = cls.jinja_env.get_template("plot_group_index.html")
 
-    def __init__(
-        self,
-        name: str,
-        plotter_list_name: str,
-        dataset_dict_name: str,
-        outdir: str = ".",
-        figtype: str = "png",
-    ):
-        self.name = name
-        self.plotter_list_name = plotter_list_name
-        self.dataset_dict_name = dataset_dict_name
-        self.outdir = outdir
-        self.figtype = figtype
+    def __init__(self, **kwargs: Any) -> None:
+        Configurable.__init__(self, **kwargs)
         self._plots: dict[str, RailPlotDict] = {}
         self._plotter_list: list[RailPlotter] = []
-        self._dataset_dict: dict[str, RailDatasetHolder] = {}
+        self._dataset_list: list[RailDatasetHolder] = []
 
     def __repr__(self) -> str:
-        return f"PlotterList: {self.plotter_list_name}, DatasetList: {self.dataset_dict_name}"
+        return f"PlotGroup: {self.config.plotter_list_name}, DatasetList: {self.config.dataset_list_name}"
 
     @property
     def plotter_list(self) -> list[RailPlotter]:
         return self._plotter_list
 
     @property
-    def dataset_dict(self) -> dict[str, RailDatasetHolder]:
-        return self._dataset_dict
+    def dataset_list(self) -> list[RailDatasetHolder]:
+        return self._dataset_list
 
     def find_plot(self, dataset_name: str, plotter_name: str) -> RailPlotHolder:
+        """Find a particular plot"""
         try:
             sub_dict = self._plots[dataset_name]
         except KeyError as msg:
@@ -79,70 +90,63 @@ class RailPlotGroup:
             ) from msg
 
     def find_plot_path(self, dataset_name: str, plotter_name: str) -> str | None:
+        """Find a particular plot and get the path to the associated file"""
         return self.find_plot(dataset_name, plotter_name).path
 
     def make_plots(
         self,
-        plotter_list_name: str,
-        datatset_dict_name: str,
     ) -> dict[str, RailPlotDict]:
         """Make a set of plots
-
-        Parameters
-        ----------
-        plotter_list_name: str
-            Name of the plotter list to use to make the plots.
-           This needs to have been previous loaded.
-
-        datatset_dict_name: str
-            Name of the dataset list to use to make the plots.
-            This needs to have been previous loaded.
 
         Returns
         -------
         out_dict: dict[str, RailPlotDict]
             Dictionary of the newly created figures
         """
-        self._plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
-        self._dataset_dict = RailDatasetFactory.get_dataset_dict(datatset_dict_name)
+        plotter_factory = RailPlotterFactory.instance()
+        dataset_factory = RailDatasetFactory.instance()
+        self._plotter_list = plotter_factory.get_plotter_list(
+            self.config.plotter_list_name
+        )(plotter_factory)
+        self._dataset_list = dataset_factory.get_dataset_list(
+            self.config.dataset_list_name
+        )(dataset_factory)
         self._plots.update(
-            **RailPlotter.iterate(self._plotter_list, self._dataset_dict)
+            **RailPlotter.iterate(self._plotter_list, self._dataset_list)
         )
         return self._plots
 
     def find_plots(
         self,
-        plotter_list_name: str,
-        datatset_dict_name: str,
-        outdir: str = ".",
-        figtype: str = "png",
+        outdir: str,
     ) -> dict[str, RailPlotDict]:
-        """Make a set of plots
+        """Find a set of plots
 
         Parameters
         ----------
-        plotter_list_name: str
-            Name of the plotter list to use to make the plots.
-           This needs to have been previous loaded.
-
-        datatset_dict_name: str
-            Name of the dataset list to use to make the plots.
-            This needs to have been previous loaded.
+        outdir: str
+            Prepend this to the groups output dir
 
         Returns
         -------
         out_dict: dict[str, Figure]
             Dictionary of the newly created figures
         """
-        self._plotter_list = RailPlotterFactory.get_plotter_list(plotter_list_name)
-        self._dataset_dict = RailDatasetFactory.get_dataset_dict(datatset_dict_name)
+        plotter_factory = RailPlotterFactory.instance()
+        dataset_factory = RailDatasetFactory.instance()
+        self._plotter_list = plotter_factory.get_plotter_list(
+            self.config.plotter_list_name
+        )(plotter_factory)
+        self._dataset_list = dataset_factory.get_dataset_list(
+            self.config.dataset_list_name
+        )(dataset_factory)
         self._plots.update(
             **RailPlotter.iterate(
                 self._plotter_list,
-                self._dataset_dict,
+                self._dataset_list,
                 find_only=True,
                 outdir=outdir,
-                figtype=figtype,
+                figtype=self.config.figtype,
             )
         )
         return self._plots
@@ -153,6 +157,16 @@ class RailPlotGroup:
         outfile: str,
         output_pages: list[str],
     ) -> None:
+        """Make the html index page for a list of other pages
+
+        Parameters
+        ----------
+        outfile: str
+            Html file to write
+
+        output_pages: list[str]
+            Set of pages to include in the index
+        """
         cls._load_jinja()
         assert cls.jinja_index_template is not None
 
@@ -165,6 +179,14 @@ class RailPlotGroup:
         self,
         outfile: str,
     ) -> None:
+        """Make the html page to display the plots made by this plot group
+
+        Parameters
+        ----------
+        outfile: str
+            Html file to write
+        """
+
         self._load_jinja()
         assert self.jinja_template is not None
 
@@ -210,49 +232,23 @@ class RailPlotGroup:
             Dictionary of the newly created figures
         """
         if outdir is not None:
-            output_dir = os.path.join(outdir, self.outdir)
+            output_dir = os.path.join(outdir, self.config.outdir)
         else:  # pragma: no cover
-            output_dir = self.outdir
+            output_dir = self.config.outdir
 
         if find_only:
             self.find_plots(
-                self.plotter_list_name,
-                self.dataset_dict_name,
                 outdir=output_dir,
-                figtype=self.figtype,
             )
         else:
-            self.make_plots(
-                self.plotter_list_name,
-                self.dataset_dict_name,
-            )
+            self.make_plots()
             if save_plots:
                 RailPlotter.write_plots(
-                    self._plots, output_dir, self.figtype, purge=purge_plots
+                    self._plots, output_dir, self.config.figtype, purge=purge_plots
                 )
         if make_html:
             if output_html is None:
                 assert outdir
-                output_html = os.path.join(outdir, f"plots_{self.name}.html")
+                output_html = os.path.join(outdir, f"plots_{self.config.name}.html")
             self.make_html(output_html)
         return self._plots
-
-    @classmethod
-    def create(
-        cls,
-        name: str,
-        config_dict: dict[str, Any],
-    ) -> RailPlotGroup:
-        """Create a RailPlotGroup object
-
-        Parameters
-        ----------
-        config_dict: dict[str, Any]
-            Config parameters for this group, passed to c'tor
-
-        Returns
-        -------
-        plot_group: RailPlotGroup
-            Newly created object
-        """
-        return cls(name, **config_dict)

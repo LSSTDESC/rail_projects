@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from rail.projects.pipeline_factory import RailPipelineFactory
@@ -49,4 +51,28 @@ def test_load_pipeline_yaml(setup_project_area: int) -> None:
     with pytest.raises(KeyError):
         RailPipelineFactory.get_pipeline_instance("bad")
 
+    # Test the interactive stuff
     RailPipelineFactory.clear()
+    RailPipelineFactory.add_pipeline_template(the_pipeline_template)
+    RailPipelineFactory.add_pipeline_instance(the_pipeline_instance)
+
+    check_pipeline_instance = RailPipelineFactory.get_pipeline_instance(
+        "tomography_baseline"
+    )
+    assert isinstance(check_pipeline_instance, type(the_pipeline_instance))
+
+    check_pipeline_template = RailPipelineFactory.get_pipeline_template(
+        "truth_to_observed"
+    )
+    assert isinstance(check_pipeline_template, type(the_pipeline_template))
+
+    # check writing the yaml dict
+    RailPipelineFactory.write_yaml("tests/temp.yaml")
+    RailPipelineFactory.clear()
+    RailPipelineFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_pipeline_template = RailPipelineFactory.get_pipeline_template(
+        "truth_to_observed"
+    )
+    assert isinstance(check_pipeline_template, type(the_pipeline_template))

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
-
 from ceci.config import StageParameter
 
 from rail.projects import RailProject
-from .dataset_holder import RailDatasetHolder
+
 from .data_extractor import RailProjectDataExtractor
 from .dataset_factory import RailDatasetFactory
+from .dataset_holder import RailDatasetHolder
 
 
 class RailProjectDatasetHolder(RailDatasetHolder):
@@ -62,7 +62,7 @@ class RailProjectDatasetHolder(RailDatasetHolder):
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
-            self._project = RailDatasetFactory.get_project(self.config.project)
+            self._project = RailDatasetFactory.get_project(self.config.project)()
         if self._extractor is None:
             self._extractor = RailProjectDataExtractor.create_from_dict(
                 dict(name=self.config.name, class_name=self.config.extractor),
@@ -179,7 +179,7 @@ class RailProjectNZDatasetHolder(RailDatasetHolder):
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
-            self._project = RailDatasetFactory.get_project(self.config.project)
+            self._project = RailDatasetFactory.get_project(self.config.project)()
         if self._extractor is None:
             self._extractor = RailProjectDataExtractor.create_from_dict(
                 dict(name=self.config.name, class_name=self.config.extractor),

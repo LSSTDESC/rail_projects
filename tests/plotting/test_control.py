@@ -3,9 +3,9 @@ import os
 import pytest
 
 from rail.plotting import control
-from rail.plotting.plotter import RailPlotter
-from rail.plotting.plot_group import RailPlotGroup
 from rail.plotting.dataset_holder import RailDatasetHolder
+from rail.plotting.plot_group import RailPlotGroup
+from rail.plotting.plotter import RailPlotter
 
 
 def test_load_yaml(setup_project_area: int) -> None:
@@ -13,7 +13,12 @@ def test_load_yaml(setup_project_area: int) -> None:
     control.clear()
 
     # Load the testing yaml file
-    plot_groups = control.load_plot_group_yaml("tests/ci_plot_groups.yaml")
+    control.load_yaml("tests/ci_plot_groups.yaml")
+
+    # test the mechanism to avoid repeat loading
+    control.load_yaml("tests/ci_plot_groups.yaml")
+
+    plot_groups = control.get_plot_group_dict()
 
     assert isinstance(
         plot_groups["zestimate_v_ztrue_test_plots"], control.RailPlotGroup
@@ -23,6 +28,16 @@ def test_load_yaml(setup_project_area: int) -> None:
 
     an_extractor = control.get_extractor_class("PZPointEstimateDataExtractor")
     assert an_extractor
+
+    control.write_yaml("tests/temp.yaml")
+    control.clear()
+    control.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+    plot_groups = control.get_plot_group_dict()
+
+    assert isinstance(
+        plot_groups["zestimate_v_ztrue_test_plots"], control.RailPlotGroup
+    )
 
 
 def test_run(setup_project_area: int) -> None:

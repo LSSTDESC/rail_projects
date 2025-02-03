@@ -1,6 +1,6 @@
 import os
-import pytest
 
+import pytest
 from click.testing import CliRunner, Result
 
 from rail.cli.rail_project.project_commands import project_cli

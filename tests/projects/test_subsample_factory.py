@@ -1,6 +1,8 @@
+import os
+
 import pytest
 
-from rail.projects.subsample_factory import RailSubsampleFactory, RailSubsample
+from rail.projects.subsample_factory import RailSubsample, RailSubsampleFactory
 
 
 def test_load_subsample_yaml(setup_project_area: int) -> None:
@@ -27,4 +29,19 @@ def test_load_subsample_yaml(setup_project_area: int) -> None:
     with pytest.raises(KeyError):
         RailSubsampleFactory.get_subsample("bad")
 
+    # Test the interactive stuff
     RailSubsampleFactory.clear()
+
+    RailSubsampleFactory.add_subsample(the_subsample)
+
+    check_subsample = RailSubsampleFactory.get_subsample("test_100k")
+    assert isinstance(check_subsample, type(the_subsample))
+
+    # check writing the yaml dict
+    RailSubsampleFactory.write_yaml("tests/temp.yaml")
+    RailSubsampleFactory.clear()
+    RailSubsampleFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_subsample = RailSubsampleFactory.get_subsample("test_100k")
+    assert isinstance(check_subsample, type(the_subsample))

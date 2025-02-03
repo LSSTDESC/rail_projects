@@ -6,11 +6,31 @@ from ceci.config import StageConfig, StageParameter
 
 
 class Configurable:
-    """Base class used to attach Ceci.StageParamters to a class"""
+    """Base class used to attach Ceci.StageParamters to a class
+
+    This implements:
+
+    1. being able to define parameters that are attached to a class,
+    2. being able to create an object of that class from a dict with the required paramters
+    3. checking that all the required parameters are present and of the correct types
+    4. check that there are no additional parameters given
+    3. being able to write a snapshot of the current values of the paramters to yaml
+
+    Subclasses should
+
+    1. add parameters to the config_options class member
+    2. set the yaml_tag class member to a unique value
+    """
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, 0.0, fmt="%s", msg="Name for the plotter"),
     )
+
+    yaml_tag: str = ""
+
+    @classmethod
+    def full_class_name(cls) -> str:
+        return f"{cls.__module__}.{cls.__name__}"
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -57,3 +77,7 @@ class Configurable:
 
     def __repr__(self) -> str:
         return f"{self.config.name}"
+
+    def to_yaml_dict(self) -> dict[str, dict[str, Any]]:
+        """Create a yaml-convertable dict for this object"""
+        return {self.yaml_tag: self.config.to_dict()}

@@ -1,19 +1,17 @@
 from __future__ import annotations
 
+import math
 import os
 from typing import Any
-import math
 
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
-from pyarrow import acero
-
 from ceci.config import StageParameter
+from pyarrow import acero
 
 from .configurable import Configurable
 from .dynamic_class import DynamicClass
-
 
 COLUMNS = [
     "galaxy_id",
@@ -91,25 +89,13 @@ PROJECTIONS = [
 
 
 class RailReducer(Configurable, DynamicClass):
-    """Base class for subsampling ata
+    """Base class for subsampling data
 
     The main function in this class is:
-    __call__(...)
+    __call__(input_catalog, output_catalog)
 
-    This function will take the input files and make a single output file
-
-    config_options: a dict[str, `ceci.StageParameter`] that
-    will be used to configure things like the seed and the number of output objects,
-
-    _inputs: a dict [str, type] that specifics the inputs
-    that the sub-classes expect, this is used the check the kwargs
-    that are passed to the __call__ function.
-
-    A function:
-    _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
-
-    That actually makes the plots.  It does not need to do the checking
-    that the correct kwargs have been given.
+    This function will files in the input_catalog, and reduce each one to make the
+    output catalog
     """
 
     config_options: dict[str, StageParameter] = {}
@@ -121,7 +107,7 @@ class RailReducer(Configurable, DynamicClass):
         Parameters
         ----------
         kwargs: Any
-            Configuration parameters for this plotter, must match
+            Configuration parameters for this Reducer, must match
             class.config_options data members
         """
         DynamicClass.__init__(self)
@@ -146,6 +132,8 @@ class RailReducer(Configurable, DynamicClass):
 
 
 class RomanRubinReducer(RailReducer):
+    """Class to reduce the 'roman_rubin' simulation input files for pz analysis"""
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
@@ -204,7 +192,6 @@ class RomanRubinReducer(RailReducer):
             *project_nodes,
         ]
         plan = acero.Declaration.from_sequence(seq)
-        print(plan)
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import os
 from typing import Any
-import numpy as np
-from matplotlib import pyplot as plt
-from ceci.config import StageParameter
 
-from .plotter import RailPlotter
-from .plot_holder import RailPlotHolder
+import numpy as np
+from ceci.config import StageParameter
+from matplotlib import pyplot as plt
+
 from .dataset_holder import RailDatasetHolder
+from .plot_holder import RailPlotHolder
+from .plotter import RailPlotter
 
 
 class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):

@@ -18,11 +18,11 @@
 	      </tr>
             </thead>
             <tbody>
-            {% for dataset_name in plot_group.dataset_dict.keys() %}
+            {% for dataset in plot_group.dataset_list %}
 	      <tr>
-		<td>{{ dataset_name }}</td>
+		<td>{{ dataset.config.name }}</td>
 		{% for plotter in plot_group.plotter_list %}
-		<td><img src="{{ plot_group.find_plot_path(dataset_name,plotter.config.name) }}">
+		<td><img src="{{ plot_group.find_plot_path(dataset.config.name,plotter.config.name) }}">
 		</td>
 		{% endfor %}
 	      </tr>

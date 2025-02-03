@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from rail.projects.catalog_factory import RailCatalogFactory
@@ -75,3 +77,23 @@ def test_load_catalog_yaml(setup_project_area: int) -> None:
         RailCatalogFactory.get_catalog_instance("bad")
 
     RailCatalogFactory.clear()
+
+    # Test the interactive stuff
+    RailCatalogFactory.add_catalog_template(the_catalog_template)
+    RailCatalogFactory.add_catalog_instance(the_catalog_instance)
+
+    check_catalog_instance = RailCatalogFactory.get_catalog_instance(
+        "degraded_ci_test_1.1.3_gold_blend"
+    )
+    assert isinstance(check_catalog_instance, type(the_catalog_instance))
+
+    # check writing the yaml dict
+    RailCatalogFactory.write_yaml("tests/temp.yaml")
+    RailCatalogFactory.clear()
+    RailCatalogFactory.load_yaml("tests/temp.yaml")
+    os.unlink("tests/temp.yaml")
+
+    check_catalog_instance = RailCatalogFactory.get_catalog_instance(
+        "degraded_ci_test_1.1.3_gold_blend"
+    )
+    assert isinstance(check_catalog_instance, type(the_catalog_instance))

@@ -7,8 +7,8 @@ from ceci.stage import PipelineStage
 
 from .configurable import Configurable
 from .dynamic_class import DynamicClass
-from .subsampler import RailSubsampler
 from .reducer import RailReducer
+from .subsampler import RailSubsampler
 
 
 class RailAlgorithmHolder(Configurable, DynamicClass):
@@ -69,6 +69,7 @@ class RailPZAlgorithmHolder(RailAlgorithmHolder):
         ),
         Inform=StageParameter(str, None, fmt="%s", required=True, msg="Informer Class"),
     )
+    yaml_tag = "PZAlgorithm"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
@@ -81,6 +82,7 @@ class RailSummarizerAlgorithmHolder(RailAlgorithmHolder):
             str, None, fmt="%s", required=True, msg="Summarizer Class"
         ),
     )
+    yaml_tag = "Summarizer"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
@@ -93,6 +95,7 @@ class RailClassificationAlgorithmHolder(RailAlgorithmHolder):
             str, None, fmt="%s", required=True, msg="Classifier Class"
         ),
     )
+    yaml_tag = "Classifier"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
@@ -103,6 +106,7 @@ class RailSpecSelectionAlgorithmHolder(RailAlgorithmHolder):
     config_options.update(
         Select=StageParameter(str, None, fmt="%s", required=True, msg="Selector Class"),
     )
+    yaml_tag = "SpecSelection"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
@@ -115,6 +119,7 @@ class RailErrorModelAlgorithmHolder(RailAlgorithmHolder):
             str, None, fmt="%s", required=True, msg="Photometric Error Model Class"
         ),
     )
+    yaml_tag = "ErrorModel"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
@@ -131,6 +136,7 @@ class RailReducerAlgorithmHolder(RailAlgorithmHolder):
             msg="Data Reducer Class",
         ),
     )
+    yaml_tag = "Reducer"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
@@ -159,6 +165,7 @@ class RailSubsamplerAlgorithmHolder(RailAlgorithmHolder):
             msg="Data Subsampler Class",
         ),
     )
+    yaml_tag = "Subsampler"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
