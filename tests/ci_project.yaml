@@ -34,11 +34,11 @@ Project:
           train: train_file_zCOSMOS_100k
     - Flavor:
         name: gpz_gl
-        pipelines: ['inform', 'estimate', 'evaluate', 'pz']
+        pipelines: ['pz']  # only run the pz pipeline
         pipeline_overrides:  # Override specifics for particular pipelines
           default:
             kwargs:
-              algorithms: ['gpz']
+              algorithms: ['gpz']  # Only run gpz
           inform:
             inform_gpz:
               gpz_method: GL

@@ -5,7 +5,7 @@ Contribution Overview
 RAIL is a constellation of multiple packages developed publicly on GitHub and 
 welcomes all interested developers, regardless of DESC membership or LSST data rights.
 
-
+====================
 Contributing to RAIL
 ====================
 
@@ -14,9 +14,9 @@ algorithms or similar analysis tools, please visit
 `contributing to RAIL <https://rail-hub.readthedocs.io/en/latest/source/contributing.html>`_
 
 
----------------------------------
+=================================
 Contributing to ``rail_projects``
----------------------------------
+=================================
 
 If you're interested in contributing to `rail_projects`, but don't know where to start, take a look 
 at the
@@ -36,6 +36,7 @@ Those without data rights who wish to gain access to the Slack channel should
 the team leads initiate the process for adding a DESC External Collaborator.
 
 
+====================
 Where to contribute:
 ====================
 
@@ -43,6 +44,8 @@ In all cases, begin by following the developer installation instructions
 :ref:`Developer Installation` and follow the contribution workflow instructions below.
 
 
+     
+=====================
 Contribution workflow
 =====================
 
@@ -113,27 +116,28 @@ It is also considered good practice to make suggestions for optional improvement
 such as adding a one-line comment before a clever block of code or including a 
 demonstration of new functionality in the example notebooks.
 
+
 Naming conventions
-==================
+------------------
 
 We follow the `pep8 <https://peps.python.org/pep-0008/#descriptive-naming-styles>`_ 
 recommendations for naming new modules.
 
 
 Modules
--------
+^^^^^^^
 
 Modules should use all lowercase, with underscores where it aids the readability
 of the module name. 
 
 
 Classes
--------
+^^^^^^^
 
 Python classes and so should use the CapWords convention.
 
 
-
+==================
 Contribution Types
 ==================
 

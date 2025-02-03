@@ -1,6 +1,6 @@
-************************
+========================
 Adding a new RailPlotter
-************************
+========================
 
 All of the various plotting classes 
 are implemented as subclasses of the :py:class:`rail.plotting.plotter.RailPlotter` class.
@@ -10,8 +10,8 @@ and configuration parameters are all defined in particular ways to allow ``RailP
 objects to be integrated into larger data analysis pipelines.
 
 
-Example
-=======
+New RailPlotter Example
+-----------------------
 
 The following example has all of the required pieces of a ``RailPlotter`` and almost nothing else.
 

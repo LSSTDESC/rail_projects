@@ -26,8 +26,9 @@ algorithms) instructions
 `on the RAIL installation page <https://rail-hub.readthedocs.io/en/latest/source/installation.html>`_
 
 
+=======================
 Production Installation
------------------------   
+=======================   
 
 Here we will be installing ``rail_projects`` into an existing conda environment "[env]".
 
@@ -37,8 +38,9 @@ Here we will be installing ``rail_projects`` into an existing conda environment 
     pip install pz-rail-projects	
 
 
+========================   
 Exploration Installation
-------------------------
+========================
 
 Here we will be installing the source code from `rail
 <https://github.com/LSSTDESC/rail_projects>`_ to access all of the
@@ -60,9 +62,9 @@ At that point you should be able to run the demonstration notebooks, e.g.;
     jupyter-notebook examples
 	  
 
-	  
+======================	  
 Developer Installation
-----------------------   
+======================   
 
 Here we will be installing the source code from `rail
 <https://github.com/LSSTDESC/rail_projects>`_ to be able to develop
@@ -91,7 +93,7 @@ the source code.
           pip install -e '.[dev]'
 
     
-
+=============
 RAIL packages
 =============
 
@@ -99,6 +101,7 @@ Depending on how you want to use RAIL you will be installing one or
 more `RAIL packages <https://rail-hub.readthedocs.io/en/latest/source/installation.html#rail-packages>`_
 
 
+=============================
 Adding your kernel to jupyter
 =============================
 If you want to use the kernel that you have just created to run RAIL example demos, then you may need to explicitly add an ipython kernel.  You may need to first install ipykernel with `conda install ipykernel`.  You can do then add your kernel with the following command, making sure that you have the conda environment that you wish to add activated.  From your environment, execute the command:

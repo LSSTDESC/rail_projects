@@ -1,6 +1,6 @@
-******************************
+==============================
 Adding a new RailDatasetHolder
-******************************
+==============================
 
 Because of the variety of formats of files in RAIL, and the variety of analysis flavors
 in a ``RailProject``, it is useful to be able to have re-usable tools that wrap particular types
@@ -11,8 +11,8 @@ are all defined in particular ways to allow ``RailDatasetHolder``
 objects to be integrated into larger data analysis pipelines.
 
 
-Example
-=======
+New RailDatasetHolder Example
+-----------------------------
 
 The following example has all of the required pieces of a ``RailDatasetHolder`` and almost nothing else.
 

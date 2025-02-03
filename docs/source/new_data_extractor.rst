@@ -1,6 +1,6 @@
-**************************
+==========================
 Adding a new DataExtractor
-**************************
+==========================
 
 Because of the variety of formats of files in RAIL, and the variety of analysis flavors
 in a ``RailProject``, it is useful to be able to have re-usable tools that extract particular
@@ -10,8 +10,9 @@ extract a particular set of data from the ``RailProject``.  The inputs and outpu
 are all defined in particular ways to allow ``RailProjectDataExtractor``
 objects to be integrated into larger data analysis pipelines.
 
-Example
-=======
+
+New DataExtractor Example
+-------------------------
 
 The following example has all of the required pieces of a ``RailProjectDataExtractor`` and almost nothing else.
 
