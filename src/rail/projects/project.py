@@ -77,93 +77,9 @@ class RailProject(Configurable):
     A RailProject basically specifies which Pipelines to run under which
     flavors, and keeps track of the outputs.
 
-    =============
-    Functionality
-    =============
-    RailProject.load_config()
-        Read a yaml file and create a RailProject
+    RailProject.functionality_help() for more on class functionality
 
-    reduce_data()
-        Make a reduced catalog from an input catalog by applying a selction
-        and trimming unwanted colums.  This is run before the analysis pipelines.
-
-    subsample_data()
-        Subsample data from a catalog to make a testing or training file.
-        This is run after catalog level pipelines, but before pipeliens run
-        on indvidudal training/ testing samples
-
-    build_pipelines()
-        Build ceci pipeline yaml files
-
-    run_pipeline_single()
-        Run a pipeline on a single file
-
-    run_pipeline_catalog()
-        Run a pipeline on a catalog of files
-
-    =============
-    Configuration
-    =============
-
-    Most of these element come from the shared library of elements,
-    which is accesible from rail.projects.library
-
-    --------------------------
-    Shared configuration files
-    --------------------------
-
-    Includes: list[str]
-        List of shared configuration files to load
-
-
-    ------------------------
-    Project analysis flavors
-    ------------------------
-
-    Baseline: dict[str, Any]
-        Baseline configuration for this project.
-        This is included in all the other analysis flavors
-
-    Flavors: list[dict[str, Any]]
-        List of all the analysis flavors that have been defined in this project
-
-
-    --------------------
-    Bookkeeping elements
-    --------------------
-
-    These used to define the file paths for the project.
-
-    PathTemplates: dict[str, str]
-        Overrides for templates used to construct file paths
-
-    CommonPaths: dict[str, str]
-        Defintions of common paths used to construct file paths
-
-    IterationVars: dict[str, list[str]]
-        Iteration variables to construct the catalogs
-
-
-    ---------------
-    Shared elements
-    ---------------
-    Things that are pulled from the library, each of these is just a list
-    of the names of things that are defined in the library that
-    can be used in this project.  The default is to use all the
-    items defined in the library.
-
-    Catalogs: list[str] These are actually CatalogTemplates
-    Files: list[str] These are actually FileTemplates
-    Pipelines: list[str] These are actually PipelineTemplates
-    Reducers: list[str] These reduce the input data catalog
-    Subsamplers: list[str] These subsample catalogs to get individual files
-    Selections: list[str] These are the selection parameters
-    Subsamples: list[str] These are the subsample parameters
-    PZAlgorithms: list[str]
-    SpecSelections: list[str]
-    Classifiers: list[str]
-    Summarizers: list[str]
-    ErrorModels: list[str]
+    RailProject.configuration_help() for more on class configuration
     """
 
     config_options: dict[str, StageParameter] = dict(
@@ -218,6 +134,151 @@ class RailProject(Configurable):
 
     projects: dict[str, RailProject] = {}
 
+
+    @classmethod
+    def functionality_help(cls) -> None:
+        """
+        The main functions that the use will use using are:
+
+        load_config:
+        ------------
+        Read a yaml file and create a RailProject
+
+        reduce_data:
+        ------------
+        Make a reduced catalog from an input catalog by applying a selction
+        and trimming unwanted colums.  This is run before the analysis pipelines.
+
+        subsample_data:
+        ---------------  
+        Subsample data from a catalog to make a testing or training file.
+        This is run after catalog level pipelines, but before pipeliens run
+        on indvidudal training/ testing samples
+
+        build_pipelines:
+        ---------------- 
+        Build ceci pipeline yaml files
+        
+        run_pipeline_single:
+        --------------------
+        Run a pipeline on a single file
+
+        run_pipeline_catalog:
+        ---------------------
+        Run a pipeline on a catalog of files
+        """
+        print(cls.functionality_help.__doc__)
+
+    
+    @classmethod
+    def configuration_help(cls) -> None:
+        """
+        Configuring a RailProject
+
+        Most of these element come from the shared library of elements,
+        which is accesible from rail.projects.library
+        
+        ==========================
+        Shared configuration files
+        ==========================
+        
+        Includes: list[str]
+        -------------------
+        List of shared configuration files to load
+
+        ========================
+        Project analysis flavors
+        ========================
+
+        See :py:class:`rail.projects.project.RailFlavor` for the parameters 
+        needed to define an analysis 'Flavor'.
+
+        Baseline: dict[str, Any]
+        ------------------------
+        Baseline configuration for this project.
+        This is included in all the other analysis flavors
+
+        Flavors: list[dict[str, Any]]
+        -----------------------------
+        List of all the analysis flavors that have been defined in this project
+
+        ====================
+        Bookkeeping elements
+        ====================
+
+        These are used to define the file paths for the project.
+
+        PathTemplates: dict[str, str]
+        -----------------------------
+        Overrides for templates used to construct file paths
+
+        The defaults are given in :py:mod:`rail.projects.name_utils`
+
+        .. code-block:: python
+
+            PathTemplates = dict(
+                pipeline_path="{pipelines_dir}/{pipeline}_{flavor}.yaml",
+                ceci_output_dir="{project_dir}/data/{selection}_{flavor}",
+                ceci_file_path="{tag}_{stage}.{suffix}",
+            )
+
+        CommonPaths: dict[str, str]
+        ---------------------------
+        Defintions of common paths used to construct file paths
+
+        The defaults are given in :py:mod:`rail.projects.name_utils`
+
+        .. code-block:: python
+
+            CommonPaths = dict(
+                root=".",          # needs to be overridden
+                scratch_root=".",  # needs to be overridden
+                project="",        # needs to be overridden
+                project_dir="{root}/projects/{project}",
+                project_scratch_dir="{scratch_root}/projects/{project}",
+                catalogs_dir="{root}/catalogs",
+                pipelines_dir="{project_dir}/pipelines",
+            )
+
+        IterationVars: dict[str, list[str]]
+        -----------------------------------
+        Iteration variables to construct the catalogs
+
+        
+        ===============
+        Shared elements
+        ===============
+        Things that are pulled from the library, each of these is just a list
+        of the names of things that are defined in the library that
+        can be used in this project.  The default is to use all the
+        items defined in the library.
+
+        Catalogs: list[str] These are actually CatalogTemplates
+
+        Files: list[str] These are actually FileTemplates
+
+        Pipelines: list[str] These are actually PipelineTemplates
+
+        Reducers: list[str] These reduce the input data catalog
+
+        Subsamplers: list[str] These subsample catalogs to get individual files
+        
+        Selections: list[str] These are the selection parameters
+
+        Subsamples: list[str] These are the subsample parameters
+
+        PZAlgorithms: list[str]
+
+        SpecSelections: list[str]
+
+        Classifiers: list[str]
+
+        Summarizers: list[str]
+
+        ErrorModels: list[str]
+        """
+        print(cls.configuration_help.__doc__)
+
     def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
@@ -245,7 +306,7 @@ class RailProject(Configurable):
         self._selections: dict[str, RailSelection] | None = None
         self._subsamples: dict[str, RailSubsample] | None = None
         self._flavors: dict[str, RailFlavor] | None = None
-
+        
     def __repr__(self) -> str:
         return f"{self.config.Name}"
 

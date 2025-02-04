@@ -7,16 +7,9 @@ Factories
 Factory basics
 ==============
 
-A Factory is a python class that can make specific type or types of
-components, assign names to each, and keep track of what it has made.
-
-The basic interface to Factories is the :py:class:`rail.projects.factory_mixin.FactoryMixin` class, which defines a few things,
-
-1. The "Factory pattern" of having a singleton instance of the factory that manages all the components of particular types, and class methods to interact with the instance.
-2. A `client_classes` class member object specifying what types of components a particular factory manages.
-3. Methods to add objects to a factory, and reset the factory contents.
-4. Interfaces for reading and writing objects to and from yaml files.
-5. Type validation, to ensure that only the correct types of objects are created or added to factories.
+.. autoclass:: rail.projects.factory_mixin.RailFactoryMixin
+    :noindex:
+    :no-members:
 
 
 ==================
@@ -91,4 +84,33 @@ Specific Factories
      - `PlotGroups`
      - `tests/ci_plot_groups.yaml <https://github.com/LSSTDESC/rail_projects/blob/main/tests/ci_plot_groups.yaml>`_
      - `RailPlotGroup`
+
+
+
+.. autoclass:: rail.projects.algorithm_factory.RailAlgorithmFactory
+    :noindex:
+
+.. autoclass:: rail.projects.catalog_factory.RailCatalogFactory
+    :noindex:
+
+.. autoclass:: rail.projects.pipeline_factory.RailPipelineFactory
+    :noindex:
+
+.. autoclass:: rail.projects.project_file_factory.RailProjectFileFactory
+    :noindex:
+
+.. autoclass:: rail.projects.selection_factory.RailSelectionFactory
+    :noindex:
+
+.. autoclass:: rail.projects.subsample_factory.RailSubsampleFactory
+    :noindex:
+
+.. autoclass:: rail.plotting.plotter_factory.RailPlotterFactory
+    :noindex:
+
+.. autoclass:: rail.plotting.dataset_factory.RailDatasetFactory
+    :noindex:
+
+.. autoclass:: rail.plotting.plot_group_factory.RailPlotGroupFactory
+    :noindex:
 

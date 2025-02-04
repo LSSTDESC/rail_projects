@@ -10,15 +10,16 @@ C = TypeVar("C", bound="Configurable")
 
 
 class RailFactoryMixin:
-    """Mixin class for Factories.
+    """A Factory can make specific type or types of components, assign
+    names to each, and keep track of what it has made.
 
     This implements:
-
+    
     1. having a single instance of each sub-class of factory,
     2. having the factory be abble to handle one or more client classes,
-    3. creating objects of the sub-classes from yaml
-    4. keeping track of the created object in dictionaries keyed by name
-    5. writing the current content of the factory to a yaml file
+    3. creating objects of the sub-classes from yaml,
+    4. keeping track of the created object in dictionaries keyed by name,
+    5. writing the current content of the factory to a yaml file.
     """
 
     client_classes: list[type[Configurable]]

@@ -12,8 +12,11 @@ from .subsampler import RailSubsampler
 
 
 class RailAlgorithmHolder(Configurable, DynamicClass):
-    """Simple class for holding an algorithm by name
-    add keeping track of the associated python classes.
+    """Simple class for holding an algorithm by name.
+
+    This has the information needed to create the associated classes,
+    namely the name of the python module in which they live, and the
+    names of the classes themselves.
     """
 
     config_options: dict[str, StageParameter] = dict(

@@ -135,11 +135,17 @@ input files.
 Building pipelines with rail.projects
 =====================================
 
-
+.. automethod:: rail.projects.RailProject.build_pipelines		
+    :noindex:
 
 
 ====================================
 Running pipelines with rail.projects
 ====================================
 
+.. automethod:: rail.projects.RailProject.run_pipeline_single		
+    :noindex:
 
+
+.. automethod:: rail.projects.RailProject.run_pipeline_catalog
+    :noindex:
