@@ -23,6 +23,7 @@ import rail.cli.rail_project
 
 
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../src/rail/cli'))
 
 print(sys.path)
     
@@ -79,6 +80,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autosectionlabel',
     'sphinx_tabs.tabs',
+    'sphinx_click',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

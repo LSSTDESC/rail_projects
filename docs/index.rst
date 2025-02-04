@@ -24,14 +24,14 @@ guidance on citing RAIL and the underlying algorithms.
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Getting Started
 
    source/overview
    source/installation
   
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Concepts
 
    source/rail_project
@@ -39,15 +39,25 @@ guidance on citing RAIL and the underlying algorithms.
    source/flavors
    source/components
 
+   
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: Details
+
+   source/analysis_components
+   source/factories
+
+
+.. toctree::
+   :maxdepth: 2
    :caption: Usage
 
-   source/cli
+   source/rail_project_cli
+   source/rail_plot_cli
    source/interactive
    
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contributing
 
    source/contributing
@@ -57,14 +67,13 @@ guidance on citing RAIL and the underlying algorithms.
    source/new_dataset_holder
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Demonstrations
    
    demos
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: API
 
    api/modules
-   api/rail.cli
