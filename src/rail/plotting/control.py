@@ -277,10 +277,12 @@ def extract_datasets(
     """
     extractor_cls = load_extractor_class(extractor_class)
     project = RailProject.load_config(config_file)
-    output_data = extractor_cls.generate_dataset_dict(
-        project=project,
-        **kwargs,
-    )
+    output_data = {
+        'Data': extractor_cls.generate_dataset_dict(
+            project=project,
+            **kwargs,
+        )
+    }
     with open(output_yaml, "w", encoding="utf-8") as fout:
         yaml.dump(output_data, fout)
 
