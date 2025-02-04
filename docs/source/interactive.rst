@@ -11,13 +11,26 @@ analysis projects.   The other is the functions in the
 and help to make plots.
 
 
-===========================================================
-Using RailProject and rail.projects.library as an interface
-===========================================================
+===========================
+Using RailProject interface
+===========================
 
+.. autoclass:: rail.projects.RailProject
+    :noindex:
+	       
+=====================================
+Using rail.projects.library interface
+=====================================
 
+.. automodule:: rail.projects.library		
+    :members:
+    :noindex:
+		
+=====================================
+Using rail.plotting.control interface
+=====================================
 
+.. automodule:: rail.plotting.control
+    :members:
+    :noindex:
 
-===========================================
-Using rail.plotting.control as an interface
-===========================================

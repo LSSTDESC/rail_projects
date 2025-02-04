@@ -48,7 +48,8 @@ docs = [
     "sphinx", # Used to automatically generate documentation
     "sphinx_rtd_theme", # Used to render documentation
     "sphinx-autoapi", # Used to automatically generate api documentation    
-    "sphinx-tabs", # Used to create tabbed content within the docs 
+    "sphinx-tabs", # Used to create tabbed content within the docs
+    "sphinx-click", # Used for command line interface docs
 ]
 
 

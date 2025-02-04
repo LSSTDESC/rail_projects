@@ -9,10 +9,28 @@ from rail.projects import RailProject, execution, library
 from . import project_options
 
 
+__all__ = [
+    'project_cli',
+    'inspect_command',
+    'build_command',
+    'subsample_command',
+    'reduce_command',
+    'run_group',
+]
+    
+
 @click.group()
 @click.version_option(__version__)
 def project_cli() -> None:
-    """RAIL project management scripts"""
+    """RAIL project management scripts
+
+    These all expect a yaml_configuration file
+    defining the RailProject.
+
+    That file can, in turn, include other yaml
+    configuration files that define a 'library' of 
+    possible analysis components
+    """
 
 
 @project_cli.command(name="inspect")
@@ -43,7 +61,12 @@ def inspect_command(config_file: str) -> int:
 @project_options.flavor()
 @project_options.force()
 def build_command(config_file: str, **kwargs: Any) -> int:
-    """Build the ceci pipeline configuration files"""
+    """Build the ceci pipeline configuration files
+
+    This will build all of the pipelines associated to
+    a particular flavor or flavors, and write them to the
+    the project pipelines area.    
+    """
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors)
@@ -66,7 +89,17 @@ def build_command(config_file: str, **kwargs: Any) -> int:
 def subsample_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
-    """Make a training or test data set by randomly selecting objects"""
+    """Make a training or test data set by randomly selecting objects from
+    a catalog of input files
+
+    This will:
+    resolve a catalog of input files from the catalog_template, 
+    flavor, selection and basename parameters,
+    resolve a single output file from the file_template, flavor and selection
+    parameters, 
+    subsample from the catalog files and write to the output file.
+    """
+
     if run_mode == project_options.RunMode.slurm:
         raise NotImplementedError("subsample_command not set up to run under slurm")
 
@@ -118,10 +151,18 @@ def sbatch_command(
 @project_options.reducer_class_name()
 @project_options.input_selection()
 @project_options.selection()
-def reduce_roman_rubin(
+def reduce_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
-    """Reduce the roman rubin simulations for PZ analysis"""
+    """Reduce the roman rubin simulations for analysis
+
+    This will:
+    resolve a catalog of input files from the catalog_template, 
+    and input_selection parameters,
+    resolve a catalog of output files from the output_catalog_template
+    and selection parameters,
+    reduce the input catalog to the output catalog
+    """
     project = RailProject.load_config(config_file)
     selections = project.get_selection_args(kwargs.pop("selection"))
     input_selections = kwargs.pop("input_selection")
