@@ -111,6 +111,12 @@ pygments_style = 'sphinx'
 # Allow NB to fail
 nbsphinx_allow_errors = True
 
+
+autodoc_default_options = {
+    'special-members': '__call__',
+}
+
+
 # use type hints in autodoc
 autodoc_typehints = "description"
 

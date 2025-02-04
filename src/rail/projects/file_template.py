@@ -19,7 +19,7 @@ class RailProjectFileInstance(Configurable):
     )
     yaml_tag = "FileInstance"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
@@ -32,6 +32,7 @@ class RailProjectFileInstance(Configurable):
         self._file_exists: bool | None = None
 
     def __call__(self) -> str:
+        """Return the corresponding path"""
         return self._config.path
 
     def check_file(self, **kwargs: dict[str, Any]) -> bool:
@@ -69,12 +70,12 @@ class RailProjectFileTemplate(Configurable):
     )
     yaml_tag = "FileTemplate"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs
             Configuration parameters for this RailProjectFileTemplate, must match
             class.config_options data members
         """
@@ -83,7 +84,21 @@ class RailProjectFileTemplate(Configurable):
     def make_file_instance(
         self, name: str, **kwargs: dict[str, Any]
     ) -> RailProjectFileInstance:
-        """Resolve the interpolants and construct and RailProjectFileInstance"""
+        """Resolve the interpolants and construct a RailProjectFileInstance
+
+        Parameters
+        ----------
+        name: 
+            Name for the FileInstance object
+
+        **kwargs:
+            Interpolants needed to resolve the path template
+            
+        Returns
+        -------
+        RailProjectFileInstance:
+            Newly created object
+        """
         formatted_path = self.config.path_template.format(**kwargs)
         return RailProjectFileInstance(
             name=name,

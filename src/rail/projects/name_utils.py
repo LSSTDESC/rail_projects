@@ -91,7 +91,7 @@ def resolve_dict(source: dict, interpolants: dict) -> dict:
 
     Returns
     -------
-    sink : dict
+    dict:
         Dictionary of resolved templates
     """
     if source:
@@ -135,7 +135,7 @@ def _resolve(
 
     Returns
     -------
-    sink : dict
+    dict:
         Dictionary of resoluved templates
     """
 
@@ -227,7 +227,7 @@ class NameFactory:
 
         Returns
         -------
-        resolved: dict
+        dict:
             Dictionary with resolved versions of the templates
         """
         resolved = _resolve(
@@ -252,7 +252,7 @@ class NameFactory:
 
         Returns
         -------
-        formatted: str
+        str:
             Resolved version of the template
         """
         try:
@@ -276,7 +276,7 @@ class NameFactory:
 
         Returns
         -------
-        the_template: str
+        str:
             Template for file of this type
         """
         try:
@@ -308,7 +308,7 @@ class NameFactory:
 
         Returns
         -------
-        resovled: str
+        str:
             Resolved path
         """
         template = self.get_template(section_key, path_key)
@@ -324,7 +324,7 @@ class NameFactory:
 
         Returns
         -------
-        resovled: str
+        str:
             Resolved path
         """
         template = self.get_template("PathTemplates", path_key)
@@ -342,7 +342,7 @@ class NameFactory:
 
         Returns
         -------
-        resovled: str
+        str:
             Resolved path
         """
         template = self.get_template("CommonPaths", path_key)

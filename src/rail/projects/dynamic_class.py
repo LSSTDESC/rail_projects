@@ -45,7 +45,7 @@ class DynamicClass:
 
         Returns
         -------
-        subclass: type
+        type:
             Subclass in question
         """
         if key in cls.sub_classes:
@@ -69,7 +69,7 @@ class DynamicClass:
 
         Returns
         -------
-        subclass: type
+        type:
             Subclass in question
         """
         tokens = class_name.split(".")
@@ -85,7 +85,7 @@ class DynamicClass:
         cls: type[T],
         config_dict: dict[str, Any],
     ) -> T:
-        """Create a DynamicClass object
+        """Create a DynamicClass object of type T
 
         Parameters
         ----------
@@ -94,7 +94,7 @@ class DynamicClass:
 
         Returns
         -------
-        object: T
+        T:
             Newly created object
 
         Notes

@@ -38,7 +38,7 @@ def inform_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -77,7 +77,7 @@ def estimate_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -122,7 +122,7 @@ def evaluate_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -168,7 +168,7 @@ def pz_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -207,7 +207,7 @@ def tomography_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -255,7 +255,7 @@ def sompz_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -406,12 +406,12 @@ class RailPipelineTemplate(Configurable):
 
     yaml_tag = "PipelineTemplate"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs: Any
             Configuration parameters for this RailPipelineTemplate, must match
             class.config_options data members
         """

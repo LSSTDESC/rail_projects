@@ -219,6 +219,21 @@ def write_yaml(yaml_file: str) -> None:
 
 
 def setup_project_area() -> int:  # pragma: no cover
+    """Download test files to setup a project testsing area
+
+    Returns
+    -------
+    int:
+       0 for success, error code otherwise
+
+    Notes
+    -----
+    This will download files into 'tests/temp_data', and could take a few
+    minutes.
+
+    This will not download the files if they are already present
+    """
+    
     if not os.path.exists("tests/temp_data"):
         try:
             os.unlink("tests/ci_test.tgz")

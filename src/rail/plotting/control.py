@@ -206,7 +206,7 @@ def run(
 
     Returns
     -------
-    out_dict: dict[str, RailPlotDict]
+    dict[str, RailPlotDict]:
         Newly created plots.   If purge=True this will be empty
     """
     clear()

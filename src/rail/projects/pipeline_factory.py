@@ -74,7 +74,7 @@ class RailPipelineFactory(RailFactoryMixin):
 
         Returns
         -------
-        pipeline_templates: RailProjectPipelineTemplate
+        RailProjectPipelineTemplate:
             pipeline templates in question
         """
         try:
@@ -96,7 +96,7 @@ class RailPipelineFactory(RailFactoryMixin):
 
         Returns
         -------
-        pipeline_instance: RailProjectPipelineInstance
+        RailProjectPipelineInstance:
             pipeline instance in question
         """
         try:

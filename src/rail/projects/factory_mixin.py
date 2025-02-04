@@ -41,7 +41,7 @@ class RailFactoryMixin:
 
         Returns
         -------
-        a_dict: dict[str, C]
+        dict[str, C]:
             Newly created emtpy dict
 
         Notes
@@ -54,7 +54,7 @@ class RailFactoryMixin:
         return a_dict
 
     def add_to_dict(self, the_object: C) -> None:
-        """Add an object of one of the client classes to the corresponding dict
+        """Add an object one of 'C' client class to the corresponding dict
 
         Parameters
         ----------

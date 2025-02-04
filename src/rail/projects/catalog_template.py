@@ -67,7 +67,8 @@ class RailProjectCatalogInstance(Configurable):
         
         Returns
         -------
-        List of resolved catalog files
+        list[str]:
+            List of resolved catalog files
 
         Notes
         -----
@@ -96,7 +97,8 @@ class RailProjectCatalogInstance(Configurable):
 
         Returns
         -------
-        List of True/False values for existance of each file in catalog
+        list[bool]:
+            List of True/False values for existance of each file in catalog
 
         Notes
         -----
@@ -144,12 +146,12 @@ class RailProjectCatalogTemplate(Configurable):
     )
     yaml_tag = "CatalogTemplate"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs: Any
             Configuration parameters for this RailProjectCatalogTemplate, must match
             class.config_options data members
         """
@@ -161,6 +163,22 @@ class RailProjectCatalogTemplate(Configurable):
     def make_catalog_instance(
         self, name: str, **kwargs: dict[str, Any]
     ) -> RailProjectCatalogInstance:
+        """Make and return a specific instance of this CatalogTemplate
+        by resolving interpolants and iterating over the iteration_vars.
+
+        Parameters
+        ----------
+        name: 
+            Name for the CatalogInstance object
+
+        **kwargs:
+            Interpolants needed to resolve the path template
+            
+        Returns
+        -------
+        RailProjectCatalogInstance:
+            Newly created object
+        """
         iteration_var_dict = {
             key: "{" + key + "}" for key in self.config.iteration_vars
         }
