@@ -4,7 +4,7 @@ Project:
 
   # Include other configuration files
   Includes:
-    - tests/ci_project_common.yaml
+    - tests/ci_project_library.yaml
 
   PathTemplates: {}
 

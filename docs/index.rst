@@ -41,6 +41,13 @@ guidance on citing RAIL and the underlying algorithms.
 
 .. toctree::
    :maxdepth: 1
+   :caption: Usage
+
+   source/cli
+   source/interactive
+   
+.. toctree::
+   :maxdepth: 1
    :caption: Contributing
 
    source/contributing
@@ -51,7 +58,7 @@ guidance on citing RAIL and the underlying algorithms.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Demostrations
+   :caption: Demonstrations
    
    demos
 

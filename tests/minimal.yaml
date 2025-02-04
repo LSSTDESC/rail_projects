@@ -1,0 +1,33 @@
+Project:
+
+  Name: minimal
+
+  Includes:
+    - tests/minimal_library.yaml
+
+  PathTemplates: {}
+
+  # These are used to make all the other paths
+  CommonPaths:
+    parent: minimal
+    project: minimal
+    root: tests/temp_data
+    scratch_root: "{root}"
+    catalogs_dir: "{root}/data"
+
+  # These are variables that we iterate over when running over entire catalogs
+  IterationVars: {}
+
+  Baseline:
+    catalog_tag: com_cam
+    pipelines: ['all']
+    file_aliases:  # Set the training and test files
+      test: test_file
+      train: train_file
+    pipeline_overrides:
+      default:
+        kwargs:
+          algorithms: ['knn', 'gpz', 'fzboost', 'trainz', 'gpz', 'simplenn']
+
+  Flavors: []
+

@@ -30,7 +30,7 @@ class RailSubsample(Configurable):
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs:
             Configuration parameters for this RailAlgorithmHolder, must match
             class.config_options data members
         """
@@ -88,7 +88,7 @@ class RailSubsampleFactory(RailFactoryMixin):
 
         Returns
         -------
-        subsample: RailSubsample
+        RailSubsample:
             subsample  in question
         """
         try:

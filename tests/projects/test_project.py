@@ -151,19 +151,15 @@ def test_project_class(setup_project_area: int) -> None:
     project.get_file_for_flavor("baseline", "test")
 
     project.add_flavor(
-        RailFlavor(
-            name="test_flavor",
-            catalog_tag="roman_rubin",
-            pipelines=["pz"],
-        )
+        name="test_flavor",
+        catalog_tag="roman_rubin",
+        pipelines=["pz"],
     )
     with pytest.raises(KeyError):
         project.add_flavor(
-            RailFlavor(
-                name="test_flavor",
-                catalog_tag="roman_rubin",
-                pipelines=["pz"],
-            )
+            name="test_flavor",
+            catalog_tag="roman_rubin",
+            pipelines=["pz"],
         )
 
     flavor_info = project.get_flavor("test_flavor")

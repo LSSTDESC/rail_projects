@@ -30,7 +30,7 @@ class RailSelection(Configurable):
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs
             Configuration parameters for this RailAlgorithmHolder, must match
             class.config_options data members
         """
@@ -88,8 +88,8 @@ class RailSelectionFactory(RailFactoryMixin):
 
         Returns
         -------
-        selection: RailSelection
-            selection  in question
+        RailSelection
+            selection in question
         """
         try:
             return cls.instance().selections[name]

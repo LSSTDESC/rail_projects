@@ -37,7 +37,7 @@ class RailProjectFileFactory(RailFactoryMixin):
     _instance: RailProjectFileFactory | None = None
 
     def __init__(self) -> None:
-        """C'tor, build an empty RailDatasetFactory"""
+        """C'tor, build an empty RailProjectFileFactory"""
         RailFactoryMixin.__init__(self)
         self._file_templates = self.add_dict(RailProjectFileTemplate)
         self._file_instances = self.add_dict(RailProjectFileInstance)
@@ -64,7 +64,7 @@ class RailProjectFileFactory(RailFactoryMixin):
 
     @classmethod
     def get_file_template(cls, name: str) -> RailProjectFileTemplate:
-        """Get file templates by it's assigned name
+        """Get file template by it's assigned name
 
         Parameters
         ----------
@@ -73,7 +73,7 @@ class RailProjectFileFactory(RailFactoryMixin):
 
         Returns
         -------
-        file_templates: RailProjectFileTemplate
+        RailProjectFileTemplate:
             file templates in question
         """
         try:
@@ -95,7 +95,7 @@ class RailProjectFileFactory(RailFactoryMixin):
 
         Returns
         -------
-        file_instance: RailProjectFileInstance
+        RailProjectFileInstance:
             file instance in question
         """
         try:

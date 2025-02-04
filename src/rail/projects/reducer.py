@@ -89,7 +89,7 @@ PROJECTIONS = [
 
 
 class RailReducer(Configurable, DynamicClass):
-    """Base class for subsampling data
+    """Base class for reducing data catalogs
 
     The main function in this class is:
     __call__(input_catalog, output_catalog)
@@ -106,7 +106,7 @@ class RailReducer(Configurable, DynamicClass):
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs:
             Configuration parameters for this Reducer, must match
             class.config_options data members
         """

@@ -24,6 +24,17 @@ make training and tests data sets and how to run simple analysis pipelines on th
    examples/rail_project_example.ipynb
 
 
+This notebook shows how to use a `RailProject` interactively to add a
+new flavor and use it to run a pipeline.
+   
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Making a new flavor in a RailProject
+
+   examples/rail_project_new_flavor.ipynb
+
+
 This notebook shows how to manage the library of components that make up a `RailProject`
    
    
@@ -43,4 +54,4 @@ make plots from a `RailProject`
 
    examples/rail_plotting_control.ipynb
 
-   
+ 

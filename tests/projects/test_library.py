@@ -9,7 +9,7 @@ def test_libray_yaml(setup_project_area: int) -> None:
     # Load the testing yaml file
     library.clear()
 
-    library.load_yaml("tests/ci_project_common.yaml")
+    library.load_yaml("tests/ci_project_library.yaml")
     library.print_contents()
     library.clear()
 

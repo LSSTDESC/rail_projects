@@ -1,0 +1,131 @@
+# These are templates for specific files, such as testing and training files
+Files:
+  - FileTemplate:
+      name: test_file
+      path_template: "{catalogs_dir}/test/{parent}_gold_test.hdf5"
+  - FileTemplate:
+      name: train_file
+      path_template: "{catalogs_dir}/train/{parent}_gold_train.hdf5"
+
+
+# These describe all the algorithms that estimate PZ
+PZAlgorithms:
+  - PZAlgorithm:
+      name: trainz
+      Estimate: TrainZEstimator
+      Inform: TrainZInformer
+      Module: rail.estimation.algos.train_z
+  - PZAlgorithm:
+      name: simplenn
+      Estimate: SklNeurNetEstimator
+      Inform: SklNeurNetInformer
+      Module: rail.estimation.algos.sklearn_neurnet
+  - PZAlgorithm:
+      name: fzboost
+      Estimate: FlexZBoostEstimator
+      Inform: FlexZBoostInformer
+      Module: rail.estimation.algos.flexzboost
+  - PZAlgorithm:
+      name: knn
+      Estimate: KNearNeighEstimator
+      Inform: KNearNeighInformer
+      Module: rail.estimation.algos.k_nearneigh
+  - PZAlgorithm:
+      name: gpz
+      Estimate: GPzEstimator
+      Inform: GPzInformer
+      Module: rail.estimation.algos.gpz
+  - PZAlgorithm:
+      name: bpz
+      Estimate: BPZliteEstimator
+      Inform: BPZliteInformer
+      Module: rail.estimation.algos.bpz_lite
+  - PZAlgorithm:
+      name: tpz
+      Estimate: TPZliteEstimator
+      Inform: TPZliteInformer
+      Module: rail.estimation.algos.tpz_lite
+
+
+# These describe all the algorithms that classify objects into tomographic bins
+Classifiers:
+  - Classifier:
+      name: equal_count
+      Classify: EqualCountClassifier
+      Module: rail.estimation.algos.equal_count
+  - Classifier:
+      name: uniform_binning
+      Classify: UniformBinningClassifier
+      Module: rail.estimation.algos.uniform_binning
+
+
+# These describe all the algorithms that summarize PZ information into NZ distributions
+Summarizers:
+  - Summarizer:
+      name: naive_stack
+      Summarize: NaiveStackMaskedSummarizer
+      Module: rail.estimation.algos.naive_stack
+  - Summarizer:
+      name: point_est_hist
+      Summarize: PointEstHistMaskedSummarizer
+      Module: rail.estimation.algos.point_est_hist
+
+
+# These describe the various data analysis pipelines
+Pipelines:
+  - PipelineTemplate:
+      name: inform
+      pipeline_class: rail.pipelines.estimation.inform_all.InformPipeline
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: train
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: estimate
+      pipeline_class: rail.pipelines.estimation.estimate_all.EstimatePipeline
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: evaluate
+      pipeline_class: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: pz
+      pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
+      input_file_templates:
+        input_train:
+          flavor: baseline
+          tag: train
+        input_test:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: tomography
+      pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+        classifiers: ['all']
+        summarizers: ['all']
+        n_tomo_bins: 5
+
+Selections:
+  - Selection:
+      name: gold
+      cuts: {}
