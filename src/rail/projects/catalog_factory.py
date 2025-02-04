@@ -70,18 +70,7 @@ class RailCatalogFactory(RailFactoryMixin):
 
     @classmethod
     def get_catalog_template(cls, name: str) -> RailProjectCatalogTemplate:
-        """Get catalog templates by it's assigned name
-
-        Parameters
-        ----------
-        name: str
-            Name of the catalog templates to return
-
-        Returns
-        -------
-        catalog_templates: RailProjectCatalogTemplate
-            catalog templates in question
-        """
+        """Get catalog templates by it's assigned name"""
         try:
             return cls.instance().catalog_templates[name]
         except KeyError as msg:
@@ -92,18 +81,7 @@ class RailCatalogFactory(RailFactoryMixin):
 
     @classmethod
     def get_catalog_instance(cls, name: str) -> RailProjectCatalogInstance:
-        """Get a catalog instance by its assigned name
-
-        Parameters
-        ----------
-        name: str
-            Name of the catalog instance list to return
-
-        Returns
-        -------
-        catalog_instance: RailProjectCatalogInstance
-            catalog instance in question
-        """
+        """Get a catalog instance by its assigned name"""
         try:
             return cls.instance().catalog_instances[name]
         except KeyError as msg:

@@ -1,0 +1,19 @@
+*********************
+Interactive Interface
+*********************
+
+The `rail_projects` package has a two-part command line interface (CLI).  One
+part (`rail_project`) works with the tools in `rail.projects` and helps to manage
+analysis projects.   The other part (`rail_plot`)  works with the tools in `rail.plotting`
+and helps to make plots.
+
+================
+rail_project CLI
+================
+
+
+
+
+=============
+rail_plot CLI
+=============

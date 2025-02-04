@@ -31,14 +31,15 @@ class Configurable:
 
     @classmethod
     def full_class_name(cls) -> str:
+        """Return the full name of the class, including the parent module"""
         return f"{cls.__module__}.{cls.__name__}"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs
             Configuration parameters for this object, must match
             class.config_options data members
         """
@@ -66,6 +67,7 @@ class Configurable:
         return self._config[key]
 
     def get(self, key: str, default_value: Any | None = None) -> Any:
+        """Get a particular item by key, return default value if it is not present"""
         try:
             return self[key]
         except KeyError:  # pragma: no cover
@@ -73,7 +75,7 @@ class Configurable:
 
     @property
     def config(self) -> StageConfig:
-        """Return the RailDatasetHolder configuration"""
+        """Return the underlying configuration"""
         return self._config
 
     def __repr__(self) -> str:

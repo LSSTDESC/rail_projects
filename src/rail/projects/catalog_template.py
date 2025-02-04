@@ -44,7 +44,7 @@ class RailProjectCatalogInstance(Configurable):
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs: Any
             Configuration parameters for this RailProjectCatalogInstance, must match
             class.config_options data members
         """
@@ -56,8 +56,29 @@ class RailProjectCatalogInstance(Configurable):
         return f"{self.config.path_template}"
 
     def __call__(self, **kwargs: dict[str, Any]) -> list[str]:
+        """Resolve the list of files in this catalog
+
+        :meta public:
+        
+        Parameters
+        ----------
+        **kwargs:
+            Set of interpolants and iteration_vars needed to resolve the catalog
+        
+        Returns
+        -------
+        list[str]:
+            List of resolved catalog files
+
+        Notes
+        -----
+        By default this will used cached values, to override this and force rechecking
+        use update=True keyword argument
+        """
+        update = kwargs.pop("update", False)
         if self._file_list is not None:
-            return self._file_list
+            if not update:
+                return self._file_list
         iterations = itertools.product(*[kwargs.get(key, []) for key in kwargs])
         self._file_list = []
         for iteration_args in iterations:
@@ -67,7 +88,24 @@ class RailProjectCatalogInstance(Configurable):
         return self._file_list
 
     def check_files(self, **kwargs: dict[str, Any]) -> list[bool]:
-        update = kwargs.pop("update", False)
+        """Check if the files in the catalog exist
+
+        Parameters
+        ----------
+        **kwargs:
+            Set of interpolants and iteration_vars needed to resolve the catalog
+
+        Returns
+        -------
+        list[bool]:
+            List of True/False values for existance of each file in catalog
+
+        Notes
+        -----
+        By default this will used cached values, to override this and force rechecking
+        use update=True keyword argument
+        """
+        update = kwargs.get("update", False)
         if self._file_exists is not None:
             if not update:
                 return self._file_exists
@@ -108,12 +146,12 @@ class RailProjectCatalogTemplate(Configurable):
     )
     yaml_tag = "CatalogTemplate"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs: Any
             Configuration parameters for this RailProjectCatalogTemplate, must match
             class.config_options data members
         """
@@ -125,6 +163,22 @@ class RailProjectCatalogTemplate(Configurable):
     def make_catalog_instance(
         self, name: str, **kwargs: dict[str, Any]
     ) -> RailProjectCatalogInstance:
+        """Make and return a specific instance of this CatalogTemplate
+        by resolving interpolants and iterating over the iteration_vars.
+
+        Parameters
+        ----------
+        name: 
+            Name for the CatalogInstance object
+
+        **kwargs:
+            Interpolants needed to resolve the path template
+            
+        Returns
+        -------
+        RailProjectCatalogInstance:
+            Newly created object
+        """
         iteration_var_dict = {
             key: "{" + key + "}" for key in self.config.iteration_vars
         }

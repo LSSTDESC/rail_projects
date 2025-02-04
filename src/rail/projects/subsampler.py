@@ -20,19 +20,17 @@ class RailSubsampler(Configurable, DynamicClass):
 
     This function will take the input files and make a single output file
 
-    config_options: a dict[str, `ceci.StageParameter`] that
-    will be used to configure things like the seed and the number of output objects,
     """
 
     config_options: dict[str, StageParameter] = {}
     sub_classes: dict[str, type[DynamicClass]] = {}
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs:
             Configuration parameters for this plotter, must match
             class.config_options data members
         """
@@ -58,6 +56,8 @@ class RailSubsampler(Configurable, DynamicClass):
 
 
 class RandomSubsampler(RailSubsampler):
+    """Pick a random subsample of the data"""
+    
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Subsampler Name"),
         seed=StageParameter(int, 1234, fmt="%i", msg="Random number seed"),

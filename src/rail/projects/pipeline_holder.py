@@ -38,7 +38,7 @@ def inform_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -77,7 +77,7 @@ def estimate_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -122,7 +122,7 @@ def evaluate_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -168,7 +168,7 @@ def pz_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -207,7 +207,7 @@ def tomography_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -255,7 +255,7 @@ def sompz_input_callback(
 
     Returns
     -------
-    input_files: dict[str, str]
+    dict[str, str]:
         Dictionary of input file tags and paths
     """
     pipeline_info = project.get_pipeline(pipeline_name)
@@ -406,12 +406,12 @@ class RailPipelineTemplate(Configurable):
 
     yaml_tag = "PipelineTemplate"
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs: Any
             Configuration parameters for this RailPipelineTemplate, must match
             class.config_options data members
         """
@@ -561,6 +561,38 @@ class RailPipelineInstance(Configurable):
 
         return 0
 
+    def get_input_files(
+        self,
+        project: RailProject,
+        **kwargs: Any,
+    ) -> dict[str, str]:
+        """Get the input files needed to run this instandce
+
+        Parameters
+        ----------
+        project: RailProject
+            Object with project configuration
+
+        **kwargs:
+            Additional parameters to specify pipeline, e.g., flavor, selection, ...
+
+        Returns
+        -------
+        dict[str, str]
+            Input files, keyed by label
+        """
+        
+        pipeline_name = self.config.pipeline_template
+        sink_dir = project.get_path(
+            "ceci_output_dir", flavor=self.config.flavor, **kwargs
+        )
+        input_callback = INPUT_CALLBACK_DICT[pipeline_name]
+        input_files = input_callback(
+            project, pipeline_name, sink_dir, flavor=self.config.flavor, **kwargs
+        )
+        return input_files
+
+    
     def make_pipeline_single_input_command(
         self,
         project: RailProject,
@@ -573,12 +605,12 @@ class RailPipelineInstance(Configurable):
         project: RailProject
             Object with project configuration
 
-        kwargs: Any
+        **kwargs:
             Additional parameters to specify pipeline, e.g., flavor, selection, ...
 
         Returns
         -------
-        command_list: list[str]
+        list[str]
             Commands to run
         """
         pipeline_name = self.config.pipeline_template
@@ -587,11 +619,7 @@ class RailPipelineInstance(Configurable):
         sink_dir = project.get_path(
             "ceci_output_dir", flavor=self.config.flavor, **kwargs
         )
-
-        input_callback = INPUT_CALLBACK_DICT[pipeline_name]
-        input_files = input_callback(
-            project, pipeline_name, sink_dir, flavor=self.config.flavor, **kwargs
-        )
+        input_files = self.get_input_files(project, **kwargs)
 
         command_line = project.generate_ceci_command(
             pipeline_path=pipeline_path,

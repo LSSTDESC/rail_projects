@@ -111,6 +111,15 @@ pygments_style = 'sphinx'
 # Allow NB to fail
 nbsphinx_allow_errors = True
 
+
+autodoc_default_options = {
+    'special-members': '__call__',
+}
+
+
+# use type hints in autodoc
+autodoc_typehints = "description"
+
 # By default, tabs can be closed by selecting the open tab. This
 # functionality can be disabled using the sphinx_tabs_disable_tab_closing
 # configuration option:

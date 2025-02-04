@@ -205,7 +205,7 @@ items defined in the library.
 
 `Reducers: list[str] = ['all']` These reduce the input data catalog
 
-`Subsamplers: list[str] = ['all'] These subsample catalogs to get individual
+`Subsamplers: list[str] = ['all']` These subsample catalogs to get individual
 files
 
 `Selections: list[str] = ['all']` These are the selection parameters

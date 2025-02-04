@@ -219,11 +219,22 @@ def write_yaml(yaml_file: str) -> None:
 
 
 def setup_project_area() -> int:  # pragma: no cover
-    if not os.path.exists("tests/temp_data"):
-        try:
-            os.unlink("tests/ci_test.tgz")
-        except FileNotFoundError:
-            pass
+    """Download test files to setup a project testsing area
+
+    Returns
+    -------
+    int:
+       0 for success, error code otherwise
+
+    Notes
+    -----
+    This will download files into 'tests/temp_data', and could take a few
+    minutes.
+
+    This will not download the files if they are already present
+    """
+    
+    if not os.path.exists("tests/ci_test.tgz"):
         urllib.request.urlretrieve(
             "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
             "tests/ci_test.tgz",
@@ -231,6 +242,7 @@ def setup_project_area() -> int:  # pragma: no cover
         if not os.path.exists("tests/ci_test.tgz"):
             return 1
 
+    if not os.path.exists('test/temp_data/projects'):
         status = subprocess.run(
             ["tar", "zxvf", "tests/ci_test.tgz", "-C", "tests"], check=False
         )
@@ -254,6 +266,33 @@ def setup_project_area() -> int:  # pragma: no cover
     return 0
 
 
+def setup_mininal_example_files() -> int:  # pragma: no cover
+
+    if not os.path.exists("tests/temp_data/data/test/minimal_gold_test.hdf5"):
+        os.makedirs('tests/temp_data/data/test', exist_ok=True)
+        urllib.request.urlretrieve(
+            "http://s3df.slac.stanford.edu/people/echarles/xfer/"
+            "minimal_gold_test.hdf5",
+            "tests/temp_data/data/test/minimal_gold_test.hdf5",
+        )
+        if not os.path.exists(
+            "tests/temp_data/data/test/minimal_gold_test.hdf5"
+        ):
+            return 1
+    if not os.path.exists("tests/temp_data/data/train/minimal_gold_train.hdf5"):
+        os.makedirs('tests/temp_data/data/train', exist_ok=True)
+        urllib.request.urlretrieve(
+            "http://s3df.slac.stanford.edu/people/echarles/xfer/"
+            "minimal_gold_test.hdf5",
+            "tests/temp_data/data/train/minimal_gold_train.hdf5",
+        )
+        if not os.path.exists(
+            "tests/temp_data/data/train/minimal_gold_train.hdf5"
+        ):
+            return 2
+    return 0
+
+
 def teardown_project_area() -> None:  # pragma: no cover
     if not os.environ.get("NO_TEARDOWN"):
         os.system("\\rm -rf tests/temp_data")
@@ -261,3 +300,4 @@ def teardown_project_area() -> None:  # pragma: no cover
             os.unlink("tests/ci_test.tgz")
         except FileNotFoundError:
             pass
+

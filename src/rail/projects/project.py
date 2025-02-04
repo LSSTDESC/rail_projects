@@ -9,6 +9,7 @@ from ceci.config import StageParameter
 
 from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
+from .algorithm_holder import RailReducerAlgorithmHolder
 from .catalog_factory import RailCatalogFactory
 from .catalog_template import RailProjectCatalogTemplate
 from .configurable import Configurable
@@ -16,6 +17,7 @@ from .file_template import RailProjectFileTemplate
 from .pipeline_factory import RailPipelineFactory
 from .pipeline_holder import RailPipelineTemplate
 from .project_file_factory import RailProjectFileFactory
+from .reducer import RailReducer
 from .selection_factory import RailSelection, RailSelectionFactory
 from .subsample_factory import RailSubsample, RailSubsampleFactory
 
@@ -41,19 +43,19 @@ class RailFlavor(Configurable):
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Flavor name"),
         catalog_tag=StageParameter(
-            str, None, fmt="%s", msg="tag for catalog being used"
+            str, None, fmt="%s", required=False, msg="tag for catalog being used"
         ),
         pipelines=StageParameter(list, ["all"], fmt="%s", msg="pipelines being used"),
         file_aliases=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
         pipeline_overrides=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
     )
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs:
             Configuration parameters for this RailFlavor, must match
             class.config_options data members
         """
@@ -216,12 +218,12 @@ class RailProject(Configurable):
 
     projects: dict[str, RailProject] = {}
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """C'tor
 
         Parameters
         ----------
-        kwargs: Any
+        **kwargs:
             Configuration parameters for this RailProject, must match
             class.config_options data members
         """
@@ -259,7 +261,7 @@ class RailProject(Configurable):
 
     @staticmethod
     def generate_kwargs_iterable(**iteration_dict: Any) -> list[dict]:
-        """Generate an a list of kwargs dicts to from a dict of lists"""
+        """Generate a list of kwargs dicts from a dict of lists"""
         iteration_vars = list(iteration_dict.keys())
         iterations = itertools.product(
             *[iteration_dict.get(key, []) for key in iteration_vars]
@@ -294,16 +296,14 @@ class RailProject(Configurable):
         inputs: dict
             Input to the pipeline
 
-        output_dir: str = "."
+        output_dir: str, default="."
             Pipeline output directory
 
-        log_dir: str = "."
+        log_dir: str, default="."
             Pipeline log directory
 
-        Keywords
-        --------
-        These are appended to the command in key=value pairs
-
+        **kwargs:
+            These are appended to the command in key=value pairs
         """
 
         if config is None:
@@ -372,13 +372,12 @@ class RailProject(Configurable):
         dry_run: bool
             If true, do not actually run
 
-        Keywords
-        --------
-        Used to provide values for additional interpolants.
+        **kwargs:
+            Used to provide values for additional interpolants.
 
         Returns
         -------
-        sinks: list[str]
+        list[str]:
             Paths to output files
 
         """
@@ -392,9 +391,11 @@ class RailProject(Configurable):
         reducer_class = library.get_algorithm_class(
             "Reducer", reducer_class_name, "Reduce"
         )
+        assert issubclass(reducer_class, RailReducer)
+        
         reducer_args = library.get_selection(selection)
         reducer = reducer_class(**reducer_args.config.to_dict())
-
+        
         if not dry_run:  # pragma: no cover
             for source_, sink_ in zip(sources, sinks):
                 reducer(source_, sink_)
@@ -429,13 +430,12 @@ class RailProject(Configurable):
         dry_run: bool
             If true, do not actually run
 
-        Keywords
-        --------
-        Used to provide values for additional interpolants, e.g., flavor, basename, etc...
+        **kwargs:
+            Used to provide values for additional interpolants, e.g., flavor, basename, etc...
 
         Returns
         -------
-        output_path: str
+        str:
             Path to output file
         """
         hdf5_output = self.get_file(file_template, **kwargs)
@@ -473,7 +473,7 @@ class RailProject(Configurable):
 
         Returns
         -------
-        status_code: int
+        int:
             0 if ok, error code otherwise
         """
         flavor_dict = self.get_flavor(flavor)
@@ -527,7 +527,7 @@ class RailProject(Configurable):
 
         Returns
         -------
-        command_list: list[str]
+        list[str]:
             Tokens in the command line, usable by subprocess.run()
         """
         pipeline_template = self.get_pipeline(pipeline_name)
@@ -555,7 +555,7 @@ class RailProject(Configurable):
 
         Returns
         -------
-        command_list: list[tuple[list[list[str]], str]
+        list[tuple[list[list[str]], str]:
             List of pairs of series of commands and potential location for slurm batch file
         """
         pipeline_template = self.get_pipeline(pipeline_name)
@@ -583,7 +583,7 @@ class RailProject(Configurable):
 
         Returns
         -------
-        status: int
+        int:
             0 for success, error code otherwise
         """
         kwcopy = kwargs.copy()
@@ -621,7 +621,7 @@ class RailProject(Configurable):
 
         Returns
         -------
-        status: int
+        int:
             0 for success, error code otherwise
         """
 
@@ -645,18 +645,21 @@ class RailProject(Configurable):
 
         return ok
 
-    def add_flavor(self, flavor: RailFlavor) -> None:
+    def add_flavor(self, name: str, **kwargs: Any) -> RailFlavor:
         """Add a new flavor to the Project"""
         if self._flavors is None:  # pragma: no cover
-            self._flavors = {}
-        if flavor.config.name in self._flavors:
+            self.get_flavors()
+
+        if name in self._flavors:
             raise KeyError(
-                f"Flavor {flavor.config.name} already in RailProject {self.name}"
+                f"Flavor {name} already in RailProject {self.name}"
             )
-        self.config["Flavors"].append(flavor.config.to_dict())
-        flavor_dict = self.config.Baseline.copy()
-        flavor_dict.update(flavor.config.to_dict())
-        self._flavors[flavor.config.name] = RailFlavor(**flavor_dict)
+        flavor_params = self.config.Baseline.copy()
+        flavor_params.update(name=name, **kwargs)
+        new_flavor = RailFlavor(**flavor_params)
+        self.config["Flavors"].append(new_flavor.config.to_dict())
+        self._flavors[new_flavor.config.name] = new_flavor
+        return new_flavor
 
     def write_yaml(self, yaml_file: str) -> None:
         """Write this project to a yaml file"""
@@ -813,6 +816,7 @@ class RailProject(Configurable):
             ) from missing_key
 
     def get_algorithms(self, algorithm_type: str) -> dict[str, dict[str, str]]:
+        """Get all the algorithms of a particular type"""
         sub_algo_dict = self._algorithms.get(algorithm_type, {})
         if sub_algo_dict:
             return sub_algo_dict
@@ -830,6 +834,7 @@ class RailProject(Configurable):
         return sub_algo_dict
 
     def get_algorithm(self, algorithm_type: str, algo_name: str) -> dict[str, str]:
+        """Get an algorithm of a particular type with a specific name"""
         algo_dict = self.get_algorithms(algorithm_type)
         try:
             return algo_dict[algo_name]

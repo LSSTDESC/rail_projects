@@ -26,8 +26,10 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
             msg="Name of associated module",
         ),
     )
+    
     sub_classes: dict[str, type[DynamicClass]] = {}
-
+    """Dictionary of sub_classes"""
+    
     def __init__(self, **kwargs: Any):
         """C'tor
 
@@ -64,6 +66,20 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
 
 
 class RailPZAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that estimate per-object p(z).
+    
+    This wraps both the Inform and Estimate classes.
+    
+    The Inform class will typically be a `CatInformer` type `RailStage`,
+    used to train the model for p(z) estimation.
+
+    The Estimate class will typically be a `CatEstimator` type `RailStage`,
+    which uses the trained model for p(z) estimation.
+
+    A set of PZAlgorithm are used as inputs to several of the pipelines,
+    specifying that the set of algorithms to run the pipeline with.
+    """
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Estimate=StageParameter(
@@ -78,6 +94,15 @@ class RailPZAlgorithmHolder(RailAlgorithmHolder):
 
 
 class RailSummarizerAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that make ensemble n(z) from a set of p(z).
+
+    This wraps the Summarize class,
+    which is typically a `PZToNZSummarizer` type `RailStage`.
+
+    A set of Summarizer are used as inputs to the tomography-related pipelines,
+    specifying that the set of algorithms to obtain n(z) information.
+    """
+    
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Summarize=StageParameter(
@@ -91,6 +116,15 @@ class RailSummarizerAlgorithmHolder(RailAlgorithmHolder):
 
 
 class RailClassificationAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that assign objects to tomographic bins.
+
+    This wraps the Classify class,
+    which is typically a `Classifier` type `RailStage`.
+
+    A set of Classifier are used as inputs to the tomography-related pipelines,
+    specifying that the set of algorithms to assign objects to tomographic bins.
+    """
+    
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Classify=StageParameter(
@@ -104,6 +138,15 @@ class RailClassificationAlgorithmHolder(RailAlgorithmHolder):
 
 
 class RailSpecSelectionAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that emulate spectrosopic selections.
+
+    This wraps the SpecSelection class,
+    which is typically a `SpecSelector` type `RailStage`.
+
+    A set of SpecSelection are used as inputs to the observation emulation pipelines,
+    specifying that the set of algorithms to emulate spectrosopic selections.
+    """
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Select=StageParameter(str, None, fmt="%s", required=True, msg="Selector Class"),
@@ -115,6 +158,15 @@ class RailSpecSelectionAlgorithmHolder(RailAlgorithmHolder):
 
 
 class RailErrorModelAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that emulate photometric errors.
+
+    This wraps the ErrorModel class,
+    which is typically a `PhotoErrorModel` type RailStage
+
+    A set of ErrorModel are used as inputs to the observation emulation pipelines,
+    specifying that the set of algorithms to emulate photometric errors.
+    """
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         ErrorModel=StageParameter(
@@ -128,6 +180,15 @@ class RailErrorModelAlgorithmHolder(RailAlgorithmHolder):
 
 
 class RailReducerAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that reduce data sets by applying selections
+    and removing unneed columns.
+
+    This wraps the Reduce class, which is typically a `RailReducer` object.
+
+    Typically a single Reducer is used to prepare data for a particular project,
+    possible apply a few different selections along the way.
+    """
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Reduce=StageParameter(
@@ -157,6 +218,15 @@ class RailReducerAlgorithmHolder(RailAlgorithmHolder):
 
 
 class RailSubsamplerAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that sumsample catalogs
+    to provide testing and training data sets.
+
+    This wraps the Subsample class, which is typically a `RailSubsampler` object.
+
+    Typically a single Subsample is used to create a number of different
+    test and training data sets for a particular project.
+    """
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Subsample=StageParameter(

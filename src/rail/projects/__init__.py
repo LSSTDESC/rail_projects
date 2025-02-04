@@ -1,2 +1,2 @@
 from . import name_utils
-from .project import RailProject
+from .project import RailFlavor, RailProject

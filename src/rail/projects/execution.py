@@ -55,7 +55,7 @@ def handle_command(
 
     Returns
     -------
-    returncode: int
+    int:
         Status returned by the command.  0 for success, exit code otherwise
     """
     print("subprocess:", *command_line)
@@ -101,7 +101,7 @@ def handle_commands(
 
     Returns
     -------
-    returncode: int
+    int:
         Status returned by the commands.  0 for success, exit code otherwise
     """
 
@@ -149,18 +149,21 @@ def sbatch_wrap(
     run_mode: RunMode, site: str, args: list[str]
 ) -> int:  # pragma: no cover
     """Wrap a rail_pipe command with site-based arguements
+
     Parameters
     ----------
     run_mode: RunMode
         How to run the command, e.g., dry_run, bash or slurm
+
     site: str
         Execution site, used to set sbatch options
 
     args: list[str]
         Additional arguments
+
     Returns
     -------
-    returncode: int
+    int
         Status.  0 for success, exit code otherwise
     """
     try:

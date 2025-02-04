@@ -98,13 +98,13 @@ class RailAlgorithmFactory(RailFactoryMixin):
 
     @classmethod
     def get_algorithm(cls, algorithm_type: str, algo_name: str) -> RailAlgorithmHolder:
-        """Return the names of all the algorithms of a particular type"""
+        """Return a particular algorithm of a particular type"""
         algorithms = cls.get_algorithms(algorithm_type)
         return algorithms[algo_name]
 
     @classmethod
     def get_algorithm_class(cls, algorithm_type: str, algo_name: str, key: str) -> type:
-        """Return the names of all the algorithms of a particular type"""
+        """Return the class of a particular algorithm of a particular type"""
         algorithm_holder = cls.get_algorithm(algorithm_type, algo_name)
         return algorithm_holder(key)
 
@@ -115,7 +115,7 @@ class RailAlgorithmFactory(RailFactoryMixin):
 
     @property
     def algorithm_holder_dict(self) -> dict[str, dict[str, RailAlgorithmHolder]]:
-        """Return the dictionary of catalog templates"""
+        """Return the dictionary of all the algorithms, keyed by type"""
         return self._algorithm_holder_dict
 
     def print_instance_contents(self) -> None:
