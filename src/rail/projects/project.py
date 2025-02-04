@@ -478,7 +478,7 @@ class RailProject(Configurable):
         """
         flavor_dict = self.get_flavor(flavor)
         pipelines_to_build = flavor_dict["pipelines"]
-        pipeline_overrides = flavor_dict.get("pipeline_overrides", {})
+        all_flavor_overrides = flavor_dict.get("pipeline_overrides", {}).copy()
         do_all = "all" in pipelines_to_build
 
         ok = 0
@@ -496,11 +496,11 @@ class RailProject(Configurable):
                     print(f"Skipping existing pipeline {output_yaml}")
                     continue
 
-            overrides = pipeline_overrides.get("default", {}).copy()
-            overrides.update(**pipeline_overrides.get(pipeline_name, {}))
-
+            overrides = all_flavor_overrides.get("default", {}).copy()
+            pipeline_overrides = all_flavor_overrides.get(pipeline_name, {}).copy()
+            overrides.update(**pipeline_overrides)
             pipeline_instance = pipeline_info.make_instance(
-                self, flavor, pipeline_overrides
+                self, flavor, overrides
             )
             ok |= pipeline_instance.build(self)
 

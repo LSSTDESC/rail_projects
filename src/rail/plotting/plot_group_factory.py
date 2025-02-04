@@ -161,18 +161,22 @@ class RailPlotGroupFactory(RailFactoryMixin):
         dataset_path = re.sub(
             ".*rail_project_config", "${RAIL_PROJECT_CONFIG_DIR}", dataset_yaml_path
         )
-        output: list[dict[str, Any]] = []
-        output.append(dict(Includes=[plotter_path, dataset_path]))
+        plot_groups: list[dict] = []
         for ds_name in dataset_list_name:
             group_name = f"{output_prefix}{ds_name}_{plotter_list_name}"
-            output.append(
+            plot_groups.append(
                 dict(
                     PlotGroup=dict(
                         name=group_name,
                         plotter_list_name=plotter_list_name,
-                        dataset_dict_name=ds_name,
+                        dataset_list_name=ds_name,
                     )
                 )
             )
+
+        output: dict[str, Any] = dict(
+            Includes=[plotter_path, dataset_path],
+            PlotGroups=plot_groups,
+        )
         with open(output_yaml, "w", encoding="utf-8") as fout:
             yaml.dump(output, fout)
