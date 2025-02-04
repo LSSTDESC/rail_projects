@@ -241,6 +241,13 @@ class RailPlotter(Configurable, DynamicClass):
 
 
 class RailPlotterList(Configurable):
+    """The class collects a set of plotter that can all run on the same data.
+
+    E.g., plotters that can all run on a dict that looks like 
+    `{truth:np.ndarray, pointEstimates: np.ndarray}` could be put into a PlotterList.
+    This make it easier to collect similar types of plots.
+    """
+    
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="PlotterList name"),
         plotters=StageParameter(
