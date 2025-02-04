@@ -374,13 +374,13 @@ class RailPipelineTemplate(Configurable):
         ),
         input_catalog_template=StageParameter(
             str,
-            None,
+            "",
             fmt="%s",
             msg="Template to use for input catalog",
         ),
         output_catalog_template=StageParameter(
             str,
-            None,
+            "",
             fmt="%s",
             msg="Template to use for output catalog",
         ),
@@ -389,12 +389,6 @@ class RailPipelineTemplate(Configurable):
             "",
             fmt="%s",
             msg="Basename to use for input catalog",
-        ),
-        output_catalog_basename=StageParameter(
-            str,
-            "",
-            fmt="%s",
-            msg="Basename to use for output catalog",
         ),
         input_file_templates=StageParameter(
             dict,
@@ -509,18 +503,6 @@ class RailPipelineInstance(Configurable):
             pass
 
         pipeline_kwargs = self.config.kwargs.copy()
-        for key, val in pipeline_kwargs.items():
-            if isinstance(val, list) and "all" in val:
-                if key == "selectors":
-                    pipeline_kwargs[key] = project.get_spec_selections()
-                elif key == "algorithms":
-                    pipeline_kwargs[key] = project.get_pzalgorithms()
-                elif key == "classifiers":
-                    pipeline_kwargs[key] = project.get_classifiers()
-                elif key == "summarizers":
-                    pipeline_kwargs[key] = project.get_summarizers()
-                elif key == "error_models":
-                    pipeline_kwargs[key] = project.get_error_models()
 
         if self.config.pipeline_overrides:
             copy_overrides = self.config.pipeline_overrides.copy()
@@ -529,10 +511,31 @@ class RailPipelineInstance(Configurable):
                 pipe_out_dir, f"{self.config.name}_overrides.yml"
             )
 
+            kwarg_overrides = copy_overrides.pop('kwargs', {})
+            pipeline_kwargs.update(**kwarg_overrides)
+
             with open(stages_config, "w", encoding="utf-8") as fout:
                 yaml.dump(copy_overrides, fout)
         else:
             stages_config = None
+
+        for key, val in pipeline_kwargs.items():
+            if key == "selectors":
+                temp_dict = project.get_spec_selections()
+            elif key == "algorithms":
+                temp_dict=  project.get_pzalgorithms()
+            elif key == "classifiers":
+                temp_dict = project.get_classifiers()
+            elif key == "summarizers":
+                temp_dict = project.get_summarizers()
+            elif key == "error_models":
+                temp_dict = project.get_error_models()
+            else:
+                continue
+            if 'all' in val:
+                pipeline_kwargs[key] = temp_dict
+            else:
+                pipeline_kwargs[key] = {algo_name_: temp_dict[algo_name_] for algo_name_ in val}
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
@@ -636,7 +639,7 @@ class RailPipelineInstance(Configurable):
         )
         sink_catalog_files = project.get_catalog_files(
             pipeline_info.config.output_catalog_template,
-            basename=pipeline_info.config.output_catalog_basename,
+            basename='output.hdf5',
             flavor=self.config.flavor,
             **kwargs,
         )
