@@ -39,7 +39,12 @@ def update_include_dict(
     """
     for key, val in include_dict.items():
         if isinstance(val, dict) and key in orig_dict:
-            update_include_dict(orig_dict[key], val)
+            sub_dict = orig_dict[key]
+            if isinstance(sub_dict, dict):
+                update_include_dict(orig_dict[key], val)
+                continue
+        if isinstance(val, (dict, list)):
+            orig_dict[key] = val.copy()
         else:
             orig_dict[key] = val
 
