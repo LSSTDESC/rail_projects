@@ -57,7 +57,7 @@ class RailSubsampler(Configurable, DynamicClass):
 
 class RandomSubsampler(RailSubsampler):
     """Pick a random subsample of the data"""
-    
+
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Subsampler Name"),
         seed=StageParameter(int, 1234, fmt="%i", msg="Random number seed"),

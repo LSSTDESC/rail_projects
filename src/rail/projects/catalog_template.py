@@ -59,12 +59,12 @@ class RailProjectCatalogInstance(Configurable):
         """Resolve the list of files in this catalog
 
         :meta public:
-        
+
         Parameters
         ----------
         **kwargs:
             Set of interpolants and iteration_vars needed to resolve the catalog
-        
+
         Returns
         -------
         list[str]:
@@ -168,12 +168,12 @@ class RailProjectCatalogTemplate(Configurable):
 
         Parameters
         ----------
-        name: 
+        name:
             Name for the CatalogInstance object
 
         **kwargs:
             Interpolants needed to resolve the path template
-            
+
         Returns
         -------
         RailProjectCatalogInstance:

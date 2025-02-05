@@ -14,7 +14,7 @@ class RailFactoryMixin:
     names to each, and keep track of what it has made.
 
     This implements:
-    
+
     1. having a single instance of each sub-class of factory,
     2. having the factory be abble to handle one or more client classes,
     3. creating objects of the sub-classes from yaml,

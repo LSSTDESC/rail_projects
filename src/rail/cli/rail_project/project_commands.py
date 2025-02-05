@@ -10,14 +10,14 @@ from . import project_options
 
 
 __all__ = [
-    'project_cli',
-    'inspect_command',
-    'build_command',
-    'subsample_command',
-    'reduce_command',
-    'run_group',
+    "project_cli",
+    "inspect_command",
+    "build_command",
+    "subsample_command",
+    "reduce_command",
+    "run_group",
 ]
-    
+
 
 @click.group()
 @click.version_option(__version__)
@@ -28,7 +28,7 @@ def project_cli() -> None:
     defining the RailProject.
 
     That file can, in turn, include other yaml
-    configuration files that define a 'library' of 
+    configuration files that define a 'library' of
     possible analysis components
     """
 
@@ -65,7 +65,7 @@ def build_command(config_file: str, **kwargs: Any) -> int:
 
     This will build all of the pipelines associated to
     a particular flavor or flavors, and write them to the
-    the project pipelines area.    
+    the project pipelines area.
     """
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
@@ -93,10 +93,10 @@ def subsample_command(
     a catalog of input files
 
     This will:
-    resolve a catalog of input files from the catalog_template, 
+    resolve a catalog of input files from the catalog_template,
     flavor, selection and basename parameters,
     resolve a single output file from the file_template, flavor and selection
-    parameters, 
+    parameters,
     subsample from the catalog files and write to the output file.
     """
 
@@ -157,7 +157,7 @@ def reduce_command(
     """Reduce the roman rubin simulations for analysis
 
     This will:
-    resolve a catalog of input files from the catalog_template, 
+    resolve a catalog of input files from the catalog_template,
     and input_selection parameters,
     resolve a catalog of output files from the output_catalog_template
     and selection parameters,

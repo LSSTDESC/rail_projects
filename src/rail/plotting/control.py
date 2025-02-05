@@ -7,7 +7,6 @@ from typing import Any
 
 import yaml
 
-from rail.projects import RailProject
 from rail.projects.factory_mixin import RailFactoryMixin
 
 from .data_extractor import RailProjectDataExtractor
@@ -276,10 +275,9 @@ def extract_datasets(
         Split dataset lists by flavor
     """
     extractor_cls = load_extractor_class(extractor_class)
-    project = RailProject.load_config(config_file)
     output_data = {
-        'Data': extractor_cls.generate_dataset_dict(
-            project=project,
+        "Data": extractor_cls.generate_dataset_dict(
+            project_file=config_file,
             **kwargs,
         )
     }

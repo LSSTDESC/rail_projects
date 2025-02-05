@@ -29,10 +29,10 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
             msg="Name of associated module",
         ),
     )
-    
+
     sub_classes: dict[str, type[DynamicClass]] = {}
     """Dictionary of sub_classes"""
-    
+
     def __init__(self, **kwargs: Any):
         """C'tor
 
@@ -70,9 +70,9 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
 
 class RailPZAlgorithmHolder(RailAlgorithmHolder):
     """Wrapper for algorithms that estimate per-object p(z).
-    
+
     This wraps both the Inform and Estimate classes.
-    
+
     The Inform class will typically be a `CatInformer` type `RailStage`,
     used to train the model for p(z) estimation.
 
@@ -105,7 +105,7 @@ class RailSummarizerAlgorithmHolder(RailAlgorithmHolder):
     A set of Summarizer are used as inputs to the tomography-related pipelines,
     specifying that the set of algorithms to obtain n(z) information.
     """
-    
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Summarize=StageParameter(
@@ -127,7 +127,7 @@ class RailClassificationAlgorithmHolder(RailAlgorithmHolder):
     A set of Classifier are used as inputs to the tomography-related pipelines,
     specifying that the set of algorithms to assign objects to tomographic bins.
     """
-    
+
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Classify=StageParameter(

@@ -88,12 +88,12 @@ class RailProjectFileTemplate(Configurable):
 
         Parameters
         ----------
-        name: 
+        name:
             Name for the FileInstance object
 
         **kwargs:
             Interpolants needed to resolve the path template
-            
+
         Returns
         -------
         RailProjectFileInstance:

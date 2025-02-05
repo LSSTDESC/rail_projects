@@ -42,16 +42,21 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
-        Keywords
-        --------
+        Parameters
+        ----------
+        **kwargs
+            Set Notes
+
+        Notes
+        -----
         dataset_list_name: str
             Name for the resulting DatasetList
 
         dataset_holder_class: str
             Class for the dataset holder
 
-        project: RailProject
-            Project to inspect
+        project_file: str
+            Config file for project to inspect
 
         selections: list[str]
             Selections to use
@@ -61,13 +66,13 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
         Returns
         -------
-        output: list[dict[str, Any]]
+        list[dict[str, Any]]
             Dictionary of the extracted datasets
         """
         dataset_list_name: str | None = kwargs.get("dataset_list_name")
         dataset_holder_class: str | None = kwargs.get("dataset_holder_class")
-        project = kwargs["project"]
-        assert isinstance(project, RailProject)
+        project_file = kwargs["project_file"]
+        project = RailProject.load_config(project_file)
         selections = kwargs.get("selections")
         flavors = kwargs.get("flavors")
         split_by_flavor = kwargs.get("split_by_flavor", False)
@@ -82,12 +87,12 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
 
         project_name = project.name
         if not dataset_list_name:
-            dataset_list_name = f"{project_name}_pz_point"
+            dataset_list_name = f"{project_name}_nz_tomo"
 
         project_block = dict(
             Project=dict(
                 name=project_name,
-                yaml_file="dummy",
+                yaml_file=project_file,
             )
         )
 
@@ -126,7 +131,7 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                     dataset_dict = dict(
                         name=dataset_name,
                         class_name=dataset_holder_class,
-                        extractor="rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor",
+                        extractor=cls.full_class_name(),
                         project=project_name,
                         flavor=key,
                         algo=algo_,

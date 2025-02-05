@@ -9,13 +9,13 @@ from rail.plotting import control
 
 from . import plot_options
 
-__all__=[
-    'plot_cli',
-    'run_command',
-    'inspect_command',
-    'extract_datasets_command',
-    'make_plot_groups',
-]    
+__all__ = [
+    "plot_cli",
+    "run_command",
+    "inspect_command",
+    "extract_datasets_command",
+    "make_plot_groups",
+]
 
 
 @click.group()
@@ -27,7 +27,7 @@ def plot_cli() -> None:
     sets of standard plots and html pages to help browse them.
 
     The configuration file can include these yaml_tags
-    
+
     1. `Plots` with type of plots available
     2. `Data` with specific datasets we can make those plots with
     3. `PlotGroup` with combinations of the two
@@ -90,7 +90,7 @@ def extract_datasets_command(
     extractor_class is able to extract and write the
     results to the output_yaml file.
     """
-    
+
     control.clear()
     control.extract_datasets(
         config_file,
@@ -112,9 +112,9 @@ def make_plot_groups(output_yaml: str, **kwargs: dict[str, Any]) -> int:
     """Combine plotters with availble datsets
 
     This will read the plotter_yaml and dataset_yaml
-    files, and combine all the datasets in the list 
+    files, and combine all the datasets in the list
     given by dataset_list_name with all the plots given
-    by plotter_list_name and write the results to the output_yaml 
+    by plotter_list_name and write the results to the output_yaml
     file.
     """
     control.clear()
