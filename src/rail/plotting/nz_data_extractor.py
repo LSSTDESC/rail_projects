@@ -183,7 +183,6 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
                                 project=project_name,
                                 flavor=key,
                                 algo=algo_,
-                                tag="test",
                                 selection=selection_,
                                 classifier=classifier_,
                                 summarizer=summarizer_,
