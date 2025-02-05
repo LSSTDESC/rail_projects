@@ -504,7 +504,7 @@ class RailPipelineInstance(Configurable):
 
         pipeline_kwargs = self.config.kwargs.copy()
 
-        if self.config.pipeline_overrides:
+        if self.config.pipeline_overrides:  # pragma: no cover
             copy_overrides = self.config.pipeline_overrides.copy()
 
             stages_config = os.path.join(

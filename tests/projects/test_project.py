@@ -3,7 +3,7 @@ from typing import Any, Callable
 
 import pytest
 
-from rail.projects.project import RailFlavor, RailProject
+from rail.projects.project import RailProject
 
 
 def check_get_func(func: Callable, check_dict: dict[str, Any]) -> None:
@@ -15,6 +15,12 @@ def check_get_func(func: Callable, check_dict: dict[str, Any]) -> None:
     with pytest.raises(KeyError):
         func("does_not_exist")
 
+
+def test_project_doc() -> None:
+    
+    RailProject.functionality_help()
+    RailProject.configuration_help()
+    
 
 def test_project_class(setup_project_area: int) -> None:
     assert setup_project_area == 0

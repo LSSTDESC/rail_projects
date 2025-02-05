@@ -35,7 +35,35 @@ def test_cli_inspect(setup_project_area: int) -> None:
     check_result(result)
 
 
-def test_cli_extract_datasets(setup_project_area: int) -> None:
+def test_cli_extract_nz_datasets(setup_project_area: int) -> None:
+    assert setup_project_area == 0
+    runner = CliRunner()
+
+    # run with split by flavor
+    result = runner.invoke(
+        plot_cli,
+        "extract-datasets "
+        "--extractor_class rail.plotting.nz_data_extractor.NZTomoBinDataExtractor "
+        "--flavor all "
+        "--split_by_flavor "
+        "--output_yaml tests/temp_data/dataset_nz_out.yaml "
+        "tests/ci_project.yaml",
+    )
+    check_result(result)
+
+    # run without split by flavor
+    result = runner.invoke(
+        plot_cli,
+        "extract-datasets "
+        "--extractor_class rail.plotting.nz_data_extractor.NZTomoBinDataExtractor "
+        "--flavor all "
+        "--output_yaml tests/temp_data/dataset_nz_out.yaml "
+        "tests/ci_project.yaml",
+    )
+    check_result(result)
+
+
+def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     assert setup_project_area == 0
     runner = CliRunner()
 
@@ -45,7 +73,6 @@ def test_cli_extract_datasets(setup_project_area: int) -> None:
         "extract-datasets "
         "--extractor_class rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor "
         "--flavor all "
-        "--selection all "
         "--split_by_flavor "
         "--output_yaml tests/temp_data/dataset_out.yaml "
         "tests/ci_project.yaml",
@@ -58,13 +85,13 @@ def test_cli_extract_datasets(setup_project_area: int) -> None:
         "extract-datasets "
         "--extractor_class rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor "
         "--flavor all "
-        "--selection all "
         "--output_yaml tests/temp_data/dataset_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
 
 
+    
 def test_cli_make_plot_groups(setup_project_area: int) -> None:
     assert setup_project_area == 0
     runner = CliRunner()
@@ -77,5 +104,21 @@ def test_cli_make_plot_groups(setup_project_area: int) -> None:
         "--dataset_yaml_path tests/ci_datasets.yaml "
         "--plotter_list_name zestimate_v_ztrue "
         "--dataset_list_name blend_baseline_all",
+    )
+    check_result(result)
+
+
+def test_cli_make_nz_plot_groups(setup_project_area: int) -> None:
+    assert setup_project_area == 0
+    runner = CliRunner()
+
+    result = runner.invoke(
+        plot_cli,
+        "make-plot-groups "
+        "--output_yaml tests/temp_data/check_nz_plot_group.yaml "
+        "--plotter_yaml_path tests/ci_plots.yaml "
+        "--dataset_yaml_path tests/ci_datasets.yaml "
+        "--plotter_list_name tomo_bins "
+        "--dataset_list_name blend_baseline_tomo_knn",
     )
     check_result(result)

@@ -7,6 +7,7 @@ import numpy as np
 import qp
 from ceci.config import StageParameter
 from matplotlib import pyplot as plt
+import matplotlib as mpl
 
 from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotHolder
@@ -43,9 +44,13 @@ class NZPlotterTomoBins(RailPlotter):
         nz_vals = nz_estimates.pdf(bin_edges)
         n_pdf = truth.npdf
 
+        cmap = mpl.colormaps['plasma']
+        colors = cmap(np.linspace(0, 1, n_pdf))
+
         for i in range(n_pdf):
-            axes.plot(bin_edges, truth_vals[i], "-")
-            axes.plot(bin_edges, nz_vals[i])
+            color=colors[i]
+            axes.plot(bin_edges, truth_vals[i], "-", color=color)
+            axes.plot(bin_edges, nz_vals[i], "--", color=color)
         plt.xlabel("z")
         plt.ylabel("n(z)")
         plot_name = self._make_full_plot_name(prefix, "")
