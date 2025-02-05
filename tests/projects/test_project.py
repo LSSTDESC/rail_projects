@@ -3,7 +3,7 @@ from typing import Any, Callable
 
 import pytest
 
-from rail.projects.project import RailFlavor, RailProject
+from rail.projects.project import RailProject
 
 
 def check_get_func(func: Callable, check_dict: dict[str, Any]) -> None:
