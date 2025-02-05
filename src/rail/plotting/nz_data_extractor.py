@@ -107,7 +107,7 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
         project_block = dict(
             Project=dict(
                 name=project_name,
-                yaml_file="dummy",
+                yaml_file=project_file,
             )
         )
 
@@ -158,7 +158,7 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
                             classifier=classifier_,
                         )
 
-                        if not nz_true_paths:
+                        if not nz_true_paths:  # pragma: no cover
                             continue
 
                         for summarizer_ in summarizers:
@@ -171,7 +171,7 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
                                 summarizer=summarizer_,
                             )
 
-                            if not nz_paths:
+                            if not nz_paths:  # pragma: no cover
                                 continue
 
                             dataset_name = f"{selection_}_{key}_{algo_}_{classifier_}_{summarizer_}"

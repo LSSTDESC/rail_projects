@@ -705,7 +705,7 @@ class RailProject(Configurable):
         """Add a new flavor to the Project"""
         if self._flavors is None:  # pragma: no cover
             self.get_flavors()
-
+        assert self._flavors is not None
         if name in self._flavors:
             raise KeyError(f"Flavor {name} already in RailProject {self.name}")
         flavor_params = self.config.Baseline.copy()
