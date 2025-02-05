@@ -511,7 +511,7 @@ class RailPipelineInstance(Configurable):
                 pipe_out_dir, f"{self.config.name}_overrides.yml"
             )
 
-            kwarg_overrides = copy_overrides.pop('kwargs', {})
+            kwarg_overrides = copy_overrides.pop("kwargs", {})
             pipeline_kwargs.update(**kwarg_overrides)
 
             with open(stages_config, "w", encoding="utf-8") as fout:
@@ -523,7 +523,7 @@ class RailPipelineInstance(Configurable):
             if key == "selectors":
                 temp_dict = project.get_spec_selections()
             elif key == "algorithms":
-                temp_dict=  project.get_pzalgorithms()
+                temp_dict = project.get_pzalgorithms()
             elif key == "classifiers":
                 temp_dict = project.get_classifiers()
             elif key == "summarizers":
@@ -532,10 +532,12 @@ class RailPipelineInstance(Configurable):
                 temp_dict = project.get_error_models()
             else:
                 continue
-            if 'all' in val:
+            if "all" in val:
                 pipeline_kwargs[key] = temp_dict
             else:
-                pipeline_kwargs[key] = {algo_name_: temp_dict[algo_name_] for algo_name_ in val}
+                pipeline_kwargs[key] = {
+                    algo_name_: temp_dict[algo_name_] for algo_name_ in val
+                }
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
@@ -581,7 +583,7 @@ class RailPipelineInstance(Configurable):
         dict[str, str]
             Input files, keyed by label
         """
-        
+
         pipeline_name = self.config.pipeline_template
         sink_dir = project.get_path(
             "ceci_output_dir", flavor=self.config.flavor, **kwargs
@@ -592,7 +594,6 @@ class RailPipelineInstance(Configurable):
         )
         return input_files
 
-    
     def make_pipeline_single_input_command(
         self,
         project: RailProject,
@@ -613,7 +614,6 @@ class RailPipelineInstance(Configurable):
         list[str]
             Commands to run
         """
-        pipeline_name = self.config.pipeline_template
         pipeline_path = self.config.path
         pipeline_config = pipeline_path.replace(".yaml", "_config.yml")
         sink_dir = project.get_path(
@@ -667,7 +667,7 @@ class RailPipelineInstance(Configurable):
         )
         sink_catalog_files = project.get_catalog_files(
             pipeline_info.config.output_catalog_template,
-            basename='output.hdf5',
+            basename="output.hdf5",
             flavor=self.config.flavor,
             **kwargs,
         )

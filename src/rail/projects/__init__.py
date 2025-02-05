@@ -8,4 +8,3 @@ modifications.
 from . import library, name_utils
 
 from .project import RailFlavor, RailProject
-

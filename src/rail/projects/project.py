@@ -9,7 +9,6 @@ from ceci.config import StageParameter
 
 from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
-from .algorithm_holder import RailReducerAlgorithmHolder
 from .catalog_factory import RailCatalogFactory
 from .catalog_template import RailProjectCatalogTemplate
 from .configurable import Configurable
@@ -134,7 +133,6 @@ class RailProject(Configurable):
 
     projects: dict[str, RailProject] = {}
 
-
     @classmethod
     def functionality_help(cls) -> None:
         """
@@ -150,15 +148,15 @@ class RailProject(Configurable):
         and trimming unwanted colums.  This is run before the analysis pipelines.
 
         subsample_data:
-        ---------------  
+        ---------------
         Subsample data from a catalog to make a testing or training file.
         This is run after catalog level pipelines, but before pipeliens run
         on indvidudal training/ testing samples
 
         build_pipelines:
-        ---------------- 
+        ----------------
         Build ceci pipeline yaml files
-        
+
         run_pipeline_single:
         --------------------
         Run a pipeline on a single file
@@ -169,7 +167,6 @@ class RailProject(Configurable):
         """
         print(cls.functionality_help.__doc__)
 
-    
     @classmethod
     def configuration_help(cls) -> None:
         """
@@ -177,11 +174,11 @@ class RailProject(Configurable):
 
         Most of these element come from the shared library of elements,
         which is accesible from rail.projects.library
-        
+
         ==========================
         Shared configuration files
         ==========================
-        
+
         Includes: list[str]
         -------------------
         List of shared configuration files to load
@@ -190,7 +187,7 @@ class RailProject(Configurable):
         Project analysis flavors
         ========================
 
-        See :py:class:`rail.projects.project.RailFlavor` for the parameters 
+        See :py:class:`rail.projects.project.RailFlavor` for the parameters
         needed to define an analysis 'Flavor'.
 
         Baseline: dict[str, Any]
@@ -244,7 +241,7 @@ class RailProject(Configurable):
         -----------------------------------
         Iteration variables to construct the catalogs
 
-        
+
         ===============
         Shared elements
         ===============
@@ -262,7 +259,7 @@ class RailProject(Configurable):
         Reducers: list[str] These reduce the input data catalog
 
         Subsamplers: list[str] These subsample catalogs to get individual files
-        
+
         Selections: list[str] These are the selection parameters
 
         Subsamples: list[str] These are the subsample parameters
@@ -306,7 +303,7 @@ class RailProject(Configurable):
         self._selections: dict[str, RailSelection] | None = None
         self._subsamples: dict[str, RailSubsample] | None = None
         self._flavors: dict[str, RailFlavor] | None = None
-        
+
     def __repr__(self) -> str:
         return f"{self.config.Name}"
 
@@ -453,10 +450,10 @@ class RailProject(Configurable):
             "Reducer", reducer_class_name, "Reduce"
         )
         assert issubclass(reducer_class, RailReducer)
-        
+
         reducer_args = library.get_selection(selection)
         reducer = reducer_class(**reducer_args.config.to_dict())
-        
+
         if not dry_run:  # pragma: no cover
             for source_, sink_ in zip(sources, sinks):
                 reducer(source_, sink_)
@@ -560,9 +557,7 @@ class RailProject(Configurable):
             overrides = all_flavor_overrides.get("default", {}).copy()
             pipeline_overrides = all_flavor_overrides.get(pipeline_name, {}).copy()
             overrides.update(**pipeline_overrides)
-            pipeline_instance = pipeline_info.make_instance(
-                self, flavor, overrides
-            )
+            pipeline_instance = pipeline_info.make_instance(self, flavor, overrides)
             ok |= pipeline_instance.build(self)
 
         return ok
@@ -712,9 +707,7 @@ class RailProject(Configurable):
             self.get_flavors()
 
         if name in self._flavors:
-            raise KeyError(
-                f"Flavor {name} already in RailProject {self.name}"
-            )
+            raise KeyError(f"Flavor {name} already in RailProject {self.name}")
         flavor_params = self.config.Baseline.copy()
         flavor_params.update(name=name, **kwargs)
         new_flavor = RailFlavor(**flavor_params)
