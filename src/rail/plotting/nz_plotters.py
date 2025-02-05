@@ -49,8 +49,8 @@ class NZPlotterTomoBins(RailPlotter):
 
         for i in range(n_pdf):
             color=colors[i]
-            axes.plot(bin_edges, truth_vals[i], color=color, "-")
-            axes.plot(bin_edges, nz_vals[i], color=color, "--"))
+            axes.plot(bin_edges, truth_vals[i], "-", color=color)
+            axes.plot(bin_edges, nz_vals[i], "--", color=color)
         plt.xlabel("z")
         plt.ylabel("n(z)")
         plot_name = self._make_full_plot_name(prefix, "")
