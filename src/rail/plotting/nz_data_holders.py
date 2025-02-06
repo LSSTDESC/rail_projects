@@ -106,9 +106,6 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
         dataset_list_name: str
             Name for the resulting DatasetList
 
-        dataset_holder_class: str
-            Class for the dataset holder
-
         project_file: str
             Config file for project to inspect
 
@@ -130,7 +127,6 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
             Dictionary of the extracted datasets
         """
         dataset_list_name: str | None = kwargs.get("dataset_list_name")
-        dataset_holder_class: str | None = kwargs.get("dataset_holder_class")
         project_file = kwargs["project_file"]
         project = RailProject.load_config(project_file)
 
@@ -223,7 +219,7 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
 
                             dataset_dict = dict(
                                 name=dataset_name,
-                                class_name=dataset_holder_class,
+                                class_name=cls.full_class_name(),
                                 project=project_name,
                                 flavor=key,
                                 algo=algo_,
