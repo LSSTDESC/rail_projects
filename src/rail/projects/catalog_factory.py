@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .catalog_template import RailProjectCatalogInstance, RailProjectCatalogTemplate
+from .catalog_template import (RailProjectCatalogInstance,
+                               RailProjectCatalogTemplate)
 from .factory_mixin import RailFactoryMixin
 
 

@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 from typing import Any
 
+import matplotlib as mpl
 import numpy as np
 import qp
 from ceci.config import StageParameter
 from matplotlib import pyplot as plt
-import matplotlib as mpl
 
 from .dataset import RailDataset
 from .dataset_holder import RailDatasetHolder

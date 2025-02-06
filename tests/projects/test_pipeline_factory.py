@@ -3,7 +3,8 @@ import os
 import pytest
 
 from rail.projects.pipeline_factory import RailPipelineFactory
-from rail.projects.pipeline_holder import RailPipelineInstance, RailPipelineTemplate
+from rail.projects.pipeline_holder import (RailPipelineInstance,
+                                           RailPipelineTemplate)
 
 
 def test_load_pipeline_yaml(setup_project_area: int) -> None:

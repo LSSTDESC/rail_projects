@@ -6,12 +6,10 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject
 
-from .data_extraction_funcs import (
-    get_ceci_nz_output_paths,
-    get_ceci_true_nz_output_paths,
-    get_tomo_bins_nz_estimate_data,
-    get_tomo_bins_true_nz_data,
-)
+from .data_extraction_funcs import (get_ceci_nz_output_paths,
+                                    get_ceci_true_nz_output_paths,
+                                    get_tomo_bins_nz_estimate_data,
+                                    get_tomo_bins_true_nz_data)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder

@@ -3,11 +3,9 @@ import os
 import pytest
 
 from rail.plotting.dataset_factory import RailDatasetFactory
-from rail.plotting.dataset_holder import (
-    RailDatasetHolder,
-    RailDatasetListHolder,
-    RailProjectHolder,
-)
+from rail.plotting.dataset_holder import (RailDatasetHolder,
+                                          RailDatasetListHolder,
+                                          RailProjectHolder)
 
 
 def test_load_yaml(setup_project_area: int) -> None:
