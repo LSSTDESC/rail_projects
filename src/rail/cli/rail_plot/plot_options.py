@@ -13,16 +13,8 @@ __all__: list[str] = [
     "plotter_yaml_path",
     "include_groups",
     "exclude_groups",
-    "extractor_class",
     "split_by_flavor",
 ]
-
-
-extractor_class = PartialOption(
-    "--extractor_class",
-    type=str,
-    help="Class name for data extractor, e.g., PZPointEstimateDataExtractor",
-)
 
 
 exclude_groups = PartialOption(

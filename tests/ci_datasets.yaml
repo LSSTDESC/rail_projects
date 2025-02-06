@@ -11,8 +11,7 @@ Data:
   # These are specific datasets that combine a set of point estimates with true redshifts
   - Dataset:
       name: blend_baseline_trainz
-      class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-      extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
+      class_name: rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder
       project: ci_test
       selection: blend
       flavor: baseline
@@ -20,8 +19,7 @@ Data:
       algo: trainz
   - Dataset:
       name: blend_baseline_knn
-      class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-      extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
+      class_name: rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder
       project: ci_test
       selection: blend
       flavor: baseline
@@ -29,8 +27,7 @@ Data:
       algo: knn
   - Dataset:
       name: blend_baseline_fzboost
-      class_name: rail.plotting.project_dataset_holder.RailProjectDatasetHolder
-      extractor: rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor
+      class_name: rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder
       project: ci_test
       selection: blend
       flavor: baseline
@@ -49,8 +46,7 @@ Data:
   # This is a dataset that has multiple point estimates combined with true redshifts
   - Dataset:
       name: blend_baseline_all
-      class_name: rail.plotting.project_dataset_holder.RailProjectMultiDatasetHolder
-      extractor: rail.plotting.pz_data_extractor.PZMultiPointEstimateDataExtractor
+      class_name: rail.plotting.pz_data_holders.RailPZMultiPointEstimateDataHolder
       datasets:
         - blend_baseline_trainz
         - blend_baseline_knn
@@ -65,8 +61,7 @@ Data:
   # This is a dataset of all n(z) estimates for a set of tomographic bins
   - Dataset:
       name: blend_baseline_tomo_knn_equal_count_naive_stack
-      class_name: rail.plotting.project_dataset_holder.RailProjectNZDatasetHolder
-      extractor: rail.plotting.nz_data_extractor.NZTomoBinDataExtractor
+      class_name: rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder
       project: ci_test
       selection: blend
       flavor: baseline

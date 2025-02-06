@@ -26,9 +26,6 @@ def test_load_yaml(setup_project_area: int) -> None:
     control.print_contents()
     control.print_classes()
 
-    an_extractor = control.get_extractor_class("PZPointEstimateDataExtractor")
-    assert an_extractor
-
     control.write_yaml("tests/temp.yaml")
     control.clear()
     control.load_yaml("tests/temp.yaml")

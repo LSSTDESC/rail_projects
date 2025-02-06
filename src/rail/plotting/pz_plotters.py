@@ -7,9 +7,32 @@ import numpy as np
 from ceci.config import StageParameter
 from matplotlib import pyplot as plt
 
+from .dataset import RailDataset
 from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotHolder
 from .plotter import RailPlotter
+
+
+class RailPZPointEstimateDataset(RailDataset):
+    """Dataet to hold a vector p(z) point estimates and corresponding
+    true redshifts
+    """
+
+    data_types = dict(
+        truth=np.ndarray,
+        pointEstimate=np.ndarray,
+    )
+
+
+class RailPZMultiPointEstimateDataset(RailDataset):
+    """Dataet to hold a set of vectors of p(z) point estimates and corresponding
+    true redshifts
+    """
+
+    data_types = dict(
+        truth=np.ndarray,
+        pointEstimates=dict[str, np.ndarray],
+    )
 
 
 class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
@@ -24,10 +47,7 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
         n_zbins=StageParameter(int, 150, fmt="%i", msg="Number of z bins"),
     )
 
-    inputs: dict = {
-        "truth": np.ndarray,
-        "pointEstimate": np.ndarray,
-    }
+    input_type = RailPZPointEstimateDataset
 
     def _make_2d_hist_plot(
         self,
@@ -91,10 +111,7 @@ class PZPlotterPointEstimateVsTrueProfile(RailPlotter):
         n_zbins=StageParameter(int, 150, fmt="%i", msg="Number of z bins"),
     )
 
-    inputs: dict = {
-        "truth": np.ndarray,
-        "pointEstimate": np.ndarray,
-    }
+    input_type = RailPZPointEstimateDataset
 
     def _make_2d_profile_plot(
         self,
@@ -173,10 +190,7 @@ class PZPlotterAccuraciesVsTrue(RailPlotter):
         ),
     )
 
-    inputs: dict = {
-        "truth": np.ndarray,
-        "pointEstimates": dict[str, np.ndarray],
-    }
+    input_type = RailPZMultiPointEstimateDataset
 
     def _make_accuracy_plot(
         self,

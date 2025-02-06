@@ -29,10 +29,7 @@ The following example has all of the required pieces of a ``RailPlotter`` and al
             n_zbins=StageParameter(int, 150, fmt="%i", msg="Number of z bins"),
         )
 
-        inputs: dict = {
-            "truth": np.ndarray,
-            "pointEstimate": np.ndarray,
-        }
+        input_type = RailPZPointEstimateDataset
 
         def _make_2d_hist_plot(
             self,
@@ -90,7 +87,11 @@ The required pieces, in the order that they appear are:
 
 #. The ``config_options`` lines define the configuration parameters for this class, as well as their default values.  Note that here we are copying the configuration parameters from the ``RailPlotter`` as well as defining some new ones.
 
-#. The ``inputs: dict = ...`` define the inputs and expected data types for those, in this case two numpy arrays
+#. The ``input_type = RailPZPointEstimateDataset`` specifies that this
+   plotter expects a :py:class:`rail.plotting.pz_plotters.RailPZPointEstimateDataset` type dataset, which in
+   this case is an dict with one item (called ``truth``) that is a
+   numpy array, and a second item (called ``pointEstimate``) that is a
+   also a numpy array.
 
 #. The ``__init__`` method does any class-specific initialization.  In this case there isn't any and the method is superfluous.
 

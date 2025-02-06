@@ -456,7 +456,7 @@ class RailProject(Configurable):
 
         if not dry_run:  # pragma: no cover
             for source_, sink_ in zip(sources, sinks):
-                reducer(source_, sink_)
+                reducer.run(source_, sink_)
 
         return sinks
 
@@ -509,7 +509,7 @@ class RailProject(Configurable):
 
         # output_dir = os.path.dirname(output)
         if not dry_run:  # pragma: no cover
-            subsampler(sources, output)
+            subsampler.run(sources, output)
 
         return output
 
@@ -965,7 +965,7 @@ class RailProject(Configurable):
         interpolants = kwargs.copy()
         interpolants.update(**self.name_factory.get_resolved_common_paths())
         catalog_instance = catalog.make_catalog_instance("dummy", **interpolants)
-        return catalog_instance(**self.config.IterationVars)
+        return catalog_instance.resolve(**self.config.IterationVars)
 
     def get_catalog(self, name: str, **kwargs: Any) -> str:
         """Resolve the path for a particular catalog file"""

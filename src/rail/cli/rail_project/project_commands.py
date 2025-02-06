@@ -8,7 +8,6 @@ from rail.projects import RailProject, execution, library
 
 from . import project_options
 
-
 __all__ = [
     "project_cli",
     "inspect_command",

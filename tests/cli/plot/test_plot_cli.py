@@ -43,7 +43,7 @@ def test_cli_extract_nz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--extractor_class rail.plotting.nz_data_extractor.NZTomoBinDataExtractor "
+        "--dataset_holder_class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
         "--flavor all "
         "--split_by_flavor "
         "--output_yaml tests/temp_data/dataset_nz_out.yaml "
@@ -55,7 +55,7 @@ def test_cli_extract_nz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--extractor_class rail.plotting.nz_data_extractor.NZTomoBinDataExtractor "
+        "--dataset_holder_class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
         "--flavor all "
         "--output_yaml tests/temp_data/dataset_nz_out.yaml "
         "tests/ci_project.yaml",
@@ -71,7 +71,7 @@ def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--extractor_class rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor "
+        "--dataset_holder_class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
         "--flavor all "
         "--split_by_flavor "
         "--output_yaml tests/temp_data/dataset_out.yaml "
@@ -83,7 +83,7 @@ def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--extractor_class rail.plotting.pz_data_extractor.PZPointEstimateDataExtractor "
+        "--dataset_holder_class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
         "--flavor all "
         "--output_yaml tests/temp_data/dataset_out.yaml "
         "tests/ci_project.yaml",
@@ -91,7 +91,6 @@ def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     check_result(result)
 
 
-    
 def test_cli_make_plot_groups(setup_project_area: int) -> None:
     assert setup_project_area == 0
     runner = CliRunner()

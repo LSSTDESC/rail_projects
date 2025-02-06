@@ -18,14 +18,11 @@ The following example has all of the required pieces of a ``RailDatasetHolder`` 
 
 .. code-block:: python
 
-    class RailProjectDatasetHolder(RailDatasetHolder):
+    class RailPZPointEstimateDataHolder(RailDatasetHolder):
         """Simple class for holding a dataset for plotting data that comes from a RailProject"""
 
         config_options: dict[str, StageParameter] = dict(
             name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
-            extractor=StageParameter(
-                str, None, fmt="%s", required=True, msg="Dataset extractor class name"
-            ),
             project=StageParameter(
                 str, None, fmt="%s", required=True, msg="RailProject name"
             ),
@@ -45,17 +42,17 @@ The following example has all of the required pieces of a ``RailDatasetHolder`` 
 
         extractor_inputs: dict = {
             "project": RailProject,
-            "extractor": RailProjectDataExtractor,
             "selection": str,
             "flavor": str,
             "tag": str,
             "algo": str,
         }
 
+	output_type: type[RailDataset] = RailPZPointEstimateDataset
+
         def __init__(self, **kwargs: Any):
             RailDatasetHolder.__init__(self, **kwargs)
             self._project: RailProject | None = None
-            self._extractor: RailProjectDataExtractor | None = None
 
         def __repr__(self) -> str:
             ret_str = (
@@ -69,14 +66,9 @@ The following example has all of the required pieces of a ``RailDatasetHolder`` 
 
         def get_extractor_inputs(self) -> dict[str, Any]:
             if self._project is None:
-                self._project = RailDatasetFactory.get_project(self.config.project)()
-            if self._extractor is None:
-                self._extractor = RailProjectDataExtractor.create_from_dict(
-                    dict(name=self.config.name, class_name=self.config.extractor),
-                )
+                self._project = RailDatasetFactory.get_project(self.config.project).resolve()
             the_extractor_inputs = dict(
                 project=self._project,
-                extractor=self._extractor,
                 selection=self.config.selection,
                 flavor=self.config.flavor,
                 tag=self.config.tag,
@@ -84,6 +76,15 @@ The following example has all of the required pieces of a ``RailDatasetHolder`` 
             )
             self._validate_extractor_inputs(**the_extractor_inputs)
             return the_extractor_inputs
+
+	def _get_data(self, **kwargs: Any) -> dict[str, Any] | None:
+            return get_pz_point_estimate_data(**kwargs)
+	    
+        @classmethod
+        def generate_dataset_dict(
+            cls,
+            **kwargs: Any,
+        ) -> list[dict[str, Any]]:
 
 
 The required pieces, in the order that they appear are:
@@ -94,8 +95,19 @@ The required pieces, in the order that they appear are:
 
 #. The ``extractor_inputs = [('input', PqHandle)]`` and ``outputs = [('output', PqHandle)]``  define the inputs that will be based to the 
 
+#. The ``output_type: type[RailDataset] = RailPZPointEstimateDataset``
+   line specifies that this class will return a
+   RailPZPointEstimateDataset dataset.
+   
 #. The ``__init__`` method does any class-specific initialization, in this case defining that this class will store and project and extractor 
 
 #. The ``__repr__`` method is optional, here it gives a useful representation of the class
 
-#. The ``get_extractor_inputs()`` method does the actual work, note that it doesn't take any arguments, that it uses the factories to find the helper objects and passes algo it's configuration and validates it's outputs
+#. The ``get_extractor_inputs()`` method does the first part of the actual work, note
+   that it doesn't take any arguments, that it uses the factories to
+   find the helper objects and passes algo it's configuration and
+   validates it's outputs
+
+#. The ``_get_data()`` method does the rest of actual work (in this case it passes it off to a utility function ``get_pz_point_estimate_data`` which knows how to extract data from the ``RailProject``
+   
+#. The ``generate_dataset_dict()`` can scan a ``RailProject`` and generate a dictionary of all the available datasets

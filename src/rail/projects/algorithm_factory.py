@@ -4,16 +4,14 @@ import os
 
 import yaml
 
-from .algorithm_holder import (
-    RailAlgorithmHolder,
-    RailClassificationAlgorithmHolder,
-    RailErrorModelAlgorithmHolder,
-    RailPZAlgorithmHolder,
-    RailReducerAlgorithmHolder,
-    RailSpecSelectionAlgorithmHolder,
-    RailSubsamplerAlgorithmHolder,
-    RailSummarizerAlgorithmHolder,
-)
+from .algorithm_holder import (RailAlgorithmHolder,
+                               RailClassificationAlgorithmHolder,
+                               RailErrorModelAlgorithmHolder,
+                               RailPZAlgorithmHolder,
+                               RailReducerAlgorithmHolder,
+                               RailSpecSelectionAlgorithmHolder,
+                               RailSubsamplerAlgorithmHolder,
+                               RailSummarizerAlgorithmHolder)
 from .factory_mixin import RailFactoryMixin
 
 ALGORITHM_TYPES: list[str] = [
@@ -106,7 +104,7 @@ class RailAlgorithmFactory(RailFactoryMixin):
     def get_algorithm_class(cls, algorithm_type: str, algo_name: str, key: str) -> type:
         """Return the class of a particular algorithm of a particular type"""
         algorithm_holder = cls.get_algorithm(algorithm_type, algo_name)
-        return algorithm_holder(key)
+        return algorithm_holder.resolve(key)
 
     @classmethod
     def add_algorithm(cls, algorithm: RailAlgorithmHolder) -> None:

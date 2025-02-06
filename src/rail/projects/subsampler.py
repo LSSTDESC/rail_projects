@@ -16,7 +16,7 @@ class RailSubsampler(Configurable, DynamicClass):
     """Base class for subsampling ata
 
     The main function in this class is:
-    __call__(...)
+    run(...)
 
     This function will take the input files and make a single output file
 
@@ -37,7 +37,7 @@ class RailSubsampler(Configurable, DynamicClass):
         DynamicClass.__init__(self)
         Configurable.__init__(self, **kwargs)
 
-    def __call__(
+    def run(
         self,
         input_files: list[str],
         output: str,
@@ -66,7 +66,7 @@ class RandomSubsampler(RailSubsampler):
         ),
     )
 
-    def __call__(
+    def run(
         self,
         input_files: list[str],
         output: str,

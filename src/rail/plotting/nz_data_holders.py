@@ -2,31 +2,46 @@ from __future__ import annotations
 
 from typing import Any
 
+from ceci.config import StageParameter
+
 from rail.projects import RailProject
 
-from .data_extraction_funcs import (
-    get_ceci_nz_output_paths,
-    get_ceci_true_nz_output_paths,
-    get_tomo_bins_nz_estimate_data,
-    get_tomo_bins_true_nz_data,
-)
-from .data_extractor import RailProjectDataExtractor
+from .data_extraction_funcs import (get_ceci_nz_output_paths,
+                                    get_ceci_true_nz_output_paths,
+                                    get_tomo_bins_nz_estimate_data,
+                                    get_tomo_bins_true_nz_data)
+from .dataset import RailDataset
+from .dataset_factory import RailDatasetFactory
+from .dataset_holder import RailDatasetHolder
+from .nz_plotters import RailNZTomoBinsDataset
 
 
-class NZTomoBinDataExtractor(RailProjectDataExtractor):
-    """Class to extract true redshifts and n(z) tomo bin estimates
-    from a RailProject.
+class RailNZTomoBinsDataHolder(RailDatasetHolder):
+    """Simple class for holding a dataset for plotting data that comes from a RailProject"""
 
-    This will return a dict:
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
+        project=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject name"
+        ),
+        selection=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject data selection"
+        ),
+        flavor=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject analysis flavor"
+        ),
+        algo=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject algorithm"
+        ),
+        classifier=StageParameter(
+            str, None, fmt="%s", required=True, msg="Tomographic bin classifier"
+        ),
+        summarizer=StageParameter(
+            str, None, fmt="%s", required=True, msg="p(z) to n(z) summarizer"
+        ),
+    )
 
-    truth: np.ndarray
-        True redshifts for each tomo bin
-
-    nz_estimates: np.ndarray
-        n(z) estimates for each tomo bin
-    """
-
-    inputs: dict = {
+    extractor_inputs: dict = {
         "project": RailProject,
         "selection": str,
         "flavor": str,
@@ -34,6 +49,23 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
         "classifier": str,
         "summarizer": str,
     }
+
+    output_type: type[RailDataset] = RailNZTomoBinsDataset
+
+    def __init__(self, **kwargs: Any):
+        RailDatasetHolder.__init__(self, **kwargs)
+        self._project: RailProject | None = None
+
+    def __repr__(self) -> str:
+        ret_str = (
+            f"{self.__class__.__name__}"
+            "( "
+            f"{self.config.project}, "
+            f"{self.config.selection}_{self.config.flavor}_{self.config.algo}_"
+            f"{self.config.classifier}_{self.config.summarizer} "
+            ")"
+        )
+        return ret_str
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any]:
         kwcopy = kwargs.copy()
@@ -43,6 +75,20 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
             truth=get_tomo_bins_true_nz_data(**kwcopy),
         )
         return data
+
+    def get_extractor_inputs(self) -> dict[str, Any]:
+        if self._project is None:
+            self._project = RailDatasetFactory.get_project(self.config.project).resolve()
+        the_extractor_inputs = dict(
+            project=self._project,
+            selection=self.config.selection,
+            flavor=self.config.flavor,
+            algo=self.config.algo,
+            classifier=self.config.classifier,
+            summarizer=self.config.summarizer,
+        )
+        self._validate_extractor_inputs(**the_extractor_inputs)
+        return the_extractor_inputs
 
     @classmethod
     def generate_dataset_dict(
@@ -59,9 +105,6 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
         -----
         dataset_list_name: str
             Name for the resulting DatasetList
-
-        dataset_holder_class: str
-            Class for the dataset holder
 
         project_file: str
             Config file for project to inspect
@@ -84,7 +127,6 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
             Dictionary of the extracted datasets
         """
         dataset_list_name: str | None = kwargs.get("dataset_list_name")
-        dataset_holder_class: str | None = kwargs.get("dataset_holder_class")
         project_file = kwargs["project_file"]
         project = RailProject.load_config(project_file)
 
@@ -149,7 +191,6 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
 
                 for algo_ in algos:
                     for classifier_ in classifiers:
-
                         nz_true_paths = get_ceci_true_nz_output_paths(
                             project,
                             selection=selection_,
@@ -178,8 +219,7 @@ class NZTomoBinDataExtractor(RailProjectDataExtractor):
 
                             dataset_dict = dict(
                                 name=dataset_name,
-                                class_name=dataset_holder_class,
-                                extractor=cls.full_class_name(),
+                                class_name=cls.full_class_name(),
                                 project=project_name,
                                 flavor=key,
                                 algo=algo_,

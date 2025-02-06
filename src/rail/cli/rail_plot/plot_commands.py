@@ -70,16 +70,15 @@ def inspect_command(config_file: str) -> int:
 
 @plot_cli.command(name="extract-datasets")
 @project_options.config_file()
-@plot_options.extractor_class()
+@plot_options.dataset_holder_class()
 @options.output_yaml()
 @plot_options.dataset_list_name()
-@plot_options.dataset_holder_class()
 @project_options.flavor()
 @project_options.selection()
 @plot_options.split_by_flavor()
 def extract_datasets_command(
     config_file: str,
-    extractor_class: str,
+    dataset_holder_class: str,
     output_yaml: str,
     **kwargs: dict[str, Any],
 ) -> int:
@@ -94,7 +93,7 @@ def extract_datasets_command(
     control.clear()
     control.extract_datasets(
         config_file,
-        extractor_class,
+        dataset_holder_class,
         output_yaml=output_yaml,
         **kwargs,
     )

@@ -55,7 +55,7 @@ class RailProjectCatalogInstance(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.path_template}"
 
-    def __call__(self, **kwargs: dict[str, Any]) -> list[str]:
+    def resolve(self, **kwargs: dict[str, Any]) -> list[str]:
         """Resolve the list of files in this catalog
 
         :meta public:
@@ -110,7 +110,7 @@ class RailProjectCatalogInstance(Configurable):
             if not update:
                 return self._file_exists
         self._file_exists = []
-        the_files = self(**kwargs)
+        the_files = self.resolve(**kwargs)
         for file_ in the_files:
             self._file_exists.append(os.path.exists(os.path.expandvars(file_)))
         return self._file_exists

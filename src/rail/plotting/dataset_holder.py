@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from types import GenericAlias
 from typing import TYPE_CHECKING, Any
 
 from ceci.config import StageParameter
@@ -9,25 +8,79 @@ from rail.projects import RailProject
 from rail.projects.configurable import Configurable
 from rail.projects.dynamic_class import DynamicClass
 
+from .dataset import RailDataset
+from .validation import validate_inputs
+
 if TYPE_CHECKING:
     from .dataset_factory import RailDatasetFactory
 
 
 class RailDatasetHolder(Configurable, DynamicClass):
-    """Base class for classes that wrap particular datasets
+    """Base class for extracting data from a RailProject
 
-    The __call__ method will return the wrapped dataset
+    The resolve method will return the wrapped dataset
 
-    Subclasses should implement the get_extractor_inputs
-    method, which should return a RailProjectDataExtractor
-    object and the arguments needed to call it properly
+    Sub-classes should implement
+
+    a class member:
+    extractor_inputs: a dict [str, type]
+
+    that specifies the inputs that the sub-classes expect,
+    this is used the check the kwargs that are passed to the _get_data()
+    function
+
+    a class member:
+    output_type: type[RailDataset]
+
+    that specifies the output dataset type
+
+    A function:
+    get_extractor_inputs(self) -> dict[str, Any]
+
+    The resolves anything for the call to _get_data from the configuration
+    parameters.  For example, loading the underlying project if needed.
+
+    A function:
+    _get_data(self,**kwargs: Any) -> dict[str, Any]:
+
+    That actually gets the data.  It does not need to do the checking
+    that the correct kwargs have been given.
+
+    A class method:
+    generate_dataset_dict()
+
+    that will find all the datasets that the extractor can extract
     """
 
     extractor_inputs: dict = {}
 
+    output_type: type[RailDataset] = RailDataset
+
     sub_classes: dict[str, type[DynamicClass]] = {}
 
     yaml_tag = "Dataset"
+
+    @classmethod
+    def _validate_extractor_inputs(cls, **kwargs: Any) -> None:
+        validate_inputs(cls, cls.extractor_inputs, **kwargs)
+
+    @classmethod
+    def _validate_outputs(cls, **kwargs: Any) -> None:
+        cls.output_type.validate_inputs(**kwargs)
+
+    @classmethod
+    def generate_dataset_dict(
+        cls,
+        **kwargs: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        """Create a dict of the datasets that this extractor can extract
+
+        Returns
+        -------
+        output: list[dict[str, Any]]
+            Dictionary of the extracted datasets
+        """
+        raise NotImplementedError()
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -54,39 +107,45 @@ class RailDatasetHolder(Configurable, DynamicClass):
         """Return the RailDatasetHolder data"""
         return self._data
 
-    def __call__(self) -> dict[str, Any]:
+    def _extract_data(self, **kwargs: Any) -> dict[str, Any] | None:
+        """Extract the data
+
+        Parameters
+        ----------
+        kwargs: dict[str, Any]
+            Used to pass the inputs to the extractor
+
+        Returns
+        -------
+        dict[str, Any] | None
+            Dictionary of the newly extracted data
+        """
+        self._validate_extractor_inputs(**kwargs)
+        the_data = self._get_data(**kwargs)
+        if the_data is not None:
+            self._validate_outputs(**the_data)
+        return the_data
+
+    def resolve(self) -> dict[str, Any]:
         """Extract and return the data in question"""
         if self.data is None:
             the_extractor_inputs = self.get_extractor_inputs()
-            the_extractor = the_extractor_inputs.pop("extractor")
-            the_data = the_extractor(**the_extractor_inputs)
+            the_data = self._extract_data(**the_extractor_inputs)
             self.set_data(the_data)
             assert self.data is not None
         return self.data
 
     def get_extractor_inputs(self) -> dict[str, Any]:
+        """Resolve the inputs needed to get the data
+        from the configuration paramters.
+        
+        For example, load RailProject configurations,
+        resolve the set of requested interpolants, etc...
+        """
         raise NotImplementedError()
 
-    @classmethod
-    def _validate_extractor_inputs(cls, **kwargs: Any) -> None:
-        for key, expected_type in cls.extractor_inputs.items():
-            try:
-                data = kwargs[key]
-            except KeyError as missing_key:
-                raise KeyError(
-                    f"{key} not provided to RailDatasetHolder {cls} in {list(kwargs.keys())}"
-                ) from missing_key
-            if isinstance(expected_type, GenericAlias):
-                if not isinstance(data, expected_type.__origin__):  # pragma: no cover
-                    raise TypeError(
-                        f"{key} provided to RailDatasetHolder was "
-                        f"{type(data)}, not {expected_type.__origin__}"
-                    )
-                continue  # pragma: no cover
-            if not isinstance(data, expected_type):  # pragma: no cover
-                raise TypeError(
-                    f"{key} provided to RailDatasetHolder was {type(data)}, expected {expected_type}"
-                )
+    def _get_data(self, **kwargs: Any) -> dict[str, Any] | None:
+        raise NotImplementedError()
 
     def to_yaml_dict(self) -> dict[str, dict[str, Any]]:
         """Create a yaml-convertable dict for this object"""
@@ -102,7 +161,7 @@ class RailDatasetListHolder(Configurable):
     same type of dataets, meaning that they should all
     contain the same columns.
 
-    The __call__ method will return the list of RailDatasetHolders
+    The resolve method will return the list of RailDatasetHolders
     """
 
     config_options: dict[str, StageParameter] = dict(
@@ -131,7 +190,7 @@ class RailDatasetListHolder(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.datasets}"
 
-    def __call__(self, dataset_factory: RailDatasetFactory) -> list[RailDatasetHolder]:
+    def resolve(self, dataset_factory: RailDatasetFactory) -> list[RailDatasetHolder]:
         """Get all the associated RailDatasetHolder objects"""
         the_list = [
             dataset_factory.get_dataset(name_) for name_ in self.config.datasets
@@ -144,7 +203,7 @@ class RailProjectHolder(Configurable):
 
     This is just the path to the yaml file that define the project
 
-    The __call__ method will create a RailProject object by reading that file
+    The resolve method will create a RailProject object by reading that file
     """
 
     config_options: dict[str, StageParameter] = dict(
@@ -175,7 +234,7 @@ class RailProjectHolder(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.yaml_file}"
 
-    def __call__(self) -> RailProject:
+    def resolve(self) -> RailProject:
         """Read the associated yaml file and create a RailProject"""
         if self._project is None:
             self._project = RailProject.load_config(self.config.yaml_file)

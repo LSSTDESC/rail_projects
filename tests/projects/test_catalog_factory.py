@@ -3,10 +3,8 @@ import os
 import pytest
 
 from rail.projects.catalog_factory import RailCatalogFactory
-from rail.projects.catalog_template import (
-    RailProjectCatalogInstance,
-    RailProjectCatalogTemplate,
-)
+from rail.projects.catalog_template import (RailProjectCatalogInstance,
+                                            RailProjectCatalogTemplate)
 
 
 def test_load_catalog_yaml(setup_project_area: int) -> None:
@@ -52,7 +50,7 @@ def test_load_catalog_yaml(setup_project_area: int) -> None:
         basename="output_degraded.hdf5",
     )
     assert isinstance(check_catalog_instance, RailProjectCatalogInstance)
-    catalog_files = check_catalog_instance(healpix=[5150, 5151])
+    catalog_files = check_catalog_instance.resolve(healpix=[5150, 5151])
     assert len(catalog_files) == 2
 
     check_files_exist = check_catalog_instance.check_files()

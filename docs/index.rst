@@ -62,8 +62,8 @@ guidance on citing RAIL and the underlying algorithms.
 
    source/contributing
    source/fix_an_issue
+   source/new_dataset
    source/new_plotter
-   source/new_data_extractor
    source/new_dataset_holder
 
 .. toctree::
@@ -73,7 +73,10 @@ guidance on citing RAIL and the underlying algorithms.
    demos
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: API
 
-   api/modules
+   api/rail
+
+
+

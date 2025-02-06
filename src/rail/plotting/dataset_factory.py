@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from rail.projects import RailProject
 from rail.projects.factory_mixin import RailFactoryMixin
 
-from .dataset_holder import RailDatasetHolder, RailDatasetListHolder, RailProjectHolder
+from .dataset_holder import (RailDatasetHolder, RailDatasetListHolder,
+                             RailProjectHolder)
 
 if TYPE_CHECKING:
     from rail.projects.configurable import Configurable
@@ -187,6 +188,6 @@ class RailDatasetFactory(RailFactoryMixin):
         if configurable_class == RailDatasetHolder:
             the_object = RailDatasetHolder.create_from_dict(yaml_tag)
             self.add_to_dict(the_object)
-            the_object()
+            the_object.resolve()
             return
         RailFactoryMixin.load_object_from_yaml_tag(self, configurable_class, yaml_tag)
