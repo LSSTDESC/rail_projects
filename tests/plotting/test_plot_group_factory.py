@@ -41,23 +41,22 @@ def test_load_yaml(setup_project_area: int) -> None:
     assert isinstance(check_plot_group, RailPlotGroup)
 
 
-
-def test_make_instance_yaml(setup_project_area: int):
+def test_make_instance_yaml(setup_project_area: int) -> None:
     assert setup_project_area == 0
 
     RailPlotGroupFactory.make_yaml(
-        output_yaml='tests/temp_data/check_pz_plot_groups.yaml',
-        plotter_yaml_path='tests/ci_plots.yaml',
-        dataset_yaml_path='tests/ci_datasets.yaml',
-        plotter_list_name='zestimate_v_ztrue',
+        output_yaml="tests/temp_data/check_pz_plot_groups.yaml",
+        plotter_yaml_path="tests/ci_plots.yaml",
+        dataset_yaml_path="tests/ci_datasets.yaml",
+        plotter_list_name="zestimate_v_ztrue",
         output_prefix="",
-        dataset_list_name='baseline_test',
+        dataset_list_name="baseline_test",
     )
     RailPlotGroupFactory.make_yaml(
-        output_yaml='tests/temp_data/check_nz_plot_groups.yaml',
-        plotter_yaml_path='tests/ci_plots.yaml',
-        dataset_yaml_path='tests/ci_datasets.yaml',
-        plotter_list_name='tomo_bins',
+        output_yaml="tests/temp_data/check_nz_plot_groups.yaml",
+        plotter_yaml_path="tests/ci_plots.yaml",
+        dataset_yaml_path="tests/ci_datasets.yaml",
+        plotter_list_name="tomo_bins",
         output_prefix="",
-        dataset_list_name='blend_baseline_tomo_knn',
+        dataset_list_name="blend_baseline_tomo_knn",
     )

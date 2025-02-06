@@ -8,8 +8,8 @@ from ceci.config import StageParameter
 from rail.projects.configurable import Configurable
 from rail.projects.dynamic_class import DynamicClass
 
+from .dataset import RailDataset
 from .plot_holder import RailPlotDict
-from .validation import validate_inputs
 
 if TYPE_CHECKING:
     from .dataset_holder import RailDatasetHolder
@@ -25,7 +25,7 @@ class RailPlotter(Configurable, DynamicClass):
     .. highlight:: python
     .. code-block:: python
 
-      __call__(prefix: str, kwargs**: Any) -> dict[str, RailPlotHolder]
+      run(prefix: str, kwargs**: Any) -> dict[str, RailPlotHolder]
 
     This function will make a set of plots and return them in a dict.
     prefix is string that gets prepended to plot names.
@@ -46,11 +46,11 @@ class RailPlotter(Configurable, DynamicClass):
     .. highlight:: python
     .. code-block:: python
 
-      _inputs: dict[str, type]
+      input_type: RailPZPointEstimateDataset
 
     that specifics the inputs
     that the sub-classes expect, this is used the check the kwargs
-    that are passed to the `__call__` function.
+    that are passed to the `run` function.
 
     A function:
 
@@ -63,7 +63,7 @@ class RailPlotter(Configurable, DynamicClass):
     that the correct kwargs have been given.
     """
 
-    inputs: dict = {}
+    input_type: type[RailDataset] = RailDataset
 
     sub_classes: dict[str, type[DynamicClass]] = {}
 
@@ -77,7 +77,7 @@ class RailPlotter(Configurable, DynamicClass):
         dataset: RailDatasetHolder,
         **kwargs: Any,
     ) -> RailPlotDict:
-        """Utility function to several plotters on the same data
+        """Utility function to run several plotters on the same data
 
         Parameters
         ----------
@@ -102,7 +102,7 @@ class RailPlotter(Configurable, DynamicClass):
         out_dict: dict[str, RailPlotHolder] = {}
         extra_args: dict[str, Any] = dict(dataset_holder=dataset)
         for plotter_ in plotters:
-            out_dict.update(plotter_(prefix, **dataset(), **kwargs, **extra_args))
+            out_dict.update(plotter_.run(prefix, **dataset.resolve(), **kwargs, **extra_args))
         return RailPlotDict(name=name, plots=out_dict)
 
     @staticmethod
@@ -179,7 +179,7 @@ class RailPlotter(Configurable, DynamicClass):
     def __repr__(self) -> str:
         return f"{type(self)}"
 
-    def __call__(
+    def run(
         self,
         prefix: str,
         **kwargs: dict[str, Any],
@@ -230,7 +230,7 @@ class RailPlotter(Configurable, DynamicClass):
 
     @classmethod
     def _validate_inputs(cls, **kwargs: Any) -> None:
-        validate_inputs(cls, cls.inputs, **kwargs)
+        cls.input_type.validate_inputs(**kwargs)
 
     def _make_plots(
         self,
@@ -274,7 +274,7 @@ class RailPlotterList(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.plotters}"
 
-    def __call__(self, plotter_factory: RailPlotterFactory) -> list[RailPlotter]:
+    def resolve(self, plotter_factory: RailPlotterFactory) -> list[RailPlotter]:
         the_list = [
             plotter_factory.get_plotter(name_) for name_ in self.config.plotters
         ]

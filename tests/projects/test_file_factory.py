@@ -46,7 +46,7 @@ def test_load_file_yaml(setup_project_area: int) -> None:
         selection="blend",
     )
     assert isinstance(check_file_instance, RailProjectFileInstance)
-    the_path = check_file_instance()
+    the_path = check_file_instance.resolve()
     assert os.path.exists(the_path)
     assert check_file_instance.check_file()
     assert check_file_instance.check_file(update=True)

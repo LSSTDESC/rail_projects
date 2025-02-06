@@ -31,7 +31,7 @@ class RailProjectFileInstance(Configurable):
         Configurable.__init__(self, **kwargs)
         self._file_exists: bool | None = None
 
-    def __call__(self) -> str:
+    def resolve(self) -> str:
         """Return the corresponding path"""
         return self._config.path
 

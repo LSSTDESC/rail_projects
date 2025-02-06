@@ -51,7 +51,7 @@ class RailAlgorithmHolder(Configurable, DynamicClass):
         vals.pop("Module")
         return f"{self.config.Module}.{vals}"
 
-    def __call__(self, key: str) -> type:
+    def resolve(self, key: str) -> type:
         """Get the associated class one of the parts of the algorithm"""
         try:
             class_name = self.config[key]
@@ -207,7 +207,7 @@ class RailReducerAlgorithmHolder(RailAlgorithmHolder):
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
 
-    def __call__(self, key: str) -> type:
+    def resolve(self, key: str) -> type:
         """Get the associated class one of the parts of the algorithm"""
         try:
             class_name = self.config[key]
@@ -245,7 +245,7 @@ class RailSubsamplerAlgorithmHolder(RailAlgorithmHolder):
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
 
-    def __call__(self, key: str) -> type:
+    def resolve(self, key: str) -> type:
         """Get the associated class one of the parts of the algorithm"""
         try:
             class_name = self.config[key]

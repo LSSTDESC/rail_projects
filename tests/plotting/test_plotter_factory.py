@@ -45,7 +45,7 @@ def test_load_yaml() -> None:
 
     # Get a plotter list by name
     a_plotter_list = RailPlotterFactory.get_plotter_list("zestimate_v_ztrue")
-    plotters = a_plotter_list(RailPlotterFactory.instance())
+    plotters = a_plotter_list.resolve(RailPlotterFactory.instance())
     assert isinstance(plotters[0], pz_plotters.PZPlotterPointEstimateVsTrueHist2D)
 
     with pytest.raises(KeyError):

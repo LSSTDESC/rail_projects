@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-from rail.plotting.data_extractor import RailProjectDataExtractor
 from rail.plotting.dataset_factory import RailDatasetFactory
 from rail.plotting.dataset_holder import (
     RailDatasetHolder,
@@ -18,7 +17,6 @@ def test_load_yaml(setup_project_area: int) -> None:
     RailDatasetFactory.clear()
     RailDatasetFactory.load_yaml("tests/ci_datasets.yaml")
     RailDatasetFactory.print_contents()
-    RailProjectDataExtractor.print_classes()
     RailDatasetHolder.print_classes()
 
     with pytest.raises(KeyError):

@@ -9,9 +9,21 @@ from ceci.config import StageParameter
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 
+from .dataset import RailDataset
 from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotHolder
 from .plotter import RailPlotter
+
+
+class RailNZTomoBinsDataset(RailDataset):
+    """Dataet to hold a n(z) distributions for a set of tomographic bins and the
+    correspoding true n(z) distributions.
+    """
+
+    data_types = dict(
+        truth=qp.Ensemble,
+        nz_estimates=qp.Ensemble,
+    )
 
 
 class NZPlotterTomoBins(RailPlotter):
@@ -24,10 +36,7 @@ class NZPlotterTomoBins(RailPlotter):
         n_zbins=StageParameter(int, 150, fmt="%i", msg="Number of z bins"),
     )
 
-    inputs: dict = {
-        "truth": qp.Ensemble,
-        "nz_estimates": qp.Ensemble,
-    }
+    input_type = RailNZTomoBinsDataset
 
     def _make_plot(
         self,
@@ -44,11 +53,11 @@ class NZPlotterTomoBins(RailPlotter):
         nz_vals = nz_estimates.pdf(bin_edges)
         n_pdf = truth.npdf
 
-        cmap = mpl.colormaps['plasma']
+        cmap = mpl.colormaps["plasma"]
         colors = cmap(np.linspace(0, 1, n_pdf))
 
         for i in range(n_pdf):
-            color=colors[i]
+            color = colors[i]
             axes.plot(bin_edges, truth_vals[i], "-", color=color)
             axes.plot(bin_edges, nz_vals[i], "--", color=color)
         plt.xlabel("z")

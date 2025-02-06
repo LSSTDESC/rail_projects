@@ -25,7 +25,6 @@ class RailPlotGroup(Configurable):
     """Class defining of a group on plots to make
     with a particular list of coherent datasets
 
-
     """
 
     jinja_env: Environment | None = None
@@ -107,10 +106,10 @@ class RailPlotGroup(Configurable):
         dataset_factory = RailDatasetFactory.instance()
         self._plotter_list = plotter_factory.get_plotter_list(
             self.config.plotter_list_name
-        )(plotter_factory)
+        ).resolve(plotter_factory)
         self._dataset_list = dataset_factory.get_dataset_list(
             self.config.dataset_list_name
-        )(dataset_factory)
+        ).resolve(dataset_factory)
         self._plots.update(
             **RailPlotter.iterate(self._plotter_list, self._dataset_list)
         )
@@ -136,10 +135,10 @@ class RailPlotGroup(Configurable):
         dataset_factory = RailDatasetFactory.instance()
         self._plotter_list = plotter_factory.get_plotter_list(
             self.config.plotter_list_name
-        )(plotter_factory)
+        ).resolve(plotter_factory)
         self._dataset_list = dataset_factory.get_dataset_list(
             self.config.dataset_list_name
-        )(dataset_factory)
+        ).resolve(dataset_factory)
         self._plots.update(
             **RailPlotter.iterate(
                 self._plotter_list,
@@ -195,7 +194,7 @@ class RailPlotGroup(Configurable):
         with open(outfile, "w", encoding="utf-8") as file:
             file.write(output)
 
-    def __call__(
+    def run(
         self,
         save_plots: bool = True,
         purge_plots: bool = True,

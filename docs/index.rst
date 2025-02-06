@@ -63,7 +63,6 @@ guidance on citing RAIL and the underlying algorithms.
    source/contributing
    source/fix_an_issue
    source/new_plotter
-   source/new_data_extractor
    source/new_dataset_holder
 
 .. toctree::

@@ -9,7 +9,6 @@ import yaml
 
 from rail.projects.factory_mixin import RailFactoryMixin
 
-from .data_extractor import RailProjectDataExtractor
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder
 from .plot_group import RailPlotGroup
@@ -100,16 +99,6 @@ get_plot_group = RailPlotGroupFactory.get_plot_group
 add_plot_group = RailPlotGroupFactory.add_plot_group
 
 
-# Lift methods from RailProjectDataExtractor
-
-print_extractor_classes = RailProjectDataExtractor.print_classes
-
-get_extractor_class = RailProjectDataExtractor.get_sub_class
-
-load_extractor_class = RailProjectDataExtractor.load_sub_class
-
-create_extractor_class_from_dict = RailProjectDataExtractor.create_from_dict
-
 
 # Lift methods from RailDatasetHolder
 
@@ -120,6 +109,7 @@ get_dataset_holder_class = RailDatasetHolder.get_sub_class
 load_dataset_holder_class = RailDatasetHolder.load_sub_class
 
 create_dataset_holder_from_dict = RailDatasetHolder.create_from_dict
+
 
 
 # Lift methods from RailPlotter
@@ -159,9 +149,6 @@ def print_classes() -> None:
     print("----------------")
     print("")
     RailDatasetHolder.print_classes()
-    print("----------------")
-    print("")
-    RailProjectDataExtractor.print_classes()
     print("----------------")
 
 
@@ -228,7 +215,7 @@ def run(
     output_pages: list[str] = []
     for group_ in include_groups:
         plot_group = group_dict[group_]
-        out_dict.update(plot_group(**kwargs))
+        out_dict.update(plot_group.run(**kwargs))
         if make_html:
             output_pages.append(f"plots_{plot_group.config.name}.html")
     if make_html:
@@ -240,7 +227,7 @@ def run(
 
 def extract_datasets(
     config_file: str,
-    extractor_class: str,
+    dataset_holder_class: str,
     output_yaml: str,
     **kwargs: dict[str, Any],
 ) -> None:
@@ -251,19 +238,19 @@ def extract_datasets(
     config_file: str
         Yaml project configuration file
 
-    extractor_class: str
+    dataset_holder_class: str
         Class used to extract Datasets
 
     output_yaml: str
         Path to output file
 
-    Keywords
-    --------
+    **kwargs: 
+        See notes for details
+
+    Notes
+    -----
     dataset_list_name: str
         Name for the resulting DatasetList
-
-    dataset_holder_class: str
-        Class for the dataset holder
 
     selections: list[str]
         Selections to use
@@ -274,7 +261,7 @@ def extract_datasets(
     split_by_flavor: bool
         Split dataset lists by flavor
     """
-    extractor_cls = load_extractor_class(extractor_class)
+    extractor_cls = load_dataset_holder_class(dataset_holder_class)
     output_data = {
         "Data": extractor_cls.generate_dataset_dict(
             project_file=config_file,

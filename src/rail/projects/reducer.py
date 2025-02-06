@@ -92,7 +92,7 @@ class RailReducer(Configurable, DynamicClass):
     """Base class for reducing data catalogs
 
     The main function in this class is:
-    __call__(input_catalog, output_catalog)
+    run(input_catalog, output_catalog)
 
     This function will files in the input_catalog, and reduce each one to make the
     output catalog
@@ -113,7 +113,7 @@ class RailReducer(Configurable, DynamicClass):
         DynamicClass.__init__(self)
         Configurable.__init__(self, **kwargs)
 
-    def __call__(
+    def run(
         self,
         input_catalog: str,
         output_catalog: str,
@@ -139,7 +139,7 @@ class RomanRubinReducer(RailReducer):
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
 
-    def __call__(
+    def run(
         self,
         input_catalog: str,
         output_catalog: str,

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ceci.config import StageParameter
+
 from rail.projects import RailProject
 
 from .data_extraction_funcs import (
@@ -9,10 +11,14 @@ from .data_extraction_funcs import (
     get_multi_pz_point_estimate_data,
     get_pz_point_estimate_data,
 )
-from .data_extractor import RailProjectDataExtractor
+from .dataset import RailDataset
+from .dataset_factory import RailDatasetFactory
+from .dataset_holder import RailDatasetHolder
+
+from .pz_plotters import RailPZPointEstimateDataset, RailPZMultiPointEstimateDataset
 
 
-class PZPointEstimateDataExtractor(RailProjectDataExtractor):
+class RailPZPointEstimateDataHolder(RailDatasetHolder):
     """Class to extract true redshifts and one p(z) point estimate
     from a RailProject.
 
@@ -25,7 +31,26 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         Point estimates of the true redshifts
     """
 
-    inputs: dict = {
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
+        project=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject name"
+        ),
+        selection=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject data selection"
+        ),
+        flavor=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject analysis flavor"
+        ),
+        tag=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject file tag"
+        ),
+        algo=StageParameter(
+            str, None, fmt="%s", required=True, msg="RailProject algorithm"
+        ),
+    )
+
+    extractor_inputs: dict = {
         "project": RailProject,
         "selection": str,
         "flavor": str,
@@ -33,8 +58,37 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         "algo": str,
     }
 
+    output_type: type[RailDataset] = RailPZPointEstimateDataset
+
+    def __init__(self, **kwargs: Any):
+        RailDatasetHolder.__init__(self, **kwargs)
+        self._project: RailProject | None = None
+
+    def __repr__(self) -> str:
+        ret_str = (
+            f"{self.__class__.__name__} "
+            "( "
+            f"{self.config.project}, "
+            f"{self.config.selection}_{self.config.flavor}_{self.config.tag}_{self.config.algo}"
+            ")"
+        )
+        return ret_str
+
     def _get_data(self, **kwargs: Any) -> dict[str, Any] | None:
         return get_pz_point_estimate_data(**kwargs)
+
+    def get_extractor_inputs(self) -> dict[str, Any]:
+        if self._project is None:
+            self._project = RailDatasetFactory.get_project(self.config.project).resolve()
+        the_extractor_inputs = dict(
+            project=self._project,
+            selection=self.config.selection,
+            flavor=self.config.flavor,
+            tag=self.config.tag,
+            algo=self.config.algo,
+        )
+        self._validate_extractor_inputs(**the_extractor_inputs)
+        return the_extractor_inputs
 
     @classmethod
     def generate_dataset_dict(
@@ -131,7 +185,6 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
                     dataset_dict = dict(
                         name=dataset_name,
                         class_name=dataset_holder_class,
-                        extractor=cls.full_class_name(),
                         project=project_name,
                         flavor=key,
                         algo=algo_,
@@ -155,23 +208,28 @@ class PZPointEstimateDataExtractor(RailProjectDataExtractor):
         return output
 
 
-class PZMultiPointEstimateDataExtractor(RailProjectDataExtractor):
-    """Class to extract true redshifts and multiple p(z) point estimates
-    from a RailProject.
+class RailPZMultiPointEstimateDataHolder(RailDatasetHolder):
+    """Simple class for holding making a merged for plotting data that comes from a RailProject"""
 
-    This will return a dict:
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
+        datasets=StageParameter(
+            list, None, fmt="%s", required=True, msg="Dataset name"
+        ),
+    )
 
-    truth: np.ndarray
-        True redshifts
-
-    pointEstimates: dict[str, np.ndarray]
-         Dict mapping from the names for the various point estimates to the
-         estimates themselves
-    """
-
-    inputs: dict = {
-        "datasets": list[str],
+    extractor_inputs: dict = {
+        "datasets": list[RailDatasetHolder],
     }
+
+    output_type: type[RailDataset] = RailPZMultiPointEstimateDataset
+
+    def __init__(self, **kwargs: Any):
+        RailDatasetHolder.__init__(self, **kwargs)
+        self._datasets: list[RailDatasetHolder] | None = None
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}( {self.config.datasets} )"
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any] | None:
         the_datasets = kwargs.get("datasets", None)
@@ -181,5 +239,16 @@ class PZMultiPointEstimateDataExtractor(RailProjectDataExtractor):
         for dataset_ in the_datasets:
             the_name = dataset_.config.name
             point_estimate_infos[the_name] = dataset_.get_extractor_inputs()
-            point_estimate_infos[the_name].pop("extractor")
         return get_multi_pz_point_estimate_data(point_estimate_infos)
+
+    def get_extractor_inputs(self) -> dict[str, Any]:
+        if self._datasets is None:
+            self._datasets = [
+                RailDatasetFactory.get_dataset(key) for key in self.config.datasets
+            ]
+
+        the_extractor_inputs = dict(
+            datasets=self._datasets,
+        )
+        self._validate_extractor_inputs(**the_extractor_inputs)
+        return the_extractor_inputs

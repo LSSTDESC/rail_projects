@@ -114,11 +114,6 @@ pygments_style = 'sphinx'
 nbsphinx_allow_errors = True
 
 
-autodoc_default_options = {
-    'special-members': '__call__',
-}
-
-
 # use type hints in autodoc
 autodoc_typehints = "description"
 
