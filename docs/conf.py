@@ -16,14 +16,14 @@ import os
 import subprocess
 import sys
 import pkgutil
-import rail.projects
-import rail.plotting
-import rail.cli.rail_plot
-import rail.cli.rail_project
+import rail
+#import rail.plotting
+#import rail.cli.rail_project
+#import rail.cli.rail_plot
 
 
 sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../src/rail/cli'))
+sys.path.insert(0, os.path.abspath('../src'))
 
 print(sys.path)
     
@@ -188,8 +188,10 @@ def run_apidoc(_):
     cur_dir = os.path.normpath(os.path.dirname(__file__))
     output_path = os.path.join(cur_dir, 'api')
 
-    src_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'src', 'rail'))    
-    paramlist = ['--separate', '--implicit-namespaces', '-M', '-o', output_path, '-f', src_path]
+    base_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+    srcpath = os.path.normpath(os.path.join(base_path, 'rail'))
+    paramlist = ['--separate', '--implicit-namespaces', '--no-toc', '-M', '-o', output_path, '-f', srcpath]
     print(f"running {paramlist}")
     apidoc_main(paramlist)
 

@@ -67,49 +67,49 @@ There are several sub-classes of `RailAlgorithmHolder` for different types of al
 PZAlgorithm
 -----------
 
-.. autoclass:: rail.projects. algorithm_holder.RailPZAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailPZAlgorithmHolder
     :noindex:
 
        
 Summarizer
 ----------
 
-.. autoclass:: rail.projects. algorithm_holder.RailSummarizerAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailSummarizerAlgorithmHolder
     :noindex:
 
 
 Classifier
 ----------
 
-.. autoclass:: rail.projects. algorithm_holder.RailClassificationAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailClassificationAlgorithmHolder
     :noindex:
 
 
 SpecSelection
 -------------
 
-.. autoclass:: rail.projects. algorithm_holder.RailSpecSelectionAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailSpecSelectionAlgorithmHolder
     :noindex:
 
 
 ErrorModel
 ----------
 
-.. autoclass:: rail.projects. algorithm_holder.RailErrorModelAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailErrorModelAlgorithmHolder
     :noindex:
 
 
 Reducer
 -------
 
-.. autoclass:: rail.projects. algorithm_holder.RailReducerAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailReducerAlgorithmHolder
     :noindex:
 
 
 Subsampler
 ----------
 
-.. autoclass:: rail.projects. algorithm_holder.RailSubsamplerAlgorithmHolder
+.. autoclass:: rail.projects.algorithm_holder.RailSubsamplerAlgorithmHolder
     :noindex:
 
 

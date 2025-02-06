@@ -95,6 +95,10 @@ The required pieces, in the order that they appear are:
 
 #. The ``extractor_inputs = [('input', PqHandle)]`` and ``outputs = [('output', PqHandle)]``  define the inputs that will be based to the 
 
+#. The ``output_type: type[RailDataset] = RailPZPointEstimateDataset``
+   line specifies that this class will return a
+   RailPZPointEstimateDataset dataset.
+   
 #. The ``__init__`` method does any class-specific initialization, in this case defining that this class will store and project and extractor 
 
 #. The ``__repr__`` method is optional, here it gives a useful representation of the class

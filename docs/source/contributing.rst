@@ -145,7 +145,7 @@ We anticipate a few types of contributions, and provide separate instructions
 for those workflows:
 
 * :ref:`Fix an Issue` in the codebase
+* :ref:`Adding a new RailDataset type`
 * :ref:`Adding a new RailPlotter` 
-* :ref:`Adding a new DataExtractor`
 * :ref:`Adding a new RailDatasetHolder`
 

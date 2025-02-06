@@ -2,7 +2,7 @@
 rail_project CLI
 ****************
 
-.. click:: rail_project:project_cli
+.. click:: rail.cli.rail_project:project_cli
    :prog: rail_project
    :nested: none
 
@@ -10,7 +10,7 @@ rail_project CLI
 Inspecting configuration files
 ==============================
 	    
-.. click:: rail_project:inspect_command
+.. click:: rail.cli.rail_project:inspect_command
    :prog: rail_project inspect
    :nested: full
 
@@ -19,7 +19,7 @@ Inspecting configuration files
 Reducing input catalogs
 =======================
 
-.. click:: rail_project:reduce_command
+.. click:: rail.cli.rail_project:reduce_command
    :prog: rail_project reduce
    :nested: full
 
@@ -28,7 +28,7 @@ Reducing input catalogs
 Subsampling data from catalogs
 ==============================
 
-.. click:: rail_project:subsample_command
+.. click:: rail.cli.rail_project:subsample_command
    :prog: rail_project subsample
    :nested: full
 
@@ -37,7 +37,7 @@ Subsampling data from catalogs
 Building pipeline configuration files
 =====================================
 	    	    
-.. click:: rail_project:build_command
+.. click:: rail.cli.rail_project:build_command
    :prog: rail_project build
    :nested: full
 
@@ -46,7 +46,7 @@ Building pipeline configuration files
 Running pipelines
 =================
 
-.. click:: rail_project:run_group
+.. click:: rail.cli.rail_project:run_group
    :prog: rail_project run
    :nested: full
 

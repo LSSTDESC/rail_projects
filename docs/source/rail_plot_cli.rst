@@ -2,7 +2,7 @@
 rail_plot CLI
 *************
 
-.. click:: rail_plot:plot_cli
+.. click:: rail.cli.rail_plot:plot_cli
    :prog: rail_plot
    :nested: none
 
@@ -11,7 +11,7 @@ rail_plot CLI
 Inspecting plotting configuration files
 =======================================
 
-.. click:: rail_plot:inspect_command
+.. click:: rail.cli.rail_plot:inspect_command
    :prog: rail_plot run
    :nested: full
 
@@ -20,7 +20,7 @@ Inspecting plotting configuration files
 Extracting datasets from a RailProject
 ======================================
 
-.. click:: rail_plot:extract_datasets_command
+.. click:: rail.cli.rail_plot:extract_datasets_command
    :prog: rail_plot extract-datasets
    :nested: full
 
@@ -29,7 +29,7 @@ Extracting datasets from a RailProject
 Combining plots with available datasets
 =======================================
 
-.. click:: rail_plot:make_plot_groups
+.. click:: rail.cli.rail_plot:make_plot_groups
    :prog: rail_plot make-plot-groups
    :nested: full
 
@@ -38,6 +38,6 @@ Combining plots with available datasets
 Making plots
 ============
 
-.. click:: rail_plot:run_command
+.. click:: rail.cli.rail_plot:run_command
    :prog: rail_plot run
    :nested: full
