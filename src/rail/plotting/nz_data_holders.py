@@ -6,10 +6,12 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject
 
-from .data_extraction_funcs import (get_ceci_nz_output_paths,
-                                    get_ceci_true_nz_output_paths,
-                                    get_tomo_bins_nz_estimate_data,
-                                    get_tomo_bins_true_nz_data)
+from .data_extraction_funcs import (
+    get_ceci_nz_output_paths,
+    get_ceci_true_nz_output_paths,
+    get_tomo_bins_nz_estimate_data,
+    get_tomo_bins_true_nz_data,
+)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder
@@ -78,7 +80,9 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
-            self._project = RailDatasetFactory.get_project(self.config.project).resolve()
+            self._project = RailDatasetFactory.get_project(
+                self.config.project
+            ).resolve()
         the_extractor_inputs = dict(
             project=self._project,
             selection=self.config.selection,

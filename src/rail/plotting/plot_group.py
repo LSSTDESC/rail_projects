@@ -10,6 +10,7 @@ from jinja2 import Environment, FileSystemLoader, Template
 
 from rail.projects.configurable import Configurable
 
+from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotDict, RailPlotHolder
@@ -92,6 +93,30 @@ class RailPlotGroup(Configurable):
         """Find a particular plot and get the path to the associated file"""
         return self.find_plot(dataset_name, plotter_name).path
 
+    def resolve(self) -> None:
+        """Get the PlotterList and DatasetList"""
+        plotter_factory = RailPlotterFactory.instance()
+        dataset_factory = RailDatasetFactory.instance()
+        plotter_list_wrapper = plotter_factory.get_plotter_list(
+            self.config.plotter_list_name
+        )
+        dataset_list_wrapper = dataset_factory.get_dataset_list(
+            self.config.dataset_list_name
+        )
+        plotter_input_class = RailDataset.load_sub_class(
+            plotter_list_wrapper.config.dataset_class
+        )
+        dataset_output_class = RailDataset.load_sub_class(
+            dataset_list_wrapper.config.dataset_class
+        )
+        if not issubclass(dataset_output_class, plotter_input_class):
+            raise TypeError(
+                f"RailPlotGroup {self.config.name} dataset output class {dataset_output_class} "
+                f"is not a subclass of plotter input class {plotter_input_class}"
+            )
+        self._plotter_list = plotter_list_wrapper.resolve(plotter_factory)
+        self._dataset_list = dataset_list_wrapper.resolve(dataset_factory)
+
     def make_plots(
         self,
     ) -> dict[str, RailPlotDict]:
@@ -102,14 +127,7 @@ class RailPlotGroup(Configurable):
         out_dict: dict[str, RailPlotDict]
             Dictionary of the newly created figures
         """
-        plotter_factory = RailPlotterFactory.instance()
-        dataset_factory = RailDatasetFactory.instance()
-        self._plotter_list = plotter_factory.get_plotter_list(
-            self.config.plotter_list_name
-        ).resolve(plotter_factory)
-        self._dataset_list = dataset_factory.get_dataset_list(
-            self.config.dataset_list_name
-        ).resolve(dataset_factory)
+        self.resolve()
         self._plots.update(
             **RailPlotter.iterate(self._plotter_list, self._dataset_list)
         )
@@ -131,14 +149,7 @@ class RailPlotGroup(Configurable):
         out_dict: dict[str, Figure]
             Dictionary of the newly created figures
         """
-        plotter_factory = RailPlotterFactory.instance()
-        dataset_factory = RailDatasetFactory.instance()
-        self._plotter_list = plotter_factory.get_plotter_list(
-            self.config.plotter_list_name
-        ).resolve(plotter_factory)
-        self._dataset_list = dataset_factory.get_dataset_list(
-            self.config.dataset_list_name
-        ).resolve(dataset_factory)
+        self.resolve()
         self._plots.update(
             **RailPlotter.iterate(
                 self._plotter_list,

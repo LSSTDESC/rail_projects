@@ -3,9 +3,11 @@ import os
 import pytest
 
 from rail.plotting.dataset_factory import RailDatasetFactory
-from rail.plotting.dataset_holder import (RailDatasetHolder,
-                                          RailDatasetListHolder,
-                                          RailProjectHolder)
+from rail.plotting.dataset_holder import (
+    RailDatasetHolder,
+    RailDatasetListHolder,
+    RailProjectHolder,
+)
 
 
 def test_load_yaml(setup_project_area: int) -> None:
@@ -70,7 +72,11 @@ def test_load_yaml(setup_project_area: int) -> None:
 
     RailDatasetFactory.add_dataset(the_dataset)
     RailDatasetFactory.add_dataset_list(
-        RailDatasetListHolder(name="test_list", datasets=[the_dataset.config.name])
+        RailDatasetListHolder(
+            name="test_list",
+            dataset_class=the_dataset.output_type.full_class_name(),
+            datasets=[the_dataset.config.name],
+        )
     )
 
     check_dataset = RailDatasetFactory.get_dataset("blend_baseline_knn")

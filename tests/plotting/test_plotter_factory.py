@@ -59,7 +59,11 @@ def test_load_yaml() -> None:
 
     RailPlotterFactory.add_plotter(a_plotter)
     RailPlotterFactory.add_plotter_list(
-        RailPlotterList(name="test_list", plotters=[a_plotter.config.name])
+        RailPlotterList(
+            name="test_list",
+            dataset_class=a_plotter.input_type.full_class_name(),
+            plotters=[a_plotter.config.name],
+        )
     )
 
     check_plotter = RailPlotterFactory.get_plotter("zestimate_v_ztrue_hist2d")

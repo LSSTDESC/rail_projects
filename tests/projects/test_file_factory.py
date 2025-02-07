@@ -2,8 +2,7 @@ import os
 
 import pytest
 
-from rail.projects.file_template import (RailProjectFileInstance,
-                                         RailProjectFileTemplate)
+from rail.projects.file_template import RailProjectFileInstance, RailProjectFileTemplate
 from rail.projects.project_file_factory import RailProjectFileFactory
 
 

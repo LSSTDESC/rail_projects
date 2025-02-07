@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from rail.projects import RailProject
 from rail.projects.factory_mixin import RailFactoryMixin
 
-from .dataset_holder import (RailDatasetHolder, RailDatasetListHolder,
-                             RailProjectHolder)
+from .dataset_holder import RailDatasetHolder, RailDatasetListHolder, RailProjectHolder
 
 if TYPE_CHECKING:
     from rail.projects.configurable import Configurable

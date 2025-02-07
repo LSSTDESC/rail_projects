@@ -99,7 +99,6 @@ get_plot_group = RailPlotGroupFactory.get_plot_group
 add_plot_group = RailPlotGroupFactory.add_plot_group
 
 
-
 # Lift methods from RailDatasetHolder
 
 print_dataset_holder_classes = RailDatasetHolder.print_classes
@@ -109,7 +108,6 @@ get_dataset_holder_class = RailDatasetHolder.get_sub_class
 load_dataset_holder_class = RailDatasetHolder.load_sub_class
 
 create_dataset_holder_from_dict = RailDatasetHolder.create_from_dict
-
 
 
 # Lift methods from RailPlotter
@@ -244,7 +242,7 @@ def extract_datasets(
     output_yaml: str
         Path to output file
 
-    **kwargs: 
+    **kwargs:
         See notes for details
 
     Notes
