@@ -198,6 +198,7 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
                 continue
             dataset_list = dict(
                 name=ds_name,
+                dataset_class=cls.output_type.full_class_name(),
                 datasets=ds_list,
             )
             output.append(dict(DatasetList=dataset_list))

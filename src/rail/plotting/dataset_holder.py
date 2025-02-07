@@ -220,7 +220,7 @@ class RailDatasetListHolder(Configurable):
 
         for name_ in self.config.datasets:
             a_dataset_holder = dataset_factory.get_dataset(name_)
-            if not issubclass(a_dataset_holder.output_type, dataset_class):
+            if not issubclass(a_dataset_holder.output_type, dataset_class):  # pragma: no cover
                 raise TypeError(
                     f"DatasetHolder.output_type {a_dataset_holder.output_type} is"
                     f"not a subclass of RailDatasetListHolder dataset_class {dataset_class}."
