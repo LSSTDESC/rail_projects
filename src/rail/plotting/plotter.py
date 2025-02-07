@@ -307,7 +307,7 @@ class RailPlotterList(Configurable):
 
         for name_ in self.config.plotters:
             a_plotter = plotter_factory.get_plotter(name_)
-            if not issubclass(a_plotter.input_type, dataset_class):
+            if not issubclass(a_plotter.input_type, dataset_class):  # pragma: no cover
                 raise TypeError(
                     f"Plotter.input_type {a_plotter.input_type} is"
                     f"not a subclass of PlotterList dataset_class {dataset_class}."
