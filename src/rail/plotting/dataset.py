@@ -30,6 +30,11 @@ class RailDataset(DynamicClass):
     sub_classes: dict[str, type[DynamicClass]] = {}
 
     @classmethod
+    def full_class_name(cls) -> str:
+        """Return the full name of the class, including the parent module"""
+        return f"{cls.__module__}.{cls.__name__}"
+
+    @classmethod
     def validate_inputs(cls, **kwargs: Any) -> None:
         if not cls.data_types:
             raise NotImplementedError(

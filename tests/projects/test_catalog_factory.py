@@ -3,8 +3,10 @@ import os
 import pytest
 
 from rail.projects.catalog_factory import RailCatalogFactory
-from rail.projects.catalog_template import (RailProjectCatalogInstance,
-                                            RailProjectCatalogTemplate)
+from rail.projects.catalog_template import (
+    RailProjectCatalogInstance,
+    RailProjectCatalogTemplate,
+)
 
 
 def test_load_catalog_yaml(setup_project_area: int) -> None:

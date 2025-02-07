@@ -6,14 +6,15 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject
 
-from .data_extraction_funcs import (get_ceci_pz_output_path,
-                                    get_multi_pz_point_estimate_data,
-                                    get_pz_point_estimate_data)
+from .data_extraction_funcs import (
+    get_ceci_pz_output_path,
+    get_multi_pz_point_estimate_data,
+    get_pz_point_estimate_data,
+)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder
-from .pz_plotters import (RailPZMultiPointEstimateDataset,
-                          RailPZPointEstimateDataset)
+from .pz_plotters import RailPZMultiPointEstimateDataset, RailPZPointEstimateDataset
 
 
 class RailPZPointEstimateDataHolder(RailDatasetHolder):
@@ -77,7 +78,9 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
-            self._project = RailDatasetFactory.get_project(self.config.project).resolve()
+            self._project = RailDatasetFactory.get_project(
+                self.config.project
+            ).resolve()
         the_extractor_inputs = dict(
             project=self._project,
             selection=self.config.selection,

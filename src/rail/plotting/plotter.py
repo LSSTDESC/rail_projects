@@ -102,7 +102,9 @@ class RailPlotter(Configurable, DynamicClass):
         out_dict: dict[str, RailPlotHolder] = {}
         extra_args: dict[str, Any] = dict(dataset_holder=dataset)
         for plotter_ in plotters:
-            out_dict.update(plotter_.run(prefix, **dataset.resolve(), **kwargs, **extra_args))
+            out_dict.update(
+                plotter_.run(prefix, **dataset.resolve(), **kwargs, **extra_args)
+            )
         return RailPlotDict(name=name, plots=out_dict)
 
     @staticmethod
@@ -250,6 +252,13 @@ class RailPlotterList(Configurable):
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="PlotterList name"),
+        dataset_class=StageParameter(
+            str,
+            None,
+            fmt="%s",
+            required=True,
+            msg="Type of data expected by plotters on this list",
+        ),
         plotters=StageParameter(
             list,
             [],
@@ -275,7 +284,33 @@ class RailPlotterList(Configurable):
         return f"{self.config.plotters}"
 
     def resolve(self, plotter_factory: RailPlotterFactory) -> list[RailPlotter]:
-        the_list = [
-            plotter_factory.get_plotter(name_) for name_ in self.config.plotters
-        ]
+        """Extract the plotters
+
+        Paramters
+        ---------
+        plotter_factory:
+            Factory used to make the plotters.
+
+        Returns
+        -------
+        list[RailPlotter]
+            Requested plotters.
+
+        Notes
+        -----
+        This will enforce that each plotter expects the compatible dataset_types
+        """
+
+        the_list: list[RailPlotter] = []
+
+        dataset_class = RailDataset.load_sub_class(self.config.dataset_class)
+
+        for name_ in self.config.plotters:
+            a_plotter = plotter_factory.get_plotter(name_)
+            if not issubclass(a_plotter.input_type, dataset_class):
+                raise TypeError(
+                    f"Plotter.input_type {a_plotter.input_type} is"
+                    f"not a subclass of PlotterList dataset_class {dataset_class}."
+                )
+            the_list.append(a_plotter)
         return the_list

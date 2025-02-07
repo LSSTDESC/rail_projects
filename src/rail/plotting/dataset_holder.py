@@ -138,7 +138,7 @@ class RailDatasetHolder(Configurable, DynamicClass):
     def get_extractor_inputs(self) -> dict[str, Any]:
         """Resolve the inputs needed to get the data
         from the configuration paramters.
-        
+
         For example, load RailProject configurations,
         resolve the set of requested interpolants, etc...
         """
@@ -166,6 +166,13 @@ class RailDatasetListHolder(Configurable):
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
+        dataset_class=StageParameter(
+            str,
+            None,
+            fmt="%s",
+            required=True,
+            msg="Type of data expected by plotters on this list",
+        ),
         datasets=StageParameter(
             list,
             [],
@@ -191,10 +198,34 @@ class RailDatasetListHolder(Configurable):
         return f"{self.config.datasets}"
 
     def resolve(self, dataset_factory: RailDatasetFactory) -> list[RailDatasetHolder]:
-        """Get all the associated RailDatasetHolder objects"""
-        the_list = [
-            dataset_factory.get_dataset(name_) for name_ in self.config.datasets
-        ]
+        """Get all the associated RailDatasetHolder objects
+
+        Paramters
+        ---------
+        dataset_factory:
+            Factory used to make the dataset_holders.
+
+        Returns
+        -------
+        list[RailDatasetHolder]
+            Requested datasets
+
+        Notes
+        -----
+        This will enforce that each dataset_holders expects the compatible dataset_types
+        """
+        the_list: list[RailDatasetHolder] = []
+
+        dataset_class = RailDataset.load_sub_class(self.config.dataset_class)
+
+        for name_ in self.config.datasets:
+            a_dataset_holder = dataset_factory.get_dataset(name_)
+            if not issubclass(a_dataset_holder.output_type, dataset_class):
+                raise TypeError(
+                    f"DatasetHolder.output_type {a_dataset_holder.output_type} is"
+                    f"not a subclass of RailDatasetListHolder dataset_class {dataset_class}."
+                )
+            the_list.append(a_dataset_holder)
         return the_list
 
 

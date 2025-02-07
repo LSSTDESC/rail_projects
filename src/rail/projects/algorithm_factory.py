@@ -4,14 +4,16 @@ import os
 
 import yaml
 
-from .algorithm_holder import (RailAlgorithmHolder,
-                               RailClassificationAlgorithmHolder,
-                               RailErrorModelAlgorithmHolder,
-                               RailPZAlgorithmHolder,
-                               RailReducerAlgorithmHolder,
-                               RailSpecSelectionAlgorithmHolder,
-                               RailSubsamplerAlgorithmHolder,
-                               RailSummarizerAlgorithmHolder)
+from .algorithm_holder import (
+    RailAlgorithmHolder,
+    RailClassificationAlgorithmHolder,
+    RailErrorModelAlgorithmHolder,
+    RailPZAlgorithmHolder,
+    RailReducerAlgorithmHolder,
+    RailSpecSelectionAlgorithmHolder,
+    RailSubsamplerAlgorithmHolder,
+    RailSummarizerAlgorithmHolder,
+)
 from .factory_mixin import RailFactoryMixin
 
 ALGORITHM_TYPES: list[str] = [
