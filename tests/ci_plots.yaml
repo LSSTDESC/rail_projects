@@ -21,7 +21,7 @@ Plots:
   # they can be made together
   - PlotterList:
       name: zestimate_v_ztrue
-      dataset_class: rail.plotting.pz_plotters.RailPZPointEstimateDataset
+      dataset_holder_class: rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder
       plotters:
         - zestimate_v_ztrue_hist2d
         - zestimate_v_ztrue_profile
@@ -37,7 +37,7 @@ Plots:
   # This makes a list with only one type of plot
   - PlotterList:
       name: accuracy_v_ztrue
-      dataset_class: rail.plotting.pz_plotters.RailPZMultiPointEstimateDataset
+      dataset_holder_class: rail.plotting.pz_data_holders.RailPZMultiPointEstimateDataHolder
       plotters:
         - accuracy_v_ztrue
 
@@ -53,6 +53,6 @@ Plots:
   # This makes a list with only one type of plot
   - PlotterList:
       name: tomo_bins
-      dataset_class: rail.plotting.nz_plotters.RailNZTomoBinsDataset
+      dataset_holder_class: rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder
       plotters:
         - tomo_bins

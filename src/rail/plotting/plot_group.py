@@ -103,13 +103,16 @@ class RailPlotGroup(Configurable):
         dataset_list_wrapper = dataset_factory.get_dataset_list(
             self.config.dataset_list_name
         )
-        plotter_input_class = RailDataset.load_sub_class(
-            plotter_list_wrapper.config.dataset_class
+        plotter_data_holder_class = RailDatasetHolder.load_sub_class(
+            plotter_list_wrapper.config.dataset_holder_class
         )
+        plotter_input_class = plotter_data_holder_class.output_type
         dataset_output_class = RailDataset.load_sub_class(
             dataset_list_wrapper.config.dataset_class
         )
-        if not issubclass(dataset_output_class, plotter_input_class):  # pragma: no cover
+        if not issubclass(
+            dataset_output_class, plotter_input_class
+        ):  # pragma: no cover
             raise TypeError(
                 f"RailPlotGroup {self.config.name} dataset output class {dataset_output_class} "
                 f"is not a subclass of plotter input class {plotter_input_class}"
