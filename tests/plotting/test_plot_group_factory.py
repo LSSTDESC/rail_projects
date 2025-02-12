@@ -1,5 +1,6 @@
 import os
 
+from rail.plotting.dataset_holder import DatasetSplitMode
 from rail.plotting.plot_group import RailPlotGroup
 from rail.plotting.plot_group_factory import RailPlotGroupFactory
 
@@ -41,10 +42,10 @@ def test_load_yaml(setup_project_area: int) -> None:
     assert isinstance(check_plot_group, RailPlotGroup)
 
 
-def test_make_instance_yaml(setup_project_area: int) -> None:
+def test_make_yaml_for_dataset_list(setup_project_area: int) -> None:
     assert setup_project_area == 0
 
-    RailPlotGroupFactory.make_yaml(
+    RailPlotGroupFactory.make_yaml_for_dataset_list(
         output_yaml="tests/temp_data/check_pz_plot_groups.yaml",
         plotter_yaml_path="tests/ci_plots.yaml",
         dataset_yaml_path="tests/ci_datasets.yaml",
@@ -52,11 +53,30 @@ def test_make_instance_yaml(setup_project_area: int) -> None:
         output_prefix="",
         dataset_list_name="baseline_test",
     )
-    RailPlotGroupFactory.make_yaml(
+    RailPlotGroupFactory.make_yaml_for_dataset_list(
         output_yaml="tests/temp_data/check_nz_plot_groups.yaml",
         plotter_yaml_path="tests/ci_plots.yaml",
         dataset_yaml_path="tests/ci_datasets.yaml",
         plotter_list_name="tomo_bins",
         output_prefix="",
         dataset_list_name="blend_baseline_tomo_knn",
+    )
+
+    
+def test_make_yaml_for_project(setup_project_area: int) -> None:
+    assert setup_project_area == 0
+
+    RailPlotGroupFactory.make_yaml_for_project(
+        output_yaml="tests/temp_data/check_project_plot_groups_by_algo.yaml",
+        plotter_yaml_path="tests/ci_plots.yaml",
+        project_yaml_path="tests/ci_project.yaml",
+        flavors=['all'],
+        split_mode=DatasetSplitMode.by_algo,
+    )
+    RailPlotGroupFactory.make_yaml_for_project(
+        output_yaml="tests/temp_data/check_project_plot_groups_by_flavor.yaml",
+        plotter_yaml_path="tests/ci_plots.yaml",
+        project_yaml_path="tests/ci_project.yaml",
+        flavors=['all'],
+        split_mode=DatasetSplitMode.by_flavor,
     )

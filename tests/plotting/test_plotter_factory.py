@@ -61,7 +61,7 @@ def test_load_yaml() -> None:
     RailPlotterFactory.add_plotter_list(
         RailPlotterList(
             name="test_list",
-            dataset_class=a_plotter.input_type.full_class_name(),
+            dataset_holder_class="rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder",
             plotters=[a_plotter.config.name],
         )
     )

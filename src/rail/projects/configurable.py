@@ -29,6 +29,28 @@ class Configurable:
 
     yaml_tag: str = ""
 
+    @staticmethod
+    def merge_named_lists(
+        input_lists: list[list[Configurable]],
+    ) -> list[Configurable]:
+        """Merge lists, removing duplicate items
+
+        Parameters
+        ----------
+        input_lists
+            Lists to be merged
+
+        Returns
+        -------
+        list[Configurable]
+            The merged list
+        """
+        sort_dict: dict[str, Configurable] = {}
+        for list_ in input_lists:
+            for item_ in list_:
+                sort_dict[item_.config.name] = item_
+        return list(sort_dict.values())
+
     @classmethod
     def full_class_name(cls) -> str:
         """Return the full name of the class, including the parent module"""

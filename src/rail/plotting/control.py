@@ -86,7 +86,9 @@ load_plot_group_yaml = RailPlotGroupFactory.load_yaml
 
 load_plot_group_yaml_tag = RailPlotGroupFactory.load_yaml_tag
 
-make_plot_group_yaml = RailPlotGroupFactory.make_yaml
+make_plot_group_yaml_for_dataset_list = RailPlotGroupFactory.make_yaml_for_dataset_list
+
+make_plot_group_yaml_for_project = RailPlotGroupFactory.make_yaml_for_project
 
 print_plot_group_contents = RailPlotGroupFactory.print_contents
 
@@ -260,12 +262,16 @@ def extract_datasets(
         Split dataset lists by flavor
     """
     extractor_cls = load_dataset_holder_class(dataset_holder_class)
-    output_data = {
-        "Data": extractor_cls.generate_dataset_dict(
-            project_file=config_file,
-            **kwargs,
-        )
-    }
+    projects, datasets, dataset_lists = extractor_cls.generate_dataset_dict(
+        project_file=config_file,
+        **kwargs,
+    )
+    output_list: list[dict] = []
+    output_list += [project_.to_yaml_dict() for project_ in projects]
+    output_list += [dataset_.to_yaml_dict() for dataset_ in datasets]
+    output_list += [dataset_list_.to_yaml_dict() for dataset_list_ in dataset_lists]
+
+    output_data = dict(Data=output_list)
     with open(output_yaml, "w", encoding="utf-8") as fout:
         yaml.dump(output_data, fout)
 

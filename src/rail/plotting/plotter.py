@@ -9,10 +9,10 @@ from rail.projects.configurable import Configurable
 from rail.projects.dynamic_class import DynamicClass
 
 from .dataset import RailDataset
+from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotDict
 
 if TYPE_CHECKING:
-    from .dataset_holder import RailDatasetHolder
     from .plot_holder import RailPlotHolder
     from .plotter_factory import RailPlotterFactory
 
@@ -252,12 +252,12 @@ class RailPlotterList(Configurable):
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="PlotterList name"),
-        dataset_class=StageParameter(
+        dataset_holder_class=StageParameter(
             str,
             None,
             fmt="%s",
             required=True,
-            msg="Type of data expected by plotters on this list",
+            msg="Dataset holder that provides datset types expected by plotter on the list",
         ),
         plotters=StageParameter(
             list,
@@ -303,7 +303,10 @@ class RailPlotterList(Configurable):
 
         the_list: list[RailPlotter] = []
 
-        dataset_class = RailDataset.load_sub_class(self.config.dataset_class)
+        dataset_holder_class = RailDatasetHolder.load_sub_class(
+            self.config.dataset_holder_class
+        )
+        dataset_class = dataset_holder_class.output_type
 
         for name_ in self.config.plotters:
             a_plotter = plotter_factory.get_plotter(name_)

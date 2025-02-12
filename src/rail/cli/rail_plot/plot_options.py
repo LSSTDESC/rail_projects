@@ -1,4 +1,6 @@
-from rail.cli.rail.options import PartialOption
+from rail.cli.rail.options import EnumChoice, PartialOption
+
+from rail.plotting.dataset_holder import DatasetSplitMode
 
 __all__: list[str] = [
     "purge_plots",
@@ -13,7 +15,7 @@ __all__: list[str] = [
     "plotter_yaml_path",
     "include_groups",
     "exclude_groups",
-    "split_by_flavor",
+    "split_mode",
 ]
 
 
@@ -100,8 +102,9 @@ save_plots = PartialOption(
     is_flag=True,
 )
 
-split_by_flavor = PartialOption(
-    "--split_by_flavor",
-    help="Split dataset organization by flavor",
-    is_flag=True,
+split_mode = PartialOption(
+    "--split_mode",
+    help="How to split datasets within a project",
+    type=EnumChoice(DatasetSplitMode),
+    default="by_algo",
 )

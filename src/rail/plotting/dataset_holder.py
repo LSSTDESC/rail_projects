@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from typing import TYPE_CHECKING, Any
 
 from ceci.config import StageParameter
@@ -13,6 +14,14 @@ from .validation import validate_inputs
 
 if TYPE_CHECKING:
     from .dataset_factory import RailDatasetFactory
+
+
+class DatasetSplitMode(enum.Enum):
+    """Choose how to split datasets within a project"""
+
+    no_split = 0  # put all the datasets in a single list
+    by_flavor = 1  # split into lists by flavor
+    by_algo = 2  # split into lists by algorithm
 
 
 class RailDatasetHolder(Configurable, DynamicClass):
@@ -72,13 +81,21 @@ class RailDatasetHolder(Configurable, DynamicClass):
     def generate_dataset_dict(
         cls,
         **kwargs: dict[str, Any],
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[
+        list[RailProjectHolder], list[RailDatasetHolder], list[RailDatasetListHolder]
+    ]:
         """Create a dict of the datasets that this extractor can extract
 
         Returns
         -------
-        output: list[dict[str, Any]]
-            Dictionary of the extracted datasets
+        list[RailProjectHolder]
+            Underlying RailProjects
+
+        list[RailDatasetHolder]
+            Extracted datasets
+
+        list[RailDatasetListHolder]
+            Extracted dataset lists
         """
         raise NotImplementedError()
 
@@ -220,7 +237,9 @@ class RailDatasetListHolder(Configurable):
 
         for name_ in self.config.datasets:
             a_dataset_holder = dataset_factory.get_dataset(name_)
-            if not issubclass(a_dataset_holder.output_type, dataset_class):  # pragma: no cover
+            if not issubclass(
+                a_dataset_holder.output_type, dataset_class
+            ):  # pragma: no cover
                 raise TypeError(
                     f"DatasetHolder.output_type {a_dataset_holder.output_type} is"
                     f"not a subclass of RailDatasetListHolder dataset_class {dataset_class}."

@@ -14,7 +14,12 @@ from .data_extraction_funcs import (
 )
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
-from .dataset_holder import RailDatasetHolder
+from .dataset_holder import (
+    DatasetSplitMode,
+    RailDatasetHolder,
+    RailDatasetListHolder,
+    RailProjectHolder,
+)
 from .nz_plotters import RailNZTomoBinsDataset
 
 
@@ -98,7 +103,9 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
     def generate_dataset_dict(
         cls,
         **kwargs: Any,
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[
+        list[RailProjectHolder], list[RailDatasetHolder], list[RailDatasetListHolder]
+    ]:
         """
         Parameters
         ----------
@@ -127,8 +134,14 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
 
         Returns
         -------
-        list[dict[str, Any]]
-            Dictionary of the extracted datasets
+        list[RailProjectHolder]
+            Underlying RailProjects
+
+        list[RailDatasetHolder]
+            Extracted datasets
+
+        list[RailDatasetListHolder]
+            Extracted dataset lists
         """
         dataset_list_name: str | None = kwargs.get("dataset_list_name")
         project_file = kwargs["project_file"]
@@ -136,9 +149,7 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
 
         selections = kwargs.get("selections")
         flavors = kwargs.get("flavors")
-        split_by_flavor = kwargs.get("split_by_flavor", False)
-
-        output: list[dict[str, Any]] = []
+        split_mode = kwargs.get("split_mode", DatasetSplitMode.by_algo)
 
         flavor_dict = project.get_flavors()
         if flavors is None or "all" in flavors:
@@ -150,18 +161,20 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
         if not dataset_list_name:
             dataset_list_name = f"{project_name}_pz_point"
 
-        project_block = dict(
-            Project=dict(
+        projects: list[RailProjectHolder] = []
+        datasets: list[RailDatasetHolder] = []
+        dataset_lists: list[RailDatasetListHolder] = []
+
+        projects.append(
+            RailProjectHolder(
                 name=project_name,
                 yaml_file=project_file,
             )
         )
 
-        output.append(project_block)
-
         dataset_list_dict: dict[str, list[str]] = {}
         dataset_key = dataset_list_name
-        if not split_by_flavor:
+        if split_mode == DatasetSplitMode.no_split:
             dataset_list_dict[dataset_key] = []
 
         for key in flavors:
@@ -189,11 +202,16 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
                 summarizers = list(project.get_summarizers().keys())
 
             for selection_ in selections:
-                if split_by_flavor:
+                if split_mode == DatasetSplitMode.by_flavor:
                     dataset_key = f"{dataset_list_name}_{selection_}_{key}"
                     dataset_list_dict[dataset_key] = []
 
                 for algo_ in algos:
+                    if split_mode == DatasetSplitMode.by_algo:
+                        dataset_key = f"{dataset_list_name}_{selection_}_{algo_}"
+                        if dataset_key not in dataset_list_dict:
+                            dataset_list_dict[dataset_key] = []
+
                     for classifier_ in classifiers:
                         nz_true_paths = get_ceci_true_nz_output_paths(
                             project,
@@ -221,9 +239,8 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
 
                             dataset_name = f"{selection_}_{key}_{algo_}_{classifier_}_{summarizer_}"
 
-                            dataset_dict = dict(
+                            dataset = cls(
                                 name=dataset_name,
-                                class_name=cls.full_class_name(),
                                 project=project_name,
                                 flavor=key,
                                 algo=algo_,
@@ -231,19 +248,18 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
                                 classifier=classifier_,
                                 summarizer=summarizer_,
                             )
-
+                            datasets.append(dataset)
                             dataset_list_dict[dataset_key].append(dataset_name)
-                            output.append(dict(Dataset=dataset_dict))
 
         for ds_name, ds_list in dataset_list_dict.items():
             # Skip empty lists
             if not ds_list:
                 continue
-            dataset_list = dict(
+            dataset_list = RailDatasetListHolder(
                 name=ds_name,
                 dataset_class=cls.output_type.full_class_name(),
                 datasets=ds_list,
             )
-            output.append(dict(DatasetList=dataset_list))
+            dataset_lists.append(dataset_list)
 
-        return output
+        return (projects, datasets, dataset_lists)
