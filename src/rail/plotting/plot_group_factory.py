@@ -318,7 +318,12 @@ class RailPlotGroupFactory(RailFactoryMixin):
         for plot_group_ in merged_plot_groups:
             plot_group_yaml_list.append(plot_group_.to_yaml_dict())
 
+        plotter_path = re.sub(
+            ".*rail_project_config", "${RAIL_PROJECT_CONFIG_DIR}", plotter_yaml_path
+        )
+            
         output_yaml_dict: dict[str, list] = dict(
+            Includes=[plotter_path],
             Data=data_yaml_list,
             PlotGroups=plot_group_yaml_list,
         )
