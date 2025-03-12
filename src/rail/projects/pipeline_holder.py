@@ -83,17 +83,27 @@ def estimate_input_callback(
     pipeline_info = project.get_pipeline(pipeline_name)
     input_files = {}
     input_file_tags = pipeline_info["input_file_templates"]
-    flavor = kwargs.pop("flavor", "baseline")
+    kwcopy = kwargs.copy()
+    flavor = kwcopy.pop("flavor", "baseline")
+    local_input_tag = kwcopy.pop("input_tag", None)
+    if local_input_tag:
+        input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
+    else:
+        input_files["sink_dir"] = sink_dir
     for key, val in input_file_tags.items():
-        input_file_flavor = val.get("flavor", flavor)
+        input_file_flavor = kwargs.get("flavor", val.get("flavor", "baseline"))
+        input_tag = kwargs.get("input_tag", val["tag"])
         input_files[key] = project.get_file_for_flavor(
-            input_file_flavor, val["tag"], **kwargs
+            input_file_flavor,
+            input_tag,
+            **kwcopy,
         )
 
     pz_algorithms = project.get_pzalgorithms()
     for pz_algo_ in pz_algorithms.keys():
         input_files[f"model_{pz_algo_}"] = os.path.join(
-            sink_dir, f"inform_model_{pz_algo_}.pkl"
+            project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
+            f"model_inform_{pz_algo_}.pkl",
         )
     return input_files
 
@@ -295,6 +305,19 @@ def truth_to_observed_convert_commands(
     return convert_commands
 
 
+def prepare_convert_commands(sink_dir: str, **_kwargs: Any) -> list[list[str]]:
+    convert_command = [
+        "tables-io",
+        "convert",
+        "--input",
+        f"{sink_dir}/output_deredden.pq",
+        "--output",
+        f"{sink_dir}/output.hdf5",
+    ]
+    convert_commands = [convert_command]
+    return convert_commands
+
+
 def photometric_errors_convert_commands(
     sink_dir: str, **_kwargs: Any
 ) -> list[list[str]]:
@@ -354,6 +377,7 @@ INPUT_CALLBACK_DICT = dict(
 
 CATALOG_CONVERT_COMMANDS_DICT = dict(
     truth_to_observed=truth_to_observed_convert_commands,
+    prepare=prepare_convert_commands,
     photometric_errors=photometric_errors_convert_commands,
     spec_selection=spectroscopic_selection_convert_commands,
     blending=blending_convert_commands,
@@ -592,6 +616,7 @@ class RailPipelineInstance(Configurable):
         input_files = input_callback(
             project, pipeline_name, sink_dir, flavor=self.config.flavor, **kwargs
         )
+        input_files.setdefault("sink_dir", sink_dir)
         return input_files
 
     def make_pipeline_single_input_command(
@@ -616,11 +641,8 @@ class RailPipelineInstance(Configurable):
         """
         pipeline_path = self.config.path
         pipeline_config = pipeline_path.replace(".yaml", "_config.yml")
-        sink_dir = project.get_path(
-            "ceci_output_dir", flavor=self.config.flavor, **kwargs
-        )
         input_files = self.get_input_files(project, **kwargs)
-
+        sink_dir = input_files.pop("sink_dir")
         command_line = project.generate_ceci_command(
             pipeline_path=pipeline_path,
             config=pipeline_config,

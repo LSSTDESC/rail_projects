@@ -206,6 +206,29 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     return ok
 
 
+@run_group.command(name="prepare")
+@project_options.config_file()
+@project_options.selection()
+@project_options.flavor()
+@project_options.run_mode()
+def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
+    """Run the truth-to-observed data pipeline"""
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    pipeline_name = "prepare"
+
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_catalog(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
 @run_group.command(name="truth-to-observed")
 @project_options.config_file()
 @project_options.selection()
@@ -303,6 +326,7 @@ def inform_single(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.input_tag()
 def estimate_single(config_file: str, **kwargs: Any) -> int:
     """Run the estimation pipeline"""
     pipeline_name = "estimate"
