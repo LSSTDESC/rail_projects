@@ -4,6 +4,7 @@ import math
 import os
 from typing import Any
 
+import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
@@ -40,6 +41,32 @@ COLUMNS = [
     "bulge_frac",
     # "healpix",
 ]
+
+
+COLUMNS_COM_CAM = [
+    "objectId",
+    "coord_ra",
+    "coord_dec",
+    "u_cModelFlux",
+    "g_cModelFlux",
+    "r_cModelFlux",
+    "i_cModelFlux",
+    "z_cModelFlux",
+    "y_cModelFlux",
+    "u_cModelFluxErr",
+    "g_cModelFluxErr",
+    "r_cModelFluxErr",
+    "i_cModelFluxErr",
+    "z_cModelFluxErr",
+    "y_cModelFluxErr",
+]
+
+PROJECTIONS_COM_CAM = [
+    {
+        "ref_flux": pc.field("i_cModelFlux"),
+    }
+]
+
 
 PROJECTIONS = [
     {
@@ -204,3 +231,82 @@ class RomanRubinReducer(RailReducer):
 
         os.makedirs(output_dir, exist_ok=True)
         pq.write_table(table, output_catalog)
+
+
+class ComCamReducer(RailReducer):
+    """Class to reduce the 'com_cam' input files for pz analysis"""
+
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+        cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    )
+
+    _mag_offset = 31.4
+
+    def run(
+        self,
+        input_catalog: str,
+        output_catalog: str,
+    ) -> None:
+        # FIXME: do this right
+        mag_cut = self.config.cuts["maglim_i"][1]
+        flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
+
+        if self.config.cuts:
+            predicate = pc.field("i_cModelFlux") > flux_cut
+        else:  # pragma: no cover
+            predicate = None
+
+        dataset = ds.dataset(
+            input_catalog,
+            format="parquet",
+        )
+
+        scan_node = acero.Declaration(
+            "scan",
+            acero.ScanNodeOptions(
+                dataset,
+                columns=COLUMNS_COM_CAM,
+                filter=predicate,
+            ),
+        )
+
+        filter_node = acero.Declaration(
+            "filter",
+            acero.FilterNodeOptions(
+                predicate,
+            ),
+        )
+
+        column_projection = {k: pc.field(k) for k in COLUMNS_COM_CAM}
+        projection = column_projection
+        project_nodes = []
+        for _projection in PROJECTIONS_COM_CAM:
+            for k, v in _projection.items():
+                projection[k] = v
+            project_node = acero.Declaration(
+                "project",
+                acero.ProjectNodeOptions(
+                    [v for k, v in projection.items()],
+                    names=[k for k, v in projection.items()],
+                ),
+            )
+            project_nodes.append(project_node)
+
+        seq = [
+            scan_node,
+            filter_node,
+            *project_nodes,
+        ]
+        plan = acero.Declaration.from_sequence(seq)
+
+        # batches = plan.to_reader(use_threads=True)
+        table = plan.to_table(use_threads=True)
+        print(f"writing dataset to {output_catalog}")
+
+        output_dir = os.path.dirname(output_catalog)
+
+        os.makedirs(output_dir, exist_ok=True)
+        pd = table.to_pandas()
+        pd.to_parquet(output_catalog)
+        # pq.write_table(table, output_catalog)
