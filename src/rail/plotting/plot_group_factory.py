@@ -77,7 +77,6 @@ class RailPlotGroupFactory(RailFactoryMixin):
             **kwargs,
         )
 
-        
     @classmethod
     def make_yaml_for_project(
         cls,
@@ -280,14 +279,14 @@ class RailPlotGroupFactory(RailFactoryMixin):
 
         for _key, val in plotter_lists.items():
             plot_group_stuff = self.make_plot_groups_instance(
-                val, 
+                val,
                 project_file=project_yaml_path,
                 **kwargs,
             )
-            projects.append(plot_group_stuff['Projects'])
-            datasets.append(plot_group_stuff['Datasets'])
-            dataset_lists_ = plot_group_stuff['DatasetLists']
-            dataset_lists.append(dataset_lists_)            
+            projects.append(plot_group_stuff["Projects"])
+            datasets.append(plot_group_stuff["Datasets"])
+            dataset_lists_ = plot_group_stuff["DatasetLists"]
+            dataset_lists.append(dataset_lists_)
             plot_groups_: list[RailPlotGroup] = []
             for dataset_list_ in dataset_lists_:
                 plot_groups_.append(
@@ -321,7 +320,7 @@ class RailPlotGroupFactory(RailFactoryMixin):
         plotter_path = re.sub(
             ".*rail_project_config", "${RAIL_PROJECT_CONFIG_DIR}", plotter_yaml_path
         )
-            
+
         output_yaml_dict: dict[str, list] = dict(
             Includes=[plotter_path],
             Data=data_yaml_list,
@@ -356,9 +355,11 @@ class RailPlotGroupFactory(RailFactoryMixin):
         )
 
         try:
-            projects, datasets, dataset_lists = dataset_holder_class.generate_dataset_dict(
-                **kwargs
-            )
+            (
+                projects,
+                datasets,
+                dataset_lists,
+            ) = dataset_holder_class.generate_dataset_dict(**kwargs)
         except NotImplementedError:
             return dict(
                 Projects=[],
