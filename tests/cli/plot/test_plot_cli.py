@@ -148,7 +148,7 @@ def test_cli_make_nz_plot_groups(setup_project_area: int) -> None:
     )
     check_result(result)
 
-    
+
 def test_cli_make_plot_groups_for_project(setup_project_area: int) -> None:
     assert setup_project_area == 0
     runner = CliRunner()
@@ -160,7 +160,7 @@ def test_cli_make_plot_groups_for_project(setup_project_area: int) -> None:
         "--plotter_yaml_path tests/ci_plots.yaml "
         "--flavor all "
         "--split_mode by_algo "
-        "tests/ci_project.yaml"
+        "tests/ci_project.yaml",
     )
     check_result(result)
 
@@ -171,6 +171,6 @@ def test_cli_make_plot_groups_for_project(setup_project_area: int) -> None:
         "--plotter_yaml_path tests/ci_plots.yaml "
         "--flavor all "
         "--split_mode by_flavor "
-        "tests/ci_project.yaml"
+        "tests/ci_project.yaml",
     )
     check_result(result)
