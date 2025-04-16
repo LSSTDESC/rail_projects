@@ -146,7 +146,10 @@ class RomanRubinReducer(RailReducer):
     ) -> None:
         # FIXME: do this right
         if self.config.cuts:
-            predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
+            if 'maglim_i' in self.config.cuts:
+                predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
+            elif 'maglim_Y' in self.config.cuts:
+                predicate = pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
         else:  # pragma: no cover
             predicate = None
 
