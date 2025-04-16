@@ -108,7 +108,9 @@ def extract_datasets_command(
 @plot_options.plotter_list_name()
 @plot_options.output_prefix()
 @plot_options.dataset_list_name(multiple=True)
-def make_plot_groups_for_dataset_list(output_yaml: str, **kwargs: dict[str, Any]) -> int:
+def make_plot_groups_for_dataset_list(
+    output_yaml: str, **kwargs: dict[str, Any]
+) -> int:
     """Combine plotters with availble datsets
 
     This will read the plotter_yaml and dataset_yaml
@@ -144,5 +146,7 @@ def make_plot_groups_for_project(
     file.
     """
     control.clear()
-    control.make_plot_group_yaml_for_project(output_yaml, plotter_yaml_path, config_file, **kwargs)
+    control.make_plot_group_yaml_for_project(
+        output_yaml, plotter_yaml_path, config_file, **kwargs
+    )
     return 0

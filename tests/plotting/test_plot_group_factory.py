@@ -62,7 +62,7 @@ def test_make_yaml_for_dataset_list(setup_project_area: int) -> None:
         dataset_list_name="blend_baseline_tomo_knn",
     )
 
-    
+
 def test_make_yaml_for_project(setup_project_area: int) -> None:
     assert setup_project_area == 0
 
@@ -70,13 +70,13 @@ def test_make_yaml_for_project(setup_project_area: int) -> None:
         output_yaml="tests/temp_data/check_project_plot_groups_by_algo.yaml",
         plotter_yaml_path="tests/ci_plots.yaml",
         project_yaml_path="tests/ci_project.yaml",
-        flavors=['all'],
+        flavors=["all"],
         split_mode=DatasetSplitMode.by_algo,
     )
     RailPlotGroupFactory.make_yaml_for_project(
         output_yaml="tests/temp_data/check_project_plot_groups_by_flavor.yaml",
         plotter_yaml_path="tests/ci_plots.yaml",
         project_yaml_path="tests/ci_project.yaml",
-        flavors=['all'],
+        flavors=["all"],
         split_mode=DatasetSplitMode.by_flavor,
     )
