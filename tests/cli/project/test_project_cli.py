@@ -89,8 +89,13 @@ def test_cli_subsample() -> None:
 def test_cli_run(pipeline: str) -> None:
     runner = CliRunner()
 
+    if pipeline == 'estimate':
+        label_str = "--input_tag test "
+    else:
+        label_str = ""
+        
     result = runner.invoke(
         project_cli,
-        f"run {pipeline} --selection gold --flavor baseline --run_mode dry_run tests/ci_project.yaml",
+        f"run {pipeline} --selection gold --flavor baseline {label_str}--run_mode dry_run tests/ci_project.yaml",
     )
     check_result(result)
