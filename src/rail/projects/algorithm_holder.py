@@ -175,6 +175,9 @@ class RailErrorModelAlgorithmHolder(RailAlgorithmHolder):
         ErrorModel=StageParameter(
             str, None, fmt="%s", required=True, msg="Photometric Error Model Class"
         ),
+        Bands=StageParameter(
+            list, ['u', 'g', 'r', 'i', 'z', 'y'], fmt="%s", required=False, msg="Bands to apply errors to",
+        ),
     )
     yaml_tag = "ErrorModel"
 
