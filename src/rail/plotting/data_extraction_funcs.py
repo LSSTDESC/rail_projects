@@ -68,6 +68,33 @@ def extract_z_point(
     return z_estimates
 
 
+def extract_mag(
+    filepath: str,
+    colname: str = "LSST_obs_i",
+) -> np.ndarray:
+    """Extract the i-mag from a file
+
+    Parameters
+    ----------
+    filepath: str
+        Path to file with tabular data
+
+    colname: str
+        Name of the column with redshfits ['redshift']
+
+    Returns
+    -------
+    magnitude: np.ndarray
+        Magnitude in question
+
+    Notes
+    -----
+    This assumes the magnitude are in a file that can be read by tables_io
+    """
+    magnitude_table = tables_io.read(filepath)
+    return magnitude_table[colname]
+
+
 def extract_z_pdf(
     filepath: str,
 ) -> qp.ensemble:
@@ -122,16 +149,20 @@ def extract_multiple_z_point(
 def make_z_true_z_point_dict(
     z_true: np.ndarray,
     z_estimate: np.ndarray,
+    mags: np.ndarray,
 ) -> dict[str, np.ndarray]:
     """Build a dictionary with true redshifts and a point_estimates
 
     Parameters
     ----------
-    z_true: np.ndarray
+    z_true:
         True Redshifts
 
-    z_estimate: np.ndarray
+    z_estimate:
         Point estimates
+
+    mags:
+        Magnitdues
 
     Returns
     -------
@@ -141,6 +172,7 @@ def make_z_true_z_point_dict(
     out_dict: dict[str, Any] = dict(
         truth=z_true,
         pointEstimate=z_estimate,
+        magnitude=mags,
     )
     return out_dict
 
@@ -356,7 +388,8 @@ def get_pz_point_estimate_data(
         return None
     z_true_data = extract_z_true(z_true_path)
     z_estimate_data = extract_z_point(z_estimate_path)
-    pz_data = make_z_true_z_point_dict(z_true_data, z_estimate_data)
+    mag_data = extract_mag(z_true_path)
+    pz_data = make_z_true_z_point_dict(z_true_data, z_estimate_data, mag_data)
     return pz_data
 
 

@@ -173,9 +173,9 @@ class RomanRubinReducer(RailReducer):
     ) -> None:
         # FIXME: do this right
         if self.config.cuts:
-            if 'maglim_i' in self.config.cuts:
+            if "maglim_i" in self.config.cuts:
                 predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
-            elif 'maglim_Y' in self.config.cuts:
+            elif "maglim_Y" in self.config.cuts:
                 predicate = pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
             else:
                 raise ValueError("No valid cut")

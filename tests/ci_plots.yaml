@@ -26,6 +26,27 @@ Plots:
         - zestimate_v_ztrue_hist2d
         - zestimate_v_ztrue_profile
 
+  # A plot of biweight stats v redshift
+  - Plotter:
+      name: biweight_stats_v_redshift
+      class_name: rail.plotting.pz_plotters.PZPlotterBiweightStatsVsRedshift
+
+
+  # A plot of biweight stats v magnitdue
+  - Plotter:
+      name: biweight_stats_v_magnitude
+      class_name: rail.plotting.pz_plotters.PZPlotterBiweightStatsVsMag
+
+  # This combines the two previous plots, since they used the same type of data
+  # they can be made together
+  - PlotterList:
+      name: biweight_stats
+      dataset_holder_class: rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder
+      plotters:
+        - biweight_stats_v_redshift
+        - biweight_stats_v_magnitude
+
+
   # Plot the accuracy v. redshift for a set of point estimates
   - Plotter:
       name: accuracy_v_ztrue
