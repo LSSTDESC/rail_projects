@@ -67,9 +67,10 @@ def extract_z_point(
     z_estimates = np.squeeze(qp_ens.ancil[colname])
     return z_estimates
 
+
 def extract_mag(
     filepath: str,
-    colname: str = "mag_lsst_i",
+    colname: str = "LSST_obs_i",
 ) -> np.ndarray:
     """Extract the i-mag from a file
 
@@ -92,6 +93,7 @@ def extract_mag(
     """
     magnitude_table = tables_io.read(filepath)
     return magnitude_table[colname]
+
 
 def extract_z_pdf(
     filepath: str,
@@ -147,16 +149,20 @@ def extract_multiple_z_point(
 def make_z_true_z_point_dict(
     z_true: np.ndarray,
     z_estimate: np.ndarray,
+    mags: np.ndarray,
 ) -> dict[str, np.ndarray]:
     """Build a dictionary with true redshifts and a point_estimates
 
     Parameters
     ----------
-    z_true: np.ndarray
+    z_true:
         True Redshifts
 
-    z_estimate: np.ndarray
+    z_estimate:
         Point estimates
+
+    mags:
+        Magnitdues
 
     Returns
     -------
@@ -166,38 +172,10 @@ def make_z_true_z_point_dict(
     out_dict: dict[str, Any] = dict(
         truth=z_true,
         pointEstimate=z_estimate,
+        magnitude=mags,
     )
     return out_dict
 
-def make_z_true_z_point_mag_dict(
-    z_true: np.ndarray,
-    z_estimate: np.ndarray,
-    mag: np.ndarray,
-) -> dict[str, np.ndarray]:
-    """Build a dictionary with true redshifts and a point_estimates
-
-    Parameters
-    ----------
-    z_true: np.ndarray
-        True Redshifts
-
-    z_estimate: np.ndarray
-        Point estimates
-
-    mag: np.ndarray
-        Magnitude
-        
-    Returns
-    -------
-    out_dict: dict[str, np.ndarray]
-        Dictionary with true redshift and a point estimate of the redshift
-    """
-    out_dict: dict[str, Any] = dict(
-        truth=z_true,
-        pointEstimate=z_estimate,
-        magnitude=mag
-    )
-    return out_dict
 
 def make_z_true_multi_z_point_dict(
     z_true: np.ndarray,

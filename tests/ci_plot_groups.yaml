@@ -23,6 +23,14 @@ PlotGroups:
       plotter_list_name: accuracy_v_ztrue
       dataset_list_name: baseline_merged
 
+
+  # Make plots of biweight stags
+  - PlotGroup:
+      name: biweight_stats
+      plotter_list_name: biweight_stats
+      dataset_list_name: baseline_test
+
+
   # Make plots of n(z) in various tomographic bins
   - PlotGroup:
       name: tomo_bins
