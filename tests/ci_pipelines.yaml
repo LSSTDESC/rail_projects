@@ -77,6 +77,34 @@ Pipelines:
       kwargs:
         algorithms: ['all']
   - PipelineTemplate:
+      name: inform_sompz
+      pipeline_class: rail.pipelines.estimation.inform_sompz.InformSomPZPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: train
+        input_spec:
+          flavor: baseline
+          tag: test
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+        catalog_module: rail.sompz.utils
+  - PipelineTemplate:
+      name: estimate_sompz
+      pipeline_class: rail.pipelines.estimation.estimate_sompz.EstimateSomPZPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: train
+        input_spec:
+          flavor: baseline
+          tag: test
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        catalog_module: rail.sompz.utils
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+  - PipelineTemplate:
       name: tomography
       pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
       input_catalog_template: degraded

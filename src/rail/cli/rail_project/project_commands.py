@@ -410,14 +410,36 @@ def tomography_single(config_file: str, **kwargs: Any) -> int:
     return ok
 
 
-@run_group.command(name="sompz")
+@run_group.command(name="inform-sompz")
 @project_options.config_file()
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
-def sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
+def inform_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the sompz pipeline"""
-    pipeline_name = "sompz"
+    pipeline_name = "inform_sompz"
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_single(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
+@run_group.command(name="estimate-sompz")
+@project_options.config_file()
+@project_options.flavor()
+@project_options.selection()
+@project_options.run_mode()
+def estimate_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
+    """Run the sompz pipeline"""
+    pipeline_name = "estimate_sompz"
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
     selections = project.get_selection_args(kwargs.pop("selection"))
