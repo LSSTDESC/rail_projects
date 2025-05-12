@@ -85,12 +85,12 @@ Pipelines:
       name: inform_sompz
       pipeline_class: rail.pipelines.estimation.inform_sompz.InformSomPZPipeline
       input_file_templates:
-        input_deep:
+        input_deep_data:
           flavor: baseline
-          tag: train
-        input_spec:
+          tag: deep
+        input_wide_data:
           flavor: baseline
-          tag: test
+          tag: wide
       kwargs:
         wide_catalog_tag: SompzWideTestCatalogConfig
         deep_catalog_tag: SompzDeepTestCatalogConfig
@@ -101,10 +101,13 @@ Pipelines:
       input_file_templates:
         input_deep:
           flavor: baseline
-          tag: train
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
         input_spec:
           flavor: baseline
-          tag: test
+          tag: spec
       kwargs:
         wide_catalog_tag: SompzWideTestCatalogConfig
         catalog_module: rail.sompz.utils

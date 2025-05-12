@@ -23,6 +23,9 @@ Project:
       test: test_file_100k
       train: train_file_100k      
       train_zCOSMOS: train_file_zCOSMOS_100k
+      wide: wide_file_full
+      deep: deep_file_full
+      spec: spec_file_full      
 
   # These define the variant configurations for the various parts of the analysis
   Flavors:

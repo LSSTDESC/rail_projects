@@ -55,6 +55,24 @@ Files:
   - FileTemplate:
       name: train_file_10
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_10.hdf5"
+  - FileTemplate:
+      name: deep_file_full
+      path_template: "{catalogs_dir}/som/{project}_deep_data_full.hdf5"
+  - FileTemplate:
+      name: deep_file_small
+      path_template: "{catalogs_dir}/som/{project}_deep_data_small.hdf5"
+  - FileTemplate:
+      name: wide_file_full
+      path_template: "{catalogs_dir}/som/{project}_wide_data_full.hdf5"
+  - FileTemplate:
+      name: wide_file_small
+      path_template: "{catalogs_dir}/som/{project}_wide_data_small.hdf5"
+  - FileTemplate:
+      name: spec_file_full
+      path_template: "{catalogs_dir}/som/{project}_spec_data_full.hdf5"
+  - FileTemplate:
+      name: spec_file_small
+      path_template: "{catalogs_dir}/som/{project}_spec_data_small.hdf5"
 
 
 # The next plots list all available algorithms of various types and assigns short names each of then
@@ -253,12 +271,12 @@ Pipelines:
       name: inform_sompz
       pipeline_class: rail.pipelines.estimation.inform_sompz.InformSomPZPipeline
       input_file_templates:
-        input_deep:
+        input_deep_data:
           flavor: baseline
-          tag: train
-        input_spec:
+          tag: deep
+        input_wide_data:
           flavor: baseline
-          tag: test
+          tag: wide
       kwargs:
         wide_catalog_tag: SompzWideTestCatalogConfig
         deep_catalog_tag: SompzDeepTestCatalogConfig
@@ -269,10 +287,13 @@ Pipelines:
       input_file_templates:
         input_deep:
           flavor: baseline
-          tag: train
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
         input_spec:
           flavor: baseline
-          tag: test
+          tag: spec
       kwargs:
         wide_catalog_tag: SompzWideTestCatalogConfig
         catalog_module: rail.sompz.utils

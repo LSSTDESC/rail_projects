@@ -58,7 +58,7 @@ Data:
       name: baseline_merged
       dataset_class: rail.plotting.pz_plotters.RailPZMultiPointEstimateDataset
       datasets:
-          - blend_baseline_all
+        - blend_baseline_all
 
   # This is a dataset of all n(z) estimates for a set of tomographic bins
   - Dataset:
