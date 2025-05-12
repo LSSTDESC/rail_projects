@@ -9,6 +9,11 @@ Pipelines:
         selectors: ['all']
         blending: true
   - PipelineTemplate:
+      name: prepare
+      pipeline_class: rail.pipelines.utils.prepare_observed.PrepareObservedPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+  - PipelineTemplate:
       name: photometric_errors
       pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
       input_catalog_template: reduced

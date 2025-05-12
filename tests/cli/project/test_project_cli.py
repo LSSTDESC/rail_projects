@@ -79,6 +79,7 @@ def test_cli_subsample() -> None:
         "evaluate",
         "inform",
         "phot-errors",
+        "prepare",
         "pz",
         "inform-sompz",
         "estimate-sompz",
