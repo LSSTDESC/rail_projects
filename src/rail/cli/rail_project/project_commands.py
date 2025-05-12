@@ -416,7 +416,7 @@ def tomography_single(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.run_mode()
 def inform_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
-    """Run the sompz pipeline"""
+    """Run the sompz inform pipeline"""
     pipeline_name = "inform_sompz"
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
@@ -438,7 +438,7 @@ def inform_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no c
 @project_options.selection()
 @project_options.run_mode()
 def estimate_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
-    """Run the sompz pipeline"""
+    """Run the sompz estimate pipeline"""
     pipeline_name = "estimate_sompz"
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
