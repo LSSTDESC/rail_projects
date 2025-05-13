@@ -194,7 +194,7 @@ def estimate_sompz_input_callback(
         )
 
     for field_ in ['wide', 'deep']:
-        input_files[f"model_{field_}"] = os.path.join(
+        input_files[f"{field_}_model"] = os.path.join(
             project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
             f"model_som_informer_{field_}.pkl",
         )
