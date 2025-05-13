@@ -193,11 +193,10 @@ def estimate_sompz_input_callback(
             **kwcopy,
         )
 
-    pz_algorithms = project.get_pzalgorithms()
-    for pz_algo_ in pz_algorithms.keys():
-        input_files[f"model_{pz_algo_}"] = os.path.join(
+    for field_ in ['wide', 'deep']:
+        input_files[f"model_{field_}"] = os.path.join(
             project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
-            f"model_inform_{pz_algo_}.pkl",
+            f"model_som_informer_{field_}.pkl",
         )
     return input_files
 
