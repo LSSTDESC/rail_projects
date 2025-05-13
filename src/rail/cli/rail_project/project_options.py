@@ -66,14 +66,14 @@ config_path = PartialOption(
 
 
 catalog_template = PartialOption(
-    "--catalog_template",
+    "--catalog-template",
     type=str,
     help="Name of the catalog template to use",
 )
 
 
 file_template = PartialOption(
-    "--file_template",
+    "--file-template",
     type=str,
     help="Name of the file template to use",
 )
@@ -101,7 +101,7 @@ label = PartialOption(
 
 
 reducer_class_name = PartialOption(
-    "--reducer_class_name",
+    "--reducer-class-name",
     help="Class for the reducer",
     type=str,
     default="roman_rubin",
@@ -124,7 +124,7 @@ site = PartialOption(
 
 
 subsampler_class_name = PartialOption(
-    "--subsampler_class_name",
+    "--subsampler-class-name",
     help="Class for the subsampler",
     type=str,
     default="random_subsample",
@@ -132,7 +132,7 @@ subsampler_class_name = PartialOption(
 
 
 subsample_name = PartialOption(
-    "--subsample_name",
+    "--subsample-name",
     help="Name for the subsample",
     type=str,
     default=None,
@@ -140,21 +140,21 @@ subsample_name = PartialOption(
 
 
 input_dir = PartialOption(
-    "--input_dir",
+    "--input-dir",
     help="Input Directory",
     type=click.Path(),
 )
 
 
 input_file = PartialOption(
-    "--input_file",
+    "--input-file",
     type=click.Path(),
     help="Input file",
 )
 
 
 input_selection = PartialOption(
-    "--input_selection",
+    "--input-selection",
     help="Data selection",
     multiple=True,
     default=[None],
@@ -162,7 +162,7 @@ input_selection = PartialOption(
 
 
 input_tag = PartialOption(
-    "--input_tag",
+    "--input-tag",
     type=str,
     default=None,
     help="Input Catalog tag",
@@ -178,55 +178,49 @@ maglim = PartialOption(
 
 
 model_dir = PartialOption(
-    "--model_dir",
+    "--model-dir",
     help="Path to directory with model files",
     type=click.Path(),
 )
 
 
 model_path = PartialOption(
-    "--model_path",
+    "--model-path",
     help="Path to model file",
     type=click.Path(),
 )
 
 
 model_name = PartialOption(
-    "--model_name",
+    "--model-name",
     help="Model Name",
     type=str,
 )
 
-output_dir = PartialOption(
-    "--output_dir",
-    help="Path to for output files",
-    type=click.Path(),
-)
-
 
 output_catalog_template = PartialOption(
-    "--output_catalog_template",
+    "--output-catalog-template",
     type=str,
     help="Name of the catalog template to use for output",
 )
 
 
 pdf_dir = PartialOption(
-    "--pdf_dir",
+    "--pdf-dir",
     help="Path to directory with p(z) files",
     type=click.Path(),
 )
 
 
 pdf_path = PartialOption(
-    "--pdf_path",
+    "--pdf-path",
     help="Path to p(z) estimate file",
     type=click.Path(),
 )
 
 
 run_mode = PartialOption(
-    "--run_mode",
+    "--run-mode",
     type=EnumChoice(RunMode),
     default="bash",
     help="Mode to run script",
@@ -241,21 +235,21 @@ size = PartialOption(
 
 
 output_dir = PartialOption(
-    "--output_dir",
+    "--output-dir",
     type=click.Path(),
     help="Path to directory for output",
 )
 
 
 output_file = PartialOption(
-    "--output_file",
+    "--output-file",
     type=click.Path(),
     help="Output file",
 )
 
 
 truth_path = PartialOption(
-    "--truth_path",
+    "--truth-path",
     help="Path to truth redshift file",
     type=click.Path(),
 )

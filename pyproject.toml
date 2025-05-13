@@ -56,8 +56,8 @@ docs = [
 
 
 [project.scripts]
-rail_project = "rail.cli.rail_project.project_commands:project_cli"
-rail_plot = "rail.cli.rail_plot.plot_commands:plot_cli"
+rail-project = "rail.cli.rail_project.project_commands:project_cli"
+rail-plot = "rail.cli.rail_plot.plot_commands:plot_cli"
 
 [build-system]
 requires = ["setuptools>=62", "wheel", "setuptools_scm[toml]>=6.2"]
