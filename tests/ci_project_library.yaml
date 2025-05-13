@@ -55,6 +55,24 @@ Files:
   - FileTemplate:
       name: train_file_10
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_10.hdf5"
+  - FileTemplate:
+      name: deep_file_full
+      path_template: "{catalogs_dir}/som/{project}_deep_data_full.hdf5"
+  - FileTemplate:
+      name: deep_file_small
+      path_template: "{catalogs_dir}/som/{project}_deep_data_small.hdf5"
+  - FileTemplate:
+      name: wide_file_full
+      path_template: "{catalogs_dir}/som/{project}_wide_data_full.hdf5"
+  - FileTemplate:
+      name: wide_file_small
+      path_template: "{catalogs_dir}/som/{project}_wide_data_small.hdf5"
+  - FileTemplate:
+      name: spec_file_full
+      path_template: "{catalogs_dir}/som/{project}_spec_data_full.hdf5"
+  - FileTemplate:
+      name: spec_file_small
+      path_template: "{catalogs_dir}/som/{project}_spec_data_small.hdf5"
 
 
 # The next plots list all available algorithms of various types and assigns short names each of then
@@ -177,6 +195,11 @@ Pipelines:
         selectors: ['all']
         blending: true
   - PipelineTemplate:
+      name: prepare
+      pipeline_class: rail.pipelines.utils.prepare_observed.PrepareObservedPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+  - PipelineTemplate:
       name: photometric_errors
       pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
       input_catalog_template: reduced
@@ -193,7 +216,7 @@ Pipelines:
       name: spec_selection
       input_catalog_template: degraded
       output_catalog_template: degraded
-      input_catalog_basename: output_dereddener_errors.pq      
+      input_catalog_basename: output_dereddener_errors.pq
       pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
       kwargs:
         selectors: ['all']
@@ -244,6 +267,37 @@ Pipelines:
           tag: test
       kwargs:
         algorithms: ['all']
+  - PipelineTemplate:
+      name: inform_sompz
+      pipeline_class: rail.pipelines.estimation.inform_sompz.InformSomPZPipeline
+      input_file_templates:
+        input_deep_data:
+          flavor: baseline
+          tag: deep
+        input_wide_data:
+          flavor: baseline
+          tag: wide
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+        catalog_module: rail.sompz.utils
+  - PipelineTemplate:
+      name: estimate_sompz
+      pipeline_class: rail.pipelines.estimation.estimate_sompz.EstimateSomPZPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
+        input_spec:
+          flavor: baseline
+          tag: spec
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        catalog_module: rail.sompz.utils
+        deep_catalog_tag: SompzDeepTestCatalogConfig
   - PipelineTemplate:
       name: tomography
       pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
