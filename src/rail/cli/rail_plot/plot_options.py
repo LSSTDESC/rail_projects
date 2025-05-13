@@ -11,6 +11,7 @@ __all__: list[str] = [
     "dataset_list_name",
     "plotter_list_name",
     "output_prefix",
+    "output_yaml",
     "dataset_yaml_path",
     "plotter_yaml_path",
     "include_groups",
@@ -20,90 +21,98 @@ __all__: list[str] = [
 
 
 exclude_groups = PartialOption(
-    "--exclude_groups",
+    "--exclude-groups",
     help="Plot groups to exclue",
     multiple=True,
 )
 
 
 include_groups = PartialOption(
-    "--include_groups",
+    "--include-groups",
     help="Plot groups to include",
     multiple=True,
 )
 
 
 dataset_holder_class = PartialOption(
-    "--dataset_holder_class",
+    "--dataset-holder-class",
     help="Class for the dataset holder",
     type=str,
 )
 
 
 dataset_list_name = PartialOption(
-    "--dataset_list_name",
+    "--dataset-list-name",
     help="Name for dataset list",
     type=str,
 )
 
 
 dataset_yaml_path = PartialOption(
-    "--dataset_yaml_path",
+    "--dataset-yaml-path",
     help="Name for dataset list",
     type=str,
 )
 
 
 output_prefix = PartialOption(
-    "--output_prefix",
+    "--output-prefix",
     help="Name for dataset list",
     default="",
     type=str,
 )
 
 
+output_yaml = PartialOption(
+    "--output-yaml",
+    help="Name for output yaml file",
+    default="",
+    type=str,
+)
+
+
 plotter_list_name = PartialOption(
-    "--plotter_list_name",
+    "--plotter-list-name",
     help="Name for plotter list",
     type=str,
 )
 
 
 plotter_yaml_path = PartialOption(
-    "--plotter_yaml_path",
+    "--plotter-yaml-path",
     help="Name for plotter list",
     type=str,
 )
 
 
 find_only = PartialOption(
-    "--find_only",
+    "--find-only",
     help="Find existing plots, do not create new ones",
     is_flag=True,
 )
 
 
 make_html = PartialOption(
-    "--make_html",
+    "--make-html",
     help="Make html files to help browse plots",
     is_flag=True,
 )
 
 
 purge_plots = PartialOption(
-    "--purge_plots",
+    "--purge-plots",
     help="Purge plots from memory after saving",
     is_flag=True,
 )
 
 save_plots = PartialOption(
-    "--save_plots",
+    "--save-plots",
     help="Save plots to disk",
     is_flag=True,
 )
 
 split_mode = PartialOption(
-    "--split_mode",
+    "--split-mode",
     help="How to split datasets within a project",
     type=EnumChoice(DatasetSplitMode),
     default="by_algo",

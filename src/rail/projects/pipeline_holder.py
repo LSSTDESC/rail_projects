@@ -92,6 +92,84 @@ def inform_sompz_input_callback(
     return input_files
 
 
+def inform_recalib_input_callback(
+    project: RailProject,
+    pipeline_name: str,
+    sink_dir: str,  # pylint: disable=unused-argument
+    **kwargs: Any,
+) -> dict[str, str]:
+    """Make dict of input tags and paths for the inform pipeline
+
+    Parameters
+    ----------
+    project: RailProject
+        Object with project configuration
+
+    pipeline_name: str
+        Name of the pipeline to run
+
+    sink_dir: str
+        Path to output directory
+
+    kwargs: Any
+        Additional parameters to specify pipeline, e.g., flavor, selection, ...
+
+    Returns
+    -------
+    dict[str, str]:
+        Dictionary of input file tags and paths
+    """
+    pipeline_info = project.get_pipeline(pipeline_name)
+    input_files = {}
+    input_file_tags = pipeline_info["input_file_templates"]
+    flavor = kwargs.pop("flavor", "baseline")
+    for key, val in input_file_tags.items():
+        input_file_flavor = val.get("flavor", flavor)
+        input_files[key] = project.get_file_for_flavor(
+            input_file_flavor, val["tag"], **kwargs
+        )
+    return input_files
+
+
+def inform_somlike_input_callback(
+    project: RailProject,
+    pipeline_name: str,
+    sink_dir: str,  # pylint: disable=unused-argument
+    **kwargs: Any,
+) -> dict[str, str]:
+    """Make dict of input tags and paths for the inform pipeline
+
+    Parameters
+    ----------
+    project: RailProject
+        Object with project configuration
+
+    pipeline_name: str
+        Name of the pipeline to run
+
+    sink_dir: str
+        Path to output directory
+
+    kwargs: Any
+        Additional parameters to specify pipeline, e.g., flavor, selection, ...
+
+    Returns
+    -------
+    dict[str, str]:
+        Dictionary of input file tags and paths
+    """
+    pipeline_info = project.get_pipeline(pipeline_name)
+    input_files = {}
+    input_file_tags = pipeline_info["input_file_templates"]
+    flavor = kwargs.pop("flavor", "baseline")
+    for key, val in input_file_tags.items():
+        input_file_flavor = val.get("flavor", flavor)
+        input_files[key] = project.get_file_for_flavor(
+            input_file_flavor, val["tag"], **kwargs
+        )
+    return input_files
+
+
 def estimate_input_callback(
     project: RailProject,
     pipeline_name: str,
@@ -154,6 +232,116 @@ def estimate_sompz_input_callback(
     **kwargs: Any,
 ) -> dict[str, str]:
     """Make dict of input tags and paths for the estimate pipeline
+
+    Parameters
+    ----------
+    project: RailProject
+        Object with project configuration
+
+    pipeline_name: str
+        Name of the pipeline to run
+
+    sink_dir: str
+        Path to output directory
+
+    kwargs: Any
+        Additional parameters to specify pipeline, e.g., flavor, selection, ...
+
+    Returns
+    -------
+    dict[str, str]:
+        Dictionary of input file tags and paths
+    """
+    pipeline_info = project.get_pipeline(pipeline_name)
+    input_files = {}
+    input_file_tags = pipeline_info["input_file_templates"]
+    kwcopy = kwargs.copy()
+    flavor = kwcopy.pop("flavor", "baseline")
+    local_input_tag = kwcopy.pop("input_tag", None)
+    if local_input_tag:
+        input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
+    else:
+        input_files["sink_dir"] = sink_dir
+    for key, val in input_file_tags.items():
+        input_file_flavor = kwargs.get("flavor", val.get("flavor", "baseline"))
+        input_tag = kwargs.get("input_tag", val["tag"])
+        input_files[key] = project.get_file_for_flavor(
+            input_file_flavor,
+            input_tag,
+            **kwcopy,
+        )
+
+    for field_ in ['wide', 'deep']:
+        input_files[f"{field_}_model"] = os.path.join(
+            project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
+            f"model_som_informer_{field_}.pkl",
+        )
+    return input_files
+
+
+def estimate_recalib_input_callback(
+    project: RailProject,
+    pipeline_name: str,
+    sink_dir: str,
+    **kwargs: Any,
+) -> dict[str, str]:
+    """Make dict of input tags and paths for the estimate pipeline
+
+    Parameters
+    ----------
+    project: RailProject
+        Object with project configuration
+
+    pipeline_name: str
+        Name of the pipeline to run
+
+    sink_dir: str
+        Path to output directory
+
+    kwargs: Any
+        Additional parameters to specify pipeline, e.g., flavor, selection, ...
+
+    Returns
+    -------
+    dict[str, str]:
+        Dictionary of input file tags and paths
+    """
+    pipeline_info = project.get_pipeline(pipeline_name)
+    input_files = {}
+    input_file_tags = pipeline_info["input_file_templates"]
+    kwcopy = kwargs.copy()
+    flavor = kwcopy.pop("flavor", "baseline")
+    local_input_tag = kwcopy.pop("input_tag", None)
+    if local_input_tag:
+        input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
+    else:
+        input_files["sink_dir"] = sink_dir
+    for key, val in input_file_tags.items():
+        input_file_flavor = kwargs.get("flavor", val.get("flavor", "baseline"))
+        input_tag = kwargs.get("input_tag", val["tag"])
+        input_files[key] = project.get_file_for_flavor(
+            input_file_flavor,
+            input_tag,
+            **kwcopy,
+        )
+
+    pz_algorithms = project.get_pzalgorithms()
+    for pz_algo_ in pz_algorithms.keys():
+        input_files[f"model_{pz_algo_}"] = os.path.join(
+            project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
+            f"model_inform_{pz_algo_}.pkl",
+        )
+
+    return input_files
+
+
+def somlike_recalib_input_callback(
+    project: RailProject,
+    pipeline_name: str,
+    sink_dir: str,
+    **kwargs: Any,
+) -> dict[str, str]:
+    """Make dict of input tags and paths for the somlike recalib pipeline
 
     Parameters
     ----------
@@ -415,6 +603,10 @@ INPUT_CALLBACK_DICT = dict(
     evaluate=evaluate_input_callback,
     inform_sompz=inform_sompz_input_callback,
     estimate_sompz=estimate_sompz_input_callback,
+    inform_recalib=inform_recalib_input_callback,
+    estimate_recalib=estimate_recalib_input_callback,
+    inform_somlike=inform_somlike_input_callback,
+    somlike_recalib=somlike_recalib_input_callback,
     pz=pz_input_callback,
     tomography=tomography_input_callback,
 )

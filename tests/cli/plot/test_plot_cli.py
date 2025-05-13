@@ -43,10 +43,10 @@ def test_cli_extract_nz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--dataset_holder_class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
+        "--dataset-holder-class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
         "--flavor all "
-        "--split_mode by_algo "
-        "--output_yaml tests/temp_data/dataset_nz_out.yaml "
+        "--split-mode by_algo "
+        "--output-yaml tests/temp_data/dataset_nz_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -55,10 +55,10 @@ def test_cli_extract_nz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--dataset_holder_class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
+        "--dataset-holder-class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
         "--flavor all "
-        "--split_mode by_flavor "
-        "--output_yaml tests/temp_data/dataset_nz_out.yaml "
+        "--split-mode by_flavor "
+        "--output-yaml tests/temp_data/dataset_nz_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -67,10 +67,10 @@ def test_cli_extract_nz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--dataset_holder_class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
+        "--dataset-holder-class rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder "
         "--flavor all "
-        "--split_mode no_split "
-        "--output_yaml tests/temp_data/dataset_nz_out.yaml "
+        "--split-mode no_split "
+        "--output-yaml tests/temp_data/dataset_nz_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -84,10 +84,10 @@ def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--dataset_holder_class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
+        "--dataset-holder-class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
         "--flavor all "
-        "--split_mode by_algo "
-        "--output_yaml tests/temp_data/dataset_out.yaml "
+        "--split-mode by_algo "
+        "--output-yaml tests/temp_data/dataset_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -96,10 +96,10 @@ def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--dataset_holder_class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
+        "--dataset-holder-class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
         "--flavor all "
-        "--split_mode by_flavor "
-        "--output_yaml tests/temp_data/dataset_out.yaml "
+        "--split-mode by_flavor "
+        "--output-yaml tests/temp_data/dataset_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -108,10 +108,10 @@ def test_cli_extract_pz_datasets(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "extract-datasets "
-        "--dataset_holder_class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
+        "--dataset-holder-class rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder "
         "--flavor all "
-        "--split_mode no_split "
-        "--output_yaml tests/temp_data/dataset_out.yaml "
+        "--split-mode no_split "
+        "--output-yaml tests/temp_data/dataset_out.yaml "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -124,11 +124,11 @@ def test_cli_make_plot_groups(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "make-plot-groups-for-dataset-list "
-        "--output_yaml tests/temp_data/check_plot_group.yaml "
-        "--plotter_yaml_path tests/ci_plots.yaml "
-        "--dataset_yaml_path tests/ci_datasets.yaml "
-        "--plotter_list_name zestimate_v_ztrue "
-        "--dataset_list_name blend_baseline_all",
+        "--output-yaml tests/temp_data/check_plot_group.yaml "
+        "--plotter-yaml-path tests/ci_plots.yaml "
+        "--dataset-yaml-path tests/ci_datasets.yaml "
+        "--plotter-list-name zestimate_v_ztrue "
+        "--dataset-list-name blend_baseline_all",
     )
     check_result(result)
 
@@ -140,11 +140,11 @@ def test_cli_make_nz_plot_groups(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "make-plot-groups-for-dataset-list "
-        "--output_yaml tests/temp_data/check_nz_plot_group.yaml "
-        "--plotter_yaml_path tests/ci_plots.yaml "
-        "--dataset_yaml_path tests/ci_datasets.yaml "
-        "--plotter_list_name tomo_bins "
-        "--dataset_list_name blend_baseline_tomo_knn",
+        "--output-yaml tests/temp_data/check_nz_plot_group.yaml "
+        "--plotter-yaml-path tests/ci_plots.yaml "
+        "--dataset-yaml-path tests/ci_datasets.yaml "
+        "--plotter-list-name tomo_bins "
+        "--dataset-list-name blend_baseline_tomo_knn",
     )
     check_result(result)
 
@@ -156,10 +156,10 @@ def test_cli_make_plot_groups_for_project(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "make-plot-groups-for-project "
-        "--output_yaml tests/temp_data/check_project_plot_groups_by_algo.yaml "
-        "--plotter_yaml_path tests/ci_plots.yaml "
+        "--output-yaml tests/temp_data/check_project_plot_groups_by_algo.yaml "
+        "--plotter-yaml-path tests/ci_plots.yaml "
         "--flavor all "
-        "--split_mode by_algo "
+        "--split-mode by_algo "
         "tests/ci_project.yaml",
     )
     check_result(result)
@@ -167,10 +167,10 @@ def test_cli_make_plot_groups_for_project(setup_project_area: int) -> None:
     result = runner.invoke(
         plot_cli,
         "make-plot-groups-for-project "
-        "--output_yaml tests/temp_data/check_project_plot_groups_by_flavor.yaml "
-        "--plotter_yaml_path tests/ci_plots.yaml "
+        "--output-yaml tests/temp_data/check_project_plot_groups_by_flavor.yaml "
+        "--plotter-yaml-path tests/ci_plots.yaml "
         "--flavor all "
-        "--split_mode by_flavor "
+        "--split-mode by_flavor "
         "tests/ci_project.yaml",
     )
     check_result(result)

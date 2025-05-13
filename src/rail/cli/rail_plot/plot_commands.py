@@ -72,7 +72,7 @@ def inspect_command(config_file: str) -> int:
 @plot_cli.command(name="extract-datasets")
 @project_options.config_file()
 @plot_options.dataset_holder_class()
-@options.output_yaml()
+@plot_options.output_yaml()
 @plot_options.dataset_list_name()
 @project_options.flavor()
 @project_options.selection()
@@ -102,7 +102,7 @@ def extract_datasets_command(
 
 
 @plot_cli.command(name="make-plot-groups-for-dataset-list")
-@options.output_yaml()
+@plot_options.output_yaml()
 @plot_options.plotter_yaml_path()
 @plot_options.dataset_yaml_path()
 @plot_options.plotter_list_name()
@@ -125,7 +125,7 @@ def make_plot_groups_for_dataset_list(
 
 
 @plot_cli.command(name="make-plot-groups-for-project")
-@options.output_yaml()
+@plot_options.output_yaml()
 @project_options.config_file()
 @plot_options.plotter_yaml_path()
 @project_options.flavor()

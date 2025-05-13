@@ -43,9 +43,9 @@ def test_cli_reduce() -> None:
     result = runner.invoke(
         project_cli,
         "reduce "
-        "--catalog_template truth "
-        "--output_catalog_template reduced "
-        "--reducer_class_name roman_rubin "
+        "--catalog-template truth "
+        "--output-catalog-template reduced "
+        "--reducer-class-name roman_rubin "
         "--selection gold "
         "tests/ci_project.yaml",
     )
@@ -58,12 +58,12 @@ def test_cli_subsample() -> None:
     result = runner.invoke(
         project_cli,
         "subsample "
-        "--catalog_template degraded "
+        "--catalog-template degraded "
         "--flavor baseline "
-        "--file_template test_file_100k "
-        "--subsampler_class_name random_subsampler "
-        "--subsample_name test_100k "
-        "--run_mode dry_run "
+        "--file-template test_file_100k "
+        "--subsampler-class-name random_subsampler "
+        "--subsample-name test_100k "
+        "--run-mode dry_run "
         "--selection gold "
         "--basename output.hdf5 "
         "tests/ci_project.yaml",
@@ -83,6 +83,10 @@ def test_cli_subsample() -> None:
         "pz",
         "inform-sompz",
         "estimate-sompz",
+        "inform-recalib",
+        "estimate-recalib",
+        "inform-somlike",
+        "somlike-recalib",
         "spec-selection",
         "tomography",
         "truth-to-observed",
@@ -92,12 +96,12 @@ def test_cli_run(pipeline: str) -> None:
     runner = CliRunner()
 
     if pipeline == "estimate":
-        label_str = "--input_tag test "
+        label_str = "--input-tag test "
     else:
         label_str = ""
 
     result = runner.invoke(
         project_cli,
-        f"run {pipeline} --selection gold --flavor baseline {label_str}--run_mode dry_run tests/ci_project.yaml",
+        f"run {pipeline} --selection gold --flavor baseline {label_str}--run-mode dry_run tests/ci_project.yaml",
     )
     check_result(result)

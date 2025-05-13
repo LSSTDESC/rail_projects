@@ -113,6 +113,64 @@ Pipelines:
         catalog_module: rail.sompz.utils
         deep_catalog_tag: SompzDeepTestCatalogConfig
   - PipelineTemplate:
+      name: inform_somlike
+      pipeline_class: rail.pipelines.calib.inform_somlike.InformSomlikePipeline
+      input_file_templates:
+        input_deep_data:
+          flavor: baseline
+          tag: deep
+        input_wide_data:
+          flavor: baseline
+          tag: wide
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+        catalog_module: rail.sompz.utils
+  - PipelineTemplate:
+      name: somlike_recalib
+      pipeline_class: rail.pipelines.calib.somlike_recalib.SomlikeRecalibPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
+        input_spec:
+          flavor: baseline
+          tag: spec
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        catalog_module: rail.sompz.utils
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+  - PipelineTemplate:
+      name: inform_recalib
+      pipeline_class: rail.pipelines.calib.inform_recalib.InformRecalibPipeline
+      input_file_templates:
+        input_deep_data:
+          flavor: baseline
+          tag: deep
+        input_wide_data:
+          flavor: baseline
+          tag: wide
+      kwargs:
+        recalib_algos: null
+  - PipelineTemplate:
+      name: estimate_recalib
+      pipeline_class: rail.pipelines.calib.estimate_recalib.EstimateRecalibPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
+        input_spec:
+          flavor: baseline
+          tag: spec
+      kwargs:
+        recalib_algos: null
+  - PipelineTemplate:
       name: tomography
       pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
       input_catalog_template: degraded

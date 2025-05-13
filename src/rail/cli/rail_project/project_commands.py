@@ -452,3 +452,91 @@ def estimate_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no
             **kwargs,
         )
     return ok
+
+
+@run_group.command(name="inform-recalib")
+@project_options.config_file()
+@project_options.flavor()
+@project_options.selection()
+@project_options.run_mode()
+def inform_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
+    """Run the recalibration inform pipeline"""
+    pipeline_name = "inform_recalib"
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_single(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
+@run_group.command(name="estimate-recalib")
+@project_options.config_file()
+@project_options.flavor()
+@project_options.selection()
+@project_options.run_mode()
+def estimate_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
+    """Run the recalibration estimate pipeline"""
+    pipeline_name = "estimate_recalib"
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_single(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
+@run_group.command(name="inform-somlike")
+@project_options.config_file()
+@project_options.flavor()
+@project_options.selection()
+@project_options.run_mode()
+def inform_somlikesingle(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
+    """Run the somlike inform pipeline"""
+    pipeline_name = "inform_somlike"
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_single(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
+@run_group.command(name="somlike-recalib")
+@project_options.config_file()
+@project_options.flavor()
+@project_options.selection()
+@project_options.run_mode()
+def somlike_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
+    """Run the somlike recalibration pipeline"""
+    pipeline_name = "somlike_recalib"
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_single(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
