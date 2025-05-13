@@ -23,6 +23,7 @@ dynamic = ["version"]
 dependencies = [
     "pz-rail-pipelines",
     "pz-rail-sompz",
+    "pz-rail-calib",
     "matplotlib",
     "yamllint",
     "pyarrow",
