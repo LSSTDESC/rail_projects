@@ -802,7 +802,15 @@ class RailPipelineInstance(Configurable):
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
-            catalog_utils.apply_defaults(catalog_tag)
+            try:
+                catalog_utils.apply_defaults(catalog_tag)
+            except KeyError:
+                tokens = catalog_tag.split('.')
+                module_name = '.'.join(tokens[:-1])
+                class_name = tokens[-1]
+                __import__(module_name)
+                catalog_utils.CatalogConfigBase.apply_class(class_name)
+
 
         tokens = pipeline_class.split(".")
         module = ".".join(tokens[:-1])

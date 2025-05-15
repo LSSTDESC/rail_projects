@@ -147,13 +147,11 @@ Pipelines:
       name: inform_recalib
       pipeline_class: rail.pipelines.calib.inform_recalib.InformRecalibPipeline
       input_file_templates:
-        input_deep_data:
+        truth:
           flavor: baseline
-          tag: deep
-        input_wide_data:
-          flavor: baseline
-          tag: wide
+          tag: test
       kwargs:
+        algorithms: ['all']
         recalib_algos: null
   - PipelineTemplate:
       name: estimate_recalib
