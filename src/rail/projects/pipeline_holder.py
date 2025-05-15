@@ -376,12 +376,12 @@ def somlike_recalib_input_callback(
     kwcopy = kwargs.copy()
     flavor = kwcopy.pop("flavor", "baseline")
 
-    pdfs_dir = sink_dir
+    models_dir = sink_dir
     pz_algorithms = project.get_pzalgorithms()
     for pz_algo_ in pz_algorithms.keys():
-        input_files[f"input_evaluate_{pz_algo_}"] = os.path.join(
-            pdfs_dir, f"estimate_output_{pz_algo_}.hdf5"
-        )        
+        for field_ in ['deep', 'wide']:
+            model_file = f"model_pz_informer_{pz_algo_}_deep.pickle"            
+            input_files[f"model_{pz_algo_}_{field_}"] = os.path.join(models_dir, model_file)
     
     local_input_tag = kwcopy.pop("input_tag", None)
     if local_input_tag:
@@ -397,11 +397,6 @@ def somlike_recalib_input_callback(
             **kwcopy,
         )
 
-    for field_ in ['wide', 'deep']:
-        input_files[f"{field_}_model"] = os.path.join(
-            project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
-            f"model_pz_informer_{field_}.pkl",
-        )
     return input_files
 
 
