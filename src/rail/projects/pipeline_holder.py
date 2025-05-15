@@ -375,6 +375,14 @@ def somlike_recalib_input_callback(
     input_file_tags = pipeline_info["input_file_templates"]
     kwcopy = kwargs.copy()
     flavor = kwcopy.pop("flavor", "baseline")
+
+    pdfs_dir = sink_dir
+    pz_algorithms = project.get_pzalgorithms()
+    for pz_algo_ in pz_algorithms.keys():
+        input_files[f"input_evaluate_{pz_algo_}"] = os.path.join(
+            pdfs_dir, f"estimate_output_{pz_algo_}.hdf5"
+        )        
+    
     local_input_tag = kwcopy.pop("input_tag", None)
     if local_input_tag:
         input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
@@ -392,7 +400,7 @@ def somlike_recalib_input_callback(
     for field_ in ['wide', 'deep']:
         input_files[f"{field_}_model"] = os.path.join(
             project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
-            f"model_som_informer_{field_}.pkl",
+            f"model_pz_informer_{field_}.pkl",
         )
     return input_files
 
