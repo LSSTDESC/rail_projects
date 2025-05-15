@@ -128,6 +128,12 @@ def inform_recalib_input_callback(
         input_files[key] = project.get_file_for_flavor(
             input_file_flavor, val["tag"], **kwargs
         )
+    pdfs_dir = sink_dir
+    pz_algorithms = project.get_pzalgorithms()
+    for pz_algo_ in pz_algorithms.keys():
+        input_files[f"input_{pz_algo_}"] = os.path.join(
+            pdfs_dir, f"output_estimate_{algo_}.hdf5"
+        )        
     return input_files
 
 
