@@ -380,7 +380,7 @@ def somlike_recalib_input_callback(
     pz_algorithms = project.get_pzalgorithms()
     for pz_algo_ in pz_algorithms.keys():
         for field_ in ['deep', 'wide']:
-            model_file = f"model_pz_informer_{pz_algo_}_deep.pkl"            
+            model_file = f"model_pz_informer_{pz_algo_}_{field_}.pkl"            
             input_files[f"model_{pz_algo_}_{field_}"] = os.path.join(models_dir, model_file)
     
     local_input_tag = kwcopy.pop("input_tag", None)
