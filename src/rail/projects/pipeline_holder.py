@@ -332,10 +332,11 @@ def estimate_recalib_input_callback(
         )
 
     pz_algorithms = project.get_pzalgorithms()
-    for pz_algo_ in pz_algorithms.keys():
+    ceci_dir = project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy)
+    for pz_algo_ in pz_algorithms.keys():        
+        input_files[f"input_{pz_algo_}"] = os.path.join(ceci_dir, f"output_estimate_{pz_algo_}.hdf5")
         for recalib_algo_ in ['pz_max_cell_p', 'pz_mode']:
-            input_files[f"model_{pz_algo_}_{recalib_algo_}"] = os.path.join(
-                project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
+            input_files[f"model_{pz_algo_}_{recalib_algo_}"] = os.path.join(ceci_dir,
                 f"model_inform_{pz_algo_}_{recalib_algo_}.pkl",
             )
 
