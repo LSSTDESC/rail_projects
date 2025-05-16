@@ -128,6 +128,12 @@ def inform_recalib_input_callback(
         input_files[key] = project.get_file_for_flavor(
             input_file_flavor, val["tag"], **kwargs
         )
+    pdfs_dir = sink_dir
+    pz_algorithms = project.get_pzalgorithms()
+    for pz_algo_ in pz_algorithms.keys():
+        input_files[f"input_{pz_algo_}"] = os.path.join(
+            pdfs_dir, f"output_estimate_{pz_algo_}.hdf5"
+        )        
     return input_files
 
 
@@ -326,11 +332,13 @@ def estimate_recalib_input_callback(
         )
 
     pz_algorithms = project.get_pzalgorithms()
-    for pz_algo_ in pz_algorithms.keys():
-        input_files[f"model_{pz_algo_}"] = os.path.join(
-            project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
-            f"model_inform_{pz_algo_}.pkl",
-        )
+    ceci_dir = project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy)
+    for pz_algo_ in pz_algorithms.keys():        
+        input_files[f"input_{pz_algo_}"] = os.path.join(ceci_dir, f"output_estimate_{pz_algo_}.hdf5")
+        for recalib_algo_ in ['pz_max_cell_p', 'pz_mode']:
+            input_files[f"model_{pz_algo_}_{recalib_algo_}"] = os.path.join(ceci_dir,
+                f"model_inform_{pz_algo_}_{recalib_algo_}.pkl",
+            )
 
     return input_files
 
@@ -367,6 +375,14 @@ def somlike_recalib_input_callback(
     input_file_tags = pipeline_info["input_file_templates"]
     kwcopy = kwargs.copy()
     flavor = kwcopy.pop("flavor", "baseline")
+
+    models_dir = sink_dir
+    pz_algorithms = project.get_pzalgorithms()
+    for pz_algo_ in pz_algorithms.keys():
+        for field_ in ['deep', 'wide']:
+            model_file = f"model_pz_informer_{pz_algo_}_{field_}.pkl"            
+            input_files[f"model_{pz_algo_}_{field_}"] = os.path.join(models_dir, model_file)
+    
     local_input_tag = kwcopy.pop("input_tag", None)
     if local_input_tag:
         input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
@@ -381,11 +397,6 @@ def somlike_recalib_input_callback(
             **kwcopy,
         )
 
-    for field_ in ['wide', 'deep']:
-        input_files[f"{field_}_model"] = os.path.join(
-            project.get_path("ceci_output_dir", flavor=input_file_flavor, **kwcopy),
-            f"model_som_informer_{field_}.pkl",
-        )
     return input_files
 
 
@@ -802,7 +813,15 @@ class RailPipelineInstance(Configurable):
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
-            catalog_utils.apply_defaults(catalog_tag)
+            try:
+                catalog_utils.apply_defaults(catalog_tag)
+            except KeyError:
+                tokens = catalog_tag.split('.')
+                module_name = '.'.join(tokens[:-1])
+                class_name = tokens[-1]
+                __import__(module_name)
+                catalog_utils.CatalogConfigBase.apply_class(class_name)
+
 
         tokens = pipeline_class.split(".")
         module = ".".join(tokens[:-1])
