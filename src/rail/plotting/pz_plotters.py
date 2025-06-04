@@ -630,6 +630,17 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
             for _j in range(nclip):
                 subset_clip, _, _ = sigmaclip(subset_clip, low=3, high=3)
 
+            if len(subset_clip) == 0:
+                biweight_mean.append(np.nan)
+                biweight_std.append(np.nan)
+                biweight_sigma.append(np.nan)
+                biweight_outlier.append(np.nan)
+                qt_95_low.append(np.nan)
+                qt_68_low.append(np.nan)
+                median.append(np.nan)
+                qt_68_high.append(np.nan)
+                qt_95_high.append(np.nan)
+
             biweight_mean.append(biweight_location(subset_clip))
             biweight_std.append(biweight_scale(subset_clip) / np.sqrt(len(subset_clip)))
             biweight_sigma.append(biweight_scale(subset_clip))
