@@ -640,6 +640,7 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
                 median.append(np.nan)
                 qt_68_high.append(np.nan)
                 qt_95_high.append(np.nan)
+                continue
 
             biweight_mean.append(biweight_location(subset_clip))
             biweight_std.append(biweight_scale(subset_clip) / np.sqrt(len(subset_clip)))
