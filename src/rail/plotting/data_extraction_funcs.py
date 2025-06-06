@@ -393,6 +393,44 @@ def get_pz_point_estimate_data(
     return pz_data
 
 
+def get_ztrue_and_magntidues(
+    project: RailProject,
+    selection: str,
+    flavor: str,
+    tag: str,
+) -> dict[str, np.ndarray] | None:
+    """Get the true redshifts and observed magntidues
+    for a particualar analysis selection and flavor
+
+    Parameters
+    ----------
+    project: RailProject
+        Object with information about the structure of the current project
+
+    selection: str
+        Data selection in question, e.g., 'gold', or 'blended'
+
+    flavor: str
+        Analysis flavor in question, e.g., 'baseline' or 'zCosmos'
+
+    tag: str
+        File tag, e.g., 'test' or 'train', or 'train_zCosmos'
+
+    Returns
+    -------
+    out_data: dict[str, np.ndarray] | None
+        Data in question or None if a file is missing
+    """
+    z_true_path = get_z_true_path(project, selection, flavor, tag)
+    z_true_data = extract_z_true(z_true_path)
+    mag_data = extract_magntidues(z_true_path)
+    out_data = dict(
+        truth=z_true_data,
+        magntidues=mag_data,
+    )
+    return out_data
+
+
 def get_multi_pz_point_estimate_data(
     point_estimate_infos: dict[str, dict[str, Any]],
 ) -> dict[str, Any] | None:
