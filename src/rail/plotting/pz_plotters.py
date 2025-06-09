@@ -321,6 +321,7 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
         n_clip=StageParameter(
             int, 3, fmt="%i", msg="Number of sigma cliping for outliers"
         ),
+        zbin_type=StageParameter(str, 'spec', fmt="%s", msg="Type of redshift binned by, 'spec' or 'phot'. "),
     )
 
     input_type = RailPZPointEstimateDataset
@@ -334,6 +335,15 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
     ) -> RailPlotHolder:
         dz = (pointEstimate - truth) / (1 + truth)
 
+        if self.config.zbin_type == 'spec':
+            x_label = r"$z_{spec}$"
+            z_x = truth
+        elif self.config.zbin_type == 'phot':
+            x_label = r"$z_{phot}$"
+            z_x = pointEstimate
+        else:
+            raise ValueError("`zbin_type` must be either 'spec' or 'phot'")
+            
         results = self.process_data(
             pointEstimate,
             truth,
@@ -370,8 +380,10 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
 
         bin_edges_z = np.linspace(self.config.z_min, self.config.z_max, 100 + 1)
         bin_edges_dz = np.linspace(np.min(dz), np.max(dz), 100 + 1)
+                    
+        
         axes[1].hist2d(
-            pointEstimate,
+            z_x,
             dz,
             bins=(bin_edges_z, bin_edges_dz),
             norm=colors.LogNorm(),
@@ -384,7 +396,7 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
                 results["z_mean"], results[qt], "--", color="blue", linewidth=2.0
             )
 
-        axes[1].set_xlabel("Redshift")
+        axes[1].set_xlabel(x_label)
         axes[1].set_ylabel(r"$(z_{phot} - z_{spec})/(1+z_{spec})$")
         plot_name = self._make_full_plot_name(prefix, "")
         return RailPlotHolder(
@@ -430,7 +442,10 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
 
         z_bins = np.linspace(low, high, nbin)
         # Bin the data
-        bin_indices = np.digitize(zphot, bins=z_bins) - 1  # Assign each point to a bin
+        if self.config.zbin_type == 'spec':
+            bin_indices = np.digitize(specz, bins=z_bins) - 1  # Assign each point to a bin
+        else:
+            bin_indices = np.digitize(zphot, bins=z_bins) - 1  # Assign each point to a bin
 
         biweight_mean: list[float] = []
         biweight_std: list[float] = []
