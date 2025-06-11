@@ -198,12 +198,13 @@ def run(
     clear()
     out_dict: dict[str, RailPlotDict] = {}
     load_yaml(yaml_file)
+    yaml_file_dir = os.path.basename(yaml_file)
     group_dict = get_plot_group_dict()
 
     include_groups = kwargs.pop("include_groups", None)
     exclude_groups = kwargs.pop("exclude_groups", None)
     make_html = kwargs.get("make_html", False)
-    outdir = kwargs.get("outdir", "plots")
+    outdir = kwargs.get("outdir", yaml_file_dir)
 
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
