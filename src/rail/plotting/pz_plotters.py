@@ -443,10 +443,11 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
         z_bins = np.linspace(low, high, nbin)
         # Bin the data
         if self.config.zbin_type == 'spec':
-            bin_indices = np.digitize(specz, bins=z_bins) - 1  # Assign each point to a bin
+            zx = specz
         else:
-            bin_indices = np.digitize(zphot, bins=z_bins) - 1  # Assign each point to a bin
+            zx = zphot
 
+        bin_indices = np.digitize(zx, bins=z_bins) - 1  # Assign each point to a bin
         biweight_mean: list[float] = []
         biweight_std: list[float] = []
         biweight_sigma: list[float] = []
@@ -480,7 +481,7 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
             qt_68_high.append(np.percentile(subset, 84))
             qt_95_high.append(np.percentile(subset, 97.5))
 
-            z_mean.append(np.mean(zphot[bin_indices == i]))
+            z_mean.append(np.mean(zx[bin_indices == i]))
 
         return {
             "z_mean": z_mean,
