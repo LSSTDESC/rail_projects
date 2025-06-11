@@ -198,15 +198,15 @@ def run(
     clear()
     out_dict: dict[str, RailPlotDict] = {}
     load_yaml(yaml_file)
-    yaml_file_dir = os.path.basename(yaml_file)
+    yaml_file_dir = os.path.dirname(yaml_file)
     group_dict = get_plot_group_dict()
 
     include_groups = kwargs.pop("include_groups", None)
     exclude_groups = kwargs.pop("exclude_groups", None)
     make_html = kwargs.get("make_html", False)
-    outdir = kwargs.get("outdir", yaml_file_dir)
-    kwargs.update(outdir=outdir)
-    
+    output_dir = kwargs.pop("outdir", None)
+    if not output_dir:
+        output_dir = yaml_file_dir
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
     if exclude_groups is None or not exclude_groups:
@@ -217,12 +217,12 @@ def run(
     output_pages: list[str] = []
     for group_ in include_groups:
         plot_group = group_dict[group_]
-        out_dict.update(plot_group.run(**kwargs))
+        out_dict.update(plot_group.run(outdir=output_dir, **kwargs))
         if make_html:
             output_pages.append(f"plots_{plot_group.config.name}.html")
     if make_html:
         RailPlotGroup.make_html_index(
-            os.path.join(outdir, "plot_index.html"), output_pages
+            os.path.join(output_dir, "plot_index.html"), output_pages
         )
     return out_dict
 
