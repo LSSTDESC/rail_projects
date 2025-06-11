@@ -4,9 +4,8 @@ from typing import Any
 
 from ceci.config import StageParameter
 
-from rail.projects import RailProject
+from rail.projects import RailProject, path_funcs
 
-from rail.projects import path_funcs 
 from .data_extraction_funcs import (
     get_multi_pz_point_estimate_data,
     get_pz_point_estimate_data,

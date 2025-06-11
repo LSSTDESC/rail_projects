@@ -4,11 +4,9 @@ from typing import Any
 
 from ceci.config import StageParameter
 
-from rail.projects import RailProject
+from rail.projects import RailProject, path_funcs
 
 from .data_extraction_funcs import (
-    get_ceci_nz_output_paths,
-    get_ceci_true_nz_output_paths,
     get_tomo_bins_nz_estimate_data,
     get_tomo_bins_true_nz_data,
 )
@@ -213,7 +211,7 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
                             dataset_list_dict[dataset_key] = []
 
                     for classifier_ in classifiers:
-                        nz_true_paths = get_ceci_true_nz_output_paths(
+                        nz_true_paths = path_funcs.get_ceci_true_nz_output_paths(
                             project,
                             selection=selection_,
                             flavor=key,
@@ -225,7 +223,7 @@ class RailNZTomoBinsDataHolder(RailDatasetHolder):
                             continue
 
                         for summarizer_ in summarizers:
-                            nz_paths = get_ceci_nz_output_paths(
+                            nz_paths = path_funcs.get_ceci_nz_output_paths(
                                 project,
                                 selection=selection_,
                                 flavor=key,
