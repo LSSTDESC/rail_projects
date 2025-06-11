@@ -4,11 +4,8 @@ from typing import Any
 
 from ceci.config import StageParameter
 
-from rail.projects import RailProject
+from rail.projects import RailProject, path_funcs
 
-from .data_extraction_funcs import (
-    get_z_true_path,
-)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import (
@@ -170,7 +167,7 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
                 dataset_key = f"{dataset_list_name}_{selection_}_{key}"
                 dataset_list_dict[dataset_key] = []
 
-                path = get_z_true_path(
+                path = path_funcs.get_z_true_path(
                     project,
                     selection=selection_,
                     flavor=key,
