@@ -205,7 +205,8 @@ def run(
     exclude_groups = kwargs.pop("exclude_groups", None)
     make_html = kwargs.get("make_html", False)
     outdir = kwargs.get("outdir", yaml_file_dir)
-
+    kwargs.update(outdir=outdir)
+    
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())
     if exclude_groups is None or not exclude_groups:
