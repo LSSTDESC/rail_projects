@@ -5,6 +5,8 @@ import os
 from typing import Any
 
 import yaml
+from rail.core.model import Model
+
 from ceci.config import StageParameter
 
 from . import execution, library, name_utils
@@ -1034,3 +1036,46 @@ class RailProject(Configurable):
         if "all" in selections:
             return list(selection_dict.keys())
         return selections
+
+    def wrap_pz_model(self, path: str, outdir: str, **kwargs: Any) -> int:
+        """Wrap a pz model file for use by Rubin DM software
+
+        Parameters
+        ----------
+        path
+            Path to the model file
+
+        outdir
+            Directory we are writing to
+
+        Returns
+        -------
+        status: 0 for success, error_code otherwise
+        """
+        tokens = path.split('_')
+        algo_name = tokens[-1].replace('.pkl', '')
+        algo = self.get_algorithm('PZAlgorithms', algo_name)
+        selection = kwargs['selection']
+        flavor_name = kwargs['flavor']
+        flavor = self.get_flavor(flavor_name)
+        module = algo['Module']
+        informer =  algo['Inform']
+        catalog_tag = flavor.config.catalog_tag
+        creation_class_name = f"{module}.{informer}"
+        outpath = os.path.join(outdir, f"model_{self.name}_{algo_name}_{flavor}_{selection}.pickle")
+        Model.wrap(
+            path,
+            outpath,
+            creation_class_name=creation_class_name,
+            version=0,
+            catalog_tag=catalog_tag,
+            provenance=dict(
+                project=self.name,
+                flavor=flavor_name,
+                selection=selection,
+            )
+        )
+        return 0
+
+
+

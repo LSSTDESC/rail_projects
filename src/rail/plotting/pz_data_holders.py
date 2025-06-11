@@ -6,8 +6,8 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject
 
+from rail.projects import path_funcs 
 from .data_extraction_funcs import (
-    get_ceci_pz_output_path,
     get_multi_pz_point_estimate_data,
     get_pz_point_estimate_data,
 )
@@ -149,7 +149,7 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
 
         project_name = project.name
         if not dataset_list_name:
-            dataset_list_name = f"{project_name}_nz_tomo"
+            dataset_list_name = f"{project_name}_pz"
 
         projects: list[RailProjectHolder] = []
         datasets: list[RailDatasetHolder] = []
@@ -188,7 +188,7 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
                         if dataset_key not in dataset_list_dict:
                             dataset_list_dict[dataset_key] = []
 
-                    path = get_ceci_pz_output_path(
+                    path = path_funcs.get_ceci_pz_output_path(
                         project,
                         selection=selection_,
                         flavor=key,
