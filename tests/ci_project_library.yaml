@@ -325,7 +325,7 @@ Pipelines:
           tag: spec
       kwargs:
         algorithms: ['all']
-        assign_algos: null      
+        assign_algos: null
         wide_catalog_tag: SompzWideTestCatalogConfig
         catalog_module: rail.sompz.utils
         deep_catalog_tag: SompzDeepTestCatalogConfig
@@ -337,7 +337,7 @@ Pipelines:
           flavor: baseline
           tag: test
       kwargs:
-        algorithms: ['all']      
+        algorithms: ['all']
         recalib_algos: null
   - PipelineTemplate:
       name: estimate_recalib
