@@ -142,7 +142,7 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
 
         project_name = project.name
         if not dataset_list_name:
-            dataset_list_name = f"{project_name}_nz_tomo"
+            dataset_list_name = f"{project_name}_catalog"
 
         projects: list[RailProjectHolder] = []
         datasets: list[RailDatasetHolder] = []
@@ -171,6 +171,7 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
                     project,
                     selection=selection_,
                     flavor=key,
+                    tag=kwargs.get("tag", "test"),
                 )
                 if path is None:
                     continue
@@ -179,7 +180,7 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
                     name=dataset_name,
                     project=project_name,
                     flavor=key,
-                    tag="test",
+                    tag=kwargs.get("tag", "test"),
                     selection=selection_,
                 )
                 datasets.append(dataset)
@@ -197,4 +198,3 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
             dataset_lists.append(dataset_list)
 
         return (projects, datasets, dataset_lists)
-
