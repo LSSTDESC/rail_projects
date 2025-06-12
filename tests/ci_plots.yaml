@@ -77,3 +77,51 @@ Plots:
       dataset_holder_class: rail.plotting.nz_data_holders.RailNZTomoBinsDataHolder
       plotters:
         - tomo_bins
+
+  # Plot the true pz
+  - Plotter:
+      name: truth
+      class_name: rail.plotting.cat_plotters.CatPlotterTruth
+      z_min: 0.0
+      z_max: 3.0
+      n_zbins: 151
+
+  # Plot the magntidues
+  - Plotter:
+      name: magnitudes
+      class_name: rail.plotting.cat_plotters.CatPlotterMagntidues
+      mag_min: 18.0
+      mag_max: 28.0
+      n_magbins: 101
+
+  # Plot the magntidues vs truth
+  - Plotter:
+      name: magnitudes_v_truth
+      class_name: rail.plotting.cat_plotters.CatPlotterMagntiduesVsTruth
+      z_min: 0.0
+      z_max: 3.0
+      n_zbins: 151
+      mag_min: 18.0
+      mag_max: 28.0
+      n_magbins: 101
+
+  # Plot the colors vs truth
+  - Plotter:
+      name: colors_v_truth
+      class_name: rail.plotting.cat_plotters.CatPlotterColorsVsTruth
+      z_min: 0.0
+      z_max: 3.0
+      n_zbins: 151
+      color_min: -2.0
+      color_max: 2.0
+      n_colorbins: 161
+
+  # This makes a list with the catalog plotters
+  - PlotterList:
+      name: catalog_plots
+      dataset_holder_class: rail.plotting.cat_data_holders.RailCatTruthAndMagntiduesDataHolder
+      plotters:
+        - truth
+        - magnitudes
+        - magntidues_v_truth
+        - colors_v_truth
