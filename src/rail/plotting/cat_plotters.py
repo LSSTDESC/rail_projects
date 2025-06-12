@@ -20,14 +20,13 @@ from .plotter import RailPlotter
 
 
 class RailCatTruthDataset(RailDataset):
-    """Dataset to hold any array of true redshifts
-    """
+    """Dataset to hold any array of true redshifts"""
+
     data_types = dict(truth=np.ndarray)
 
 
 class RailCatMagnitudesDataset(RailDataset):
-    """Dataset to hold any array of magntidues and list of band names
-    """
+    """Dataset to hold any array of magntidues and list of band names"""
 
     data_types = dict(magnitudes=np.ndarray, bands=list)
 
@@ -37,18 +36,17 @@ class RailCatTruthAndMagnitudesDataset(RailCatTruthDataset, RailCatMagnitudesDat
     and true (or spec) redshifts
     """
 
-    data_types = RailCatTruthAndMagnitudesDataset.copy()
-    data_types.update(**RailCatTruthDataset.data_typles)
+    data_types = RailCatMagnitudesDataset.data_types.copy()
+    data_types.update(**RailCatTruthDataset.data_types)
 
 
 class CatPlotterTruth(RailPlotter):
-    """Class to make a histogram magnitudes in each band
-    """
+    """Class to make a histogram magnitudes in each band"""
 
     config_options: dict[str, StageParameter] = RailPlotter.config_options.copy()
     config_options.update(
-        z_min=StageParameter(float, 0., fmt="%0.2f", msg="Minimum Redshift"),
-        z_max=StageParameter(float, 3., fmt="%0.2f", msg="Maximum Redshift"),
+        z_min=StageParameter(float, 0.0, fmt="%0.2f", msg="Minimum Redshift"),
+        z_max=StageParameter(float, 3.0, fmt="%0.2f", msg="Maximum Redshift"),
         n_zbins=StageParameter(int, 151, fmt="%i", msg="Number of Redshift bins"),
     )
 
@@ -91,18 +89,16 @@ class CatPlotterTruth(RailPlotter):
             )
         out_dict[plot.name] = plot
         return out_dict
-    
 
-    
+
 class CatPlotterMagntidues(RailPlotter):
-    """Class to make a histogram magnitudes in each band
-    """
+    """Class to make a histogram magnitudes in each band"""
 
     config_options: dict[str, StageParameter] = RailPlotter.config_options.copy()
     config_options.update(
         mag_min=StageParameter(float, 18.0, fmt="%0.2f", msg="Minimum Magnitude"),
-        mag_max=StageParameter(float, 25.0, fmt="%0.2f", msg="Maximum Magnitude"),
-        n_magbins=StageParameter(int, 141, fmt="%i", msg="Number of magnitude bins"),
+        mag_max=StageParameter(float, 28.0, fmt="%0.2f", msg="Maximum Magnitude"),
+        n_magbins=StageParameter(int, 101, fmt="%i", msg="Number of magnitude bins"),
     )
 
     input_type = RailCatMagnitudesDataset
@@ -147,7 +143,7 @@ class CatPlotterMagntidues(RailPlotter):
             )
         out_dict[plot.name] = plot
         return out_dict
-    
+
 
 class CatPlotterMagntiduesVsTruth(RailPlotter):
     """Class to make 2D histograms of magntidue
@@ -156,6 +152,9 @@ class CatPlotterMagntiduesVsTruth(RailPlotter):
 
     config_options: dict[str, StageParameter] = RailPlotter.config_options.copy()
     config_options.update(
+        z_min=StageParameter(float, 0.0, fmt="%0.2f", msg="Minimum Redshift"),
+        z_max=StageParameter(float, 3.0, fmt="%0.2f", msg="Maximum Redshift"),
+        n_zbins=StageParameter(int, 151, fmt="%i", msg="Number of Redshift bins"),
         mag_min=StageParameter(float, 18.0, fmt="%0.2f", msg="Minimum Magnitude"),
         mag_max=StageParameter(float, 25.0, fmt="%0.2f", msg="Maximum Magnitude"),
         n_magbins=StageParameter(int, 141, fmt="%i", msg="Number of magnitude bins"),
@@ -179,7 +178,6 @@ class CatPlotterMagntiduesVsTruth(RailPlotter):
             name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
         )
 
-    
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         find_only = kwargs.get("find_only", False)
         figtype = kwargs.get("figtype", "png")
@@ -209,7 +207,6 @@ class CatPlotterMagntiduesVsTruth(RailPlotter):
         return out_dict
 
 
-
 class CatPlotterColorsVsTruth(RailPlotter):
     """Class to make 2D histograms of colors
     versus true redshift in each band
@@ -220,6 +217,9 @@ class CatPlotterColorsVsTruth(RailPlotter):
         z_min=StageParameter(float, 0.0, fmt="%0.2f", msg="Minimum Redshift"),
         z_max=StageParameter(float, 3.0, fmt="%0.2f", msg="Maximum Redshift"),
         n_zbins=StageParameter(int, 151, fmt="%i", msg="Number of Redshift bins"),
+        color_min=StageParameter(float, -2.0, fmt="%0.2f", msg="Minimum color"),
+        color_max=StageParameter(float, 2.0, fmt="%0.2f", msg="Maximum color"),
+        n_colorbins=StageParameter(int, 161, fmt="%i", msg="Number of color bins"),
     )
 
     input_type = RailCatTruthAndMagnitudesDataset
@@ -242,7 +242,6 @@ class CatPlotterColorsVsTruth(RailPlotter):
             name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
         )
 
-    
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         find_only = kwargs.get("find_only", False)
         figtype = kwargs.get("figtype", "png")

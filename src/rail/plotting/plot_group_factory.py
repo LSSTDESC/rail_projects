@@ -386,7 +386,10 @@ class RailPlotGroupFactory(RailFactoryMixin):
                 outdir=outdir,
                 figtype=figtype,
             )
-            self.add_plot_group(plot_group)
+            try:
+                self.add_plot_group(plot_group)
+            except KeyError as msg:
+                print(msg)
             plot_groups_list.append(plot_group)
         output_data.update(
             PlotGroups=plot_groups_list,
