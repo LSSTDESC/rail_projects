@@ -2,7 +2,7 @@
 
 
 # Where to find the plot and dataet definitions
-Includes: 
+Includes:
   - tests/ci_plots.yaml
   - tests/ci_datasets.yaml
 
