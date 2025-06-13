@@ -10,13 +10,12 @@ from matplotlib import colors
 from matplotlib import pyplot as plt
 from scipy.stats import sigmaclip
 
-from rail.raruma import plotting_functions as raruma_plot
-from rail.raruma import utility_functions as raruma_util
-
 from .dataset import RailDataset
 from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotHolder
 from .plotter import RailPlotter
+from . import plotting_functions
+from . import utility_functions
 
 
 class RailCatTruthDataset(RailDataset):
@@ -59,7 +58,7 @@ class CatPlotterTruth(RailPlotter):
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
 
-        figure = raruma_plot.plot_true_nz(truth)
+        figure = plotting_functions.plot_true_nz(truth)
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
@@ -111,7 +110,7 @@ class CatPlotterMagntidues(RailPlotter):
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
 
-        figure = raruma_plot.plot_feature_histograms(magnitudes, bands)
+        figure = plotting_functions.plot_feature_histograms(magnitudes, bands)
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
@@ -171,7 +170,7 @@ class CatPlotterMagntiduesVsTruth(RailPlotter):
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
 
-        figure = raruma_plot.plot_feature_target_hist2d(magnitudes, truth, bands)
+        figure = plotting_functinos.plot_feature_target_hist2d(magnitudes, truth, bands)
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
@@ -233,9 +232,9 @@ class CatPlotterColorsVsTruth(RailPlotter):
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
 
-        colors = raruma_util.adjacent_band_colors(magnitudes)
-        color_names = raruma_util.adjacent_band_color_namees(bands)
-        figure = raruma_plot.plot_feature_target_hist2d(colors, truth, color_names)
+        colors = utility_functions.adjacent_band_colors(magnitudes)
+        color_names = utility_functions.adjacent_band_color_namees(bands)
+        figure = plotting_functions.plot_feature_target_hist2d(colors, truth, color_names)
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
