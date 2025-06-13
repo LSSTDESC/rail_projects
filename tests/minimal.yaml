@@ -30,4 +30,3 @@ Project:
           algorithms: ['knn', 'gpz', 'fzboost', 'trainz', 'gpz', 'simplenn']
 
   Flavors: []
-

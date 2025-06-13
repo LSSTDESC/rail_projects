@@ -37,12 +37,11 @@ Data:
   # This groups these three datasets together, for bookkeeping purposes
   - DatasetList:
       name: baseline_test
-      dataset_class: rail.plotting.pz_plotters.RailPZPointEstimateDataset      
+      dataset_class: rail.plotting.pz_plotters.RailPZPointEstimateDataset
       datasets:
         - blend_baseline_trainz
         - blend_baseline_knn
         - blend_baseline_fzboost
-
 
   # This is a dataset that has multiple point estimates combined with true redshifts
   - Dataset:
@@ -74,6 +73,6 @@ Data:
   # This makes a group of just one dataset, containing the n(z) dataset above
   - DatasetList:
       name: blend_baseline_tomo_knn
-      dataset_class: rail.plotting.nz_plotters.RailNZTomoBinsDataset      
+      dataset_class: rail.plotting.nz_plotters.RailNZTomoBinsDataset
       datasets:
         - blend_baseline_tomo_knn_equal_count_naive_stack

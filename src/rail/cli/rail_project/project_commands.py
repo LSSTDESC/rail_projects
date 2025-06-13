@@ -2,9 +2,10 @@ from typing import Any
 
 import click
 import yaml
+from rail.cli.rail import options
 from rail.core import __version__
 
-from rail.projects import RailProject, execution, library
+from rail.projects import RailProject, execution, library, path_funcs
 
 from . import project_options
 
@@ -539,4 +540,24 @@ def somlike_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: n
             **kw,
             **kwargs,
         )
+    return ok
+
+
+@project_cli.command(name="wrap-pz-models")
+@project_options.config_file()
+@project_options.flavor()
+@project_options.selection()
+@options.outdir()
+def wrap_pz_models(config_file: str, **kwargs: Any) -> int:
+    """Wrap the pz models for the Rubin DM software"""
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    outdir = kwargs.get('outdir', '.')
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    for kw in iter_kwargs:
+        paths = path_funcs.get_ceci_pz_model_paths(project, **kw)
+        for path_ in paths:
+            ok |= project.wrap_pz_model(path_, outdir, **kw)
     return ok
