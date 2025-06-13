@@ -15,6 +15,7 @@ from .plot_holder import RailPlotHolder
 from .plotter import RailPlotter
 
 
+
 class RailNZTomoBinsDataset(RailDataset):
     """Dataet to hold a n(z) distributions for a set of tomographic bins and the
     correspoding true n(z) distributions.
@@ -33,10 +34,11 @@ class NZPlotterTomoBins(RailPlotter):
     config_options.update(
         z_min=StageParameter(float, 0.0, fmt="%0.2f", msg="Minimum Redshift"),
         z_max=StageParameter(float, 3.0, fmt="%0.2f", msg="Maximum Redshift"),
-        n_zbins=StageParameter(int, 150, fmt="%i", msg="Number of z bins"),
+        n_zbins=StageParameter(int, 50, fmt="%i", msg="Number of z bins"),
     )
 
     input_type = RailNZTomoBinsDataset
+
 
     def _make_plot(
         self,
@@ -45,27 +47,52 @@ class NZPlotterTomoBins(RailPlotter):
         nz_estimates: qp.Ensemble,
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
-        figure, axes = plt.subplots()
-        bin_edges = np.linspace(
-            self.config.z_min, self.config.z_max, self.config.n_zbins + 1
-        )
+        n_pdf = truth.npdf
+        bin_edges = np.linspace(self.config.z_min, self.config.z_max, self.config.n_zbins + 1)
         truth_vals = truth.pdf(bin_edges)
         nz_vals = nz_estimates.pdf(bin_edges)
-        n_pdf = truth.npdf
+
+        # Compute means and variances
+        z_centers = 0.5 * (bin_edges[1:] + bin_edges[:-1])
+        truth_means = np.array([np.sum(z_centers * truth_vals[i][:-1]) / np.sum(truth_vals[i][:-1]) for i in range(n_pdf)])
+        truth_vars  = np.array([np.sum((z_centers - truth_means[i])**2 * truth_vals[i][:-1]) / np.sum(truth_vals[i][:-1]) for i in range(n_pdf)])
+
+        est_means = np.array([np.sum(z_centers * nz_vals[i][:-1]) / np.sum(nz_vals[i][:-1]) for i in range(n_pdf)])
+        est_vars  = np.array([np.sum((z_centers - est_means[i])**2 * nz_vals[i][:-1]) / np.sum(nz_vals[i][:-1]) for i in range(n_pdf)])
+
+        # Create subplots
+        fig, axes = plt.subplots(n_pdf, 1, figsize=(8, 1.5 * n_pdf), sharex=True)
+        if n_pdf == 1:
+            axes = [axes]  # Ensure iterable
 
         cmap = mpl.colormaps["plasma"]
         colors = cmap(np.linspace(0, 1, n_pdf))
 
         for i in range(n_pdf):
+            ax = axes[i]
             color = colors[i]
-            axes.plot(bin_edges, truth_vals[i], "-", color=color)
-            axes.plot(bin_edges, nz_vals[i], "--", color=color)
-        plt.xlabel("z")
-        plt.ylabel("n(z)")
+            ax.plot(bin_edges, truth_vals[i], "-", color=color, label="True")
+            ax.plot(bin_edges, nz_vals[i], "--", color=color, label="Estimate")
+
+            d_mean = est_means[i] - truth_means[i]
+            d_sigma = np.sqrt(est_vars[i] - truth_vars[i])
+
+            ax.legend(
+                title=f"$\\Delta \\mu_z$ = {d_mean:.3f}\n$\\Delta \\sigma_z$ = {d_sigma:.3f}",
+                loc="upper right",
+                fontsize="small",
+                title_fontsize="small",
+            )
+            ax.set_ylabel(f"$n(z,{{{i}}})$")
+
+        axes[-1].set_xlabel("z")
+        fig.tight_layout()
+
         plot_name = self._make_full_plot_name(prefix, "")
         return RailPlotHolder(
-            name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
+            name=plot_name, figure=fig, plotter=self, dataset_holder=dataset_holder
         )
+
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
         find_only = kwargs.get("find_only", False)

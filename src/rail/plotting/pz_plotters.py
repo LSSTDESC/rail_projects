@@ -48,6 +48,7 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
         n_clip=StageParameter(
             int, 3, fmt="%i", msg="Number of sigma cliping for outliers"
         ),
+        abs_out_thresh=StageParameter(float, 0.2, fmt="%0.2f", msg="Threshold for the absolute outlier rate"),
     )
 
     input_type = RailPZPointEstimateDataset
@@ -64,11 +65,10 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             self.config.z_min, self.config.z_max, self.config.n_zbins + 1
         )
         dz = (pointEstimate - truth) / (1 + truth)
-        mean, mean_err, std, outlier_rate = self.get_biweight_mean_sigma_outlier(
+        mean, mean_err, std, outlier_rate, abs_outlier_rate = self.get_biweight_mean_sigma_outlier(
             dz, nclip=self.config.n_clip
         )
-        mean, std, outlier_rate = round(mean, 4), round(std, 4), round(outlier_rate, 4)
-        print(mean, mean_err, std, outlier_rate)
+        mean, std, outlier_rate, abs_outlier_rate = round(mean, 4), round(std, 4), round(outlier_rate, 4), round(abs_outlier_rate, 4)
         h = axes.hist2d(
             truth,
             pointEstimate,
@@ -103,7 +103,9 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             + "\n"
             + rf"$\sigma z = {std} $"
             + "\n"
-            + f"outlier rate = {outlier_rate}",
+            + rf"outlier rate (>3$\sigma$) = {outlier_rate}"
+            + "\n"
+            + f"outlier rate (>{self.config.abs_out_thresh}) = {abs_outlier_rate}",
         )
 
         plt.xlabel("True Redshift")
@@ -155,8 +157,11 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
         outlier_rate = np.sum(np.abs(subset) > 3 * biweight_scale(subset_clip)) / len(
             subset
         )
+        abs_outlier_rate = np.sum(np.abs(subset) > self.config.abs_out_thresh) / len(
+            subset
+        )
 
-        return mean, std / np.sqrt(len(subset_clip)), std, outlier_rate
+        return mean, std / np.sqrt(len(subset_clip)), std, outlier_rate, abs_outlier_rate
 
 
 class PZPlotterPointEstimateVsTrueProfile(RailPlotter):
