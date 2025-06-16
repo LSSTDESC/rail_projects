@@ -72,7 +72,7 @@ def extract_z_point(
 
 def extract_mag(
     filepath: str,
-    colname: str = "LSST_obs_i",    
+    colname: str = "LSST_obs_i",
 ) -> np.ndarray:
     """Extract the i-mag from a file
 
