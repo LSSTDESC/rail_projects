@@ -48,7 +48,9 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
         n_clip=StageParameter(
             int, 3, fmt="%i", msg="Number of sigma cliping for outliers"
         ),
-        abs_out_thresh=StageParameter(float, 0.2, fmt="%0.2f", msg="Threshold for the absolute outlier rate"),
+        abs_out_thresh=StageParameter(
+            float, 0.2, fmt="%0.2f", msg="Threshold for the absolute outlier rate"
+        ),
     )
 
     input_type = RailPZPointEstimateDataset
@@ -65,10 +67,15 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             self.config.z_min, self.config.z_max, self.config.n_zbins + 1
         )
         dz = (pointEstimate - truth) / (1 + truth)
-        mean, mean_err, std, outlier_rate, abs_outlier_rate = self.get_biweight_mean_sigma_outlier(
-            dz, nclip=self.config.n_clip
+        mean, _mean_err, std, outlier_rate, abs_outlier_rate = (
+            self.get_biweight_mean_sigma_outlier(dz, nclip=self.config.n_clip)
         )
-        mean, std, outlier_rate, abs_outlier_rate = round(mean, 4), round(std, 4), round(outlier_rate, 4), round(abs_outlier_rate, 4)
+        mean, std, outlier_rate, abs_outlier_rate = (
+            round(mean, 4),
+            round(std, 4),
+            round(outlier_rate, 4),
+            round(abs_outlier_rate, 4),
+        )
         h = axes.hist2d(
             truth,
             pointEstimate,
@@ -147,7 +154,9 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
         out_dict[plot.name] = plot
         return out_dict
 
-    def get_biweight_mean_sigma_outlier(self, subset: np.ndarray, nclip: int=3) -> tuple[float, float, float, float]:
+    def get_biweight_mean_sigma_outlier(
+        self, subset: np.ndarray, nclip: int = 3
+    ) -> tuple[float, float, float, float, float]:
         subset_clip, _, _ = sigmaclip(subset, low=3, high=3)
         for _j in range(nclip):
             subset_clip, _, _ = sigmaclip(subset_clip, low=3, high=3)
@@ -161,7 +170,13 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             subset
         )
 
-        return mean, std / np.sqrt(len(subset_clip)), std, outlier_rate, abs_outlier_rate
+        return (
+            mean,
+            std / np.sqrt(len(subset_clip)),
+            std,
+            outlier_rate,
+            abs_outlier_rate,
+        )
 
 
 class PZPlotterPointEstimateVsTrueProfile(RailPlotter):
@@ -326,7 +341,9 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
         n_clip=StageParameter(
             int, 3, fmt="%i", msg="Number of sigma cliping for outliers"
         ),
-        zbin_type=StageParameter(str, 'spec', fmt="%s", msg="Type of redshift binned by, 'spec' or 'phot'. "),
+        zbin_type=StageParameter(
+            str, "spec", fmt="%s", msg="Type of redshift binned by, 'spec' or 'phot'. "
+        ),
     )
 
     input_type = RailPZPointEstimateDataset
@@ -340,15 +357,15 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
     ) -> RailPlotHolder:
         dz = (pointEstimate - truth) / (1 + truth)
 
-        if self.config.zbin_type == 'spec':
+        if self.config.zbin_type == "spec":
             x_label = r"$z_{spec}$"
             z_x = truth
-        elif self.config.zbin_type == 'phot':
+        elif self.config.zbin_type == "phot":  # pragma: no cover
             x_label = r"$z_{phot}$"
             z_x = pointEstimate
-        else:
+        else:  # pragma: no cover
             raise ValueError("`zbin_type` must be either 'spec' or 'phot'")
-            
+
         results = self.process_data(
             pointEstimate,
             truth,
@@ -385,8 +402,7 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
 
         bin_edges_z = np.linspace(self.config.z_min, self.config.z_max, 100 + 1)
         bin_edges_dz = np.linspace(np.min(dz), np.max(dz), 100 + 1)
-                    
-        
+
         axes[1].hist2d(
             z_x,
             dz,
@@ -438,18 +454,18 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
         self,
         zphot: np.ndarray,
         specz: np.ndarray,
-        low: float=0.01,
-        high: float=2.,
-        nclip: int=3,
-        nbin: int=101,
+        low: float = 0.01,
+        high: float = 2.0,
+        nclip: int = 3,
+        nbin: int = 101,
     ) -> dict[str, list[float]]:
         dz = (zphot - specz) / (1 + specz)
 
         z_bins = np.linspace(low, high, nbin)
         # Bin the data
-        if self.config.zbin_type == 'spec':
+        if self.config.zbin_type == "spec":
             zx = specz
-        else:
+        else:  # pragma: no cover
             zx = zphot
 
         bin_indices = np.digitize(zx, bins=z_bins) - 1  # Assign each point to a bin
@@ -465,7 +481,7 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
         qt_95_high: list[float] = []
         for i in range(len(z_bins) - 1):
             subset = dz[bin_indices == i]
-            if len(subset) < 1:
+            if len(subset) < 1:  # pragma: no cover
                 continue
             subset_clip, _, _ = sigmaclip(subset, low=3, high=3)
             for _j in range(nclip):
@@ -624,10 +640,10 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
         zphot: np.ndarray,
         specz: np.ndarray,
         mag: np.ndarray,
-        low: float=0.01,
-        high: float=2.,
-        nclip: int=3,
-        nbin: int=101,
+        low: float = 0.01,
+        high: float = 2.0,
+        nclip: int = 3,
+        nbin: int = 101,
     ) -> dict[str, list[float] | np.ndarray]:
         dz = (zphot - specz) / (1 + specz)
 
@@ -651,7 +667,7 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
             for _j in range(nclip):
                 subset_clip, _, _ = sigmaclip(subset_clip, low=3, high=3)
 
-            if len(subset_clip) == 0:
+            if len(subset_clip) == 0:   # pragma: no cover
                 biweight_mean.append(np.nan)
                 biweight_std.append(np.nan)
                 biweight_sigma.append(np.nan)

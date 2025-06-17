@@ -80,8 +80,11 @@ addopts = [
 disable = [
     "abstract-method",
     "invalid-name",
+    "too-many-lines",
     "too-many-statements",
     "too-many-instance-attributes",
+    "too-many-positional-arguments",
+    "too-many-nested-blocks",
     "missing-module-docstring",
     "missing-class-docstring",
     "missing-function-docstring",

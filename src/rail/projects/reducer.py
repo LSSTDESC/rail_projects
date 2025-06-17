@@ -256,7 +256,7 @@ class ComCamReducer(RailReducer):
         self,
         input_catalog: str,
         output_catalog: str,
-    ) -> None:
+    ) -> None:  # pragma: no cover
         # FIXME: do this right
         mag_cut = self.config.cuts["maglim_i"][1]
         flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
@@ -335,14 +335,14 @@ class DP1Reducer(RailReducer):
         self,
         input_catalog: str,
         output_catalog: str,
-    ) -> None:
+    ) -> None:  # pragma: no cover
         # FIXME: do this right
         mag_cut = self.config.cuts["maglim_i"][1]
         flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
 
         topdir = os.path.dirname(os.path.dirname(input_catalog))
         columns_file = os.path.join(topdir, "columns.yaml")
-        with open(columns_file, "r") as fin:
+        with open(columns_file, "r", encoding='utf-8') as fin:
             columns = yaml.safe_load(fin)
 
         if self.config.cuts:

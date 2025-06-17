@@ -76,3 +76,22 @@ Data:
       dataset_class: rail.plotting.nz_plotters.RailNZTomoBinsDataset
       datasets:
         - blend_baseline_tomo_knn_equal_count_naive_stack
+
+
+  # This is a dataset of input catalog data with true redshifts
+  - Dataset:
+      name: blend_baseline_truth_and_mags
+      class_name: rail.plotting.cat_data_holders.RailCatTruthAndMagntiduesDataHolder
+      project: ci_test
+      selection: blend
+      flavor: baseline
+      tag: test
+
+
+  # This makes a group of just one dataset, containing the n(z) dataset above
+  - DatasetList:
+      name: blend_baseline_catalog
+      dataset_class: rail.plotting.cat_plotters.RailCatTruthAndMagnitudesDataset
+      datasets:
+        - blend_baseline_truth_and_mags
+

@@ -105,3 +105,18 @@ def test_cli_run(pipeline: str) -> None:
         f"run {pipeline} --selection gold --flavor baseline {label_str}--run-mode dry_run tests/ci_project.yaml",
     )
     check_result(result)
+
+
+def test_cli_wrap_model(setup_project_area: int) -> None:
+    assert setup_project_area == 0
+    runner = CliRunner()
+
+    result = runner.invoke(
+        project_cli,
+        "wrap-pz-models "
+        "--outdir tests/temp_data "
+        "--flavor baseline "
+        "--selection blend "
+        "tests/ci_project.yaml",
+    )
+    check_result(result)

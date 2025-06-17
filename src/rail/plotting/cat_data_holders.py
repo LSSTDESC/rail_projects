@@ -6,32 +6,29 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject, path_funcs
 
-from .data_extraction_funcs import (
-    get_multi_pz_point_estimate_data,
-    get_pz_point_estimate_data,
-)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
+from .data_extraction_funcs import get_ztrue_and_magntidues
 from .dataset_holder import (
     DatasetSplitMode,
     RailDatasetHolder,
     RailDatasetListHolder,
     RailProjectHolder,
 )
-from .pz_plotters import RailPZMultiPointEstimateDataset, RailPZPointEstimateDataset
+from .cat_plotters import RailCatTruthAndMagnitudesDataset
 
 
-class RailPZPointEstimateDataHolder(RailDatasetHolder):
-    """Class to extract true redshifts and one p(z) point estimate
-    from a RailProject.
+class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
+    """Class to extract true redshifts and observed magntidues
+    for a catalog from a RailProject
 
     This will return a dict:
 
     truth: np.ndarray
         True redshifts
 
-    pointEstimate: np.ndarray
-        Point estimates of the true redshifts
+    magntidues: np.ndarray
+        Magnitudes in the various filters
     """
 
     config_options: dict[str, StageParameter] = dict(
@@ -48,9 +45,6 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
         tag=StageParameter(
             str, None, fmt="%s", required=True, msg="RailProject file tag"
         ),
-        algo=StageParameter(
-            str, None, fmt="%s", required=True, msg="RailProject algorithm"
-        ),
     )
 
     extractor_inputs: dict = {
@@ -58,10 +52,9 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
         "selection": str,
         "flavor": str,
         "tag": str,
-        "algo": str,
     }
 
-    output_type: type[RailDataset] = RailPZPointEstimateDataset
+    output_type: type[RailDataset] = RailCatTruthAndMagnitudesDataset
 
     def __init__(self, **kwargs: Any):
         RailDatasetHolder.__init__(self, **kwargs)
@@ -72,13 +65,13 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
             f"{self.__class__.__name__} "
             "( "
             f"{self.config.project}, "
-            f"{self.config.selection}_{self.config.flavor}_{self.config.tag}_{self.config.algo}"
+            f"{self.config.selection}_{self.config.flavor}_{self.config.tag}"
             ")"
         )
         return ret_str
 
     def _get_data(self, **kwargs: Any) -> dict[str, Any] | None:
-        return get_pz_point_estimate_data(**kwargs)
+        return get_ztrue_and_magntidues(**kwargs)
 
     def get_extractor_inputs(self) -> dict[str, Any]:
         if self._project is None:
@@ -90,7 +83,6 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
             selection=self.config.selection,
             flavor=self.config.flavor,
             tag=self.config.tag,
-            algo=self.config.algo,
         )
         self._validate_extractor_inputs(**the_extractor_inputs)
         return the_extractor_inputs
@@ -122,6 +114,9 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
         flavors: list[str]
             Flavors to use
 
+        tag: str
+            File tag
+
         Returns
         -------
         list[RailProjectHolder]
@@ -148,7 +143,7 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
 
         project_name = project.name
         if not dataset_list_name:
-            dataset_list_name = f"{project_name}_pz"
+            dataset_list_name = f"{project_name}_catalog"
 
         projects: list[RailProjectHolder] = []
         datasets: list[RailDatasetHolder] = []
@@ -163,53 +158,36 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
 
         dataset_list_dict: dict[str, list[str]] = {}
         dataset_key = dataset_list_name
-        if split_mode == DatasetSplitMode.no_split:
+        if split_mode == DatasetSplitMode.no_split:  # pragma: no cover
             dataset_list_dict[dataset_key] = []
 
         for key in flavors:
-            val = flavor_dict[key]
-            pipelines = val["pipelines"]
-            if "all" not in pipelines and "pz" not in pipelines:  # pragma: no cover
-                continue
-            try:
-                algos = val["pipeline_overrides"]["default"]["kwargs"]["algorithms"]
-            except KeyError:
-                algos = list(project.get_pzalgorithms().keys())
-
             for selection_ in selections:
-                if split_mode == DatasetSplitMode.by_flavor:
-                    dataset_key = f"{dataset_list_name}_{selection_}_{key}"
-                    dataset_list_dict[dataset_key] = []
+                dataset_key = f"{dataset_list_name}_{selection_}_{key}"
+                dataset_list_dict[dataset_key] = []
 
-                for algo_ in algos:
-                    if split_mode == DatasetSplitMode.by_algo:
-                        dataset_key = f"{dataset_list_name}_{selection_}_{algo_}"
-                        if dataset_key not in dataset_list_dict:
-                            dataset_list_dict[dataset_key] = []
-
-                    path = path_funcs.get_ceci_pz_output_path(
-                        project,
-                        selection=selection_,
-                        flavor=key,
-                        algo=algo_,
-                    )
-                    if path is None:
-                        continue
-                    dataset_name = f"{selection_}_{key}_{algo_}"
-                    dataset = cls(
-                        name=dataset_name,
-                        project=project_name,
-                        flavor=key,
-                        algo=algo_,
-                        tag="test",
-                        selection=selection_,
-                    )
-                    datasets.append(dataset)
-                    dataset_list_dict[dataset_key].append(dataset_name)
+                path = path_funcs.get_z_true_path(
+                    project,
+                    selection=selection_,
+                    flavor=key,
+                    tag=kwargs.get("tag", "test"),
+                )
+                if path is None:  # pragma: no cover
+                    continue
+                dataset_name = f"{selection_}_{key}"
+                dataset = cls(
+                    name=dataset_name,
+                    project=project_name,
+                    flavor=key,
+                    tag=kwargs.get("tag", "test"),
+                    selection=selection_,
+                )
+                datasets.append(dataset)
+                dataset_list_dict[dataset_key].append(dataset_name)
 
         for ds_name, ds_list in dataset_list_dict.items():
             # Skip empty lists
-            if not ds_list:
+            if not ds_list:  # pragma: no cover
                 continue
             dataset_list = RailDatasetListHolder(
                 name=ds_name,
@@ -219,49 +197,3 @@ class RailPZPointEstimateDataHolder(RailDatasetHolder):
             dataset_lists.append(dataset_list)
 
         return (projects, datasets, dataset_lists)
-
-
-class RailPZMultiPointEstimateDataHolder(RailDatasetHolder):
-    """Simple class for holding making a merged for plotting data that comes from a RailProject"""
-
-    config_options: dict[str, StageParameter] = dict(
-        name=StageParameter(str, None, fmt="%s", required=True, msg="Dataset name"),
-        datasets=StageParameter(
-            list, None, fmt="%s", required=True, msg="Dataset name"
-        ),
-    )
-
-    extractor_inputs: dict = {
-        "datasets": list[RailDatasetHolder],
-    }
-
-    output_type: type[RailDataset] = RailPZMultiPointEstimateDataset
-
-    def __init__(self, **kwargs: Any):
-        RailDatasetHolder.__init__(self, **kwargs)
-        self._datasets: list[RailDatasetHolder] | None = None
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}( {self.config.datasets} )"
-
-    def _get_data(self, **kwargs: Any) -> dict[str, Any] | None:
-        the_datasets = kwargs.get("datasets", None)
-        if the_datasets is None:  # pragma: no cover
-            raise KeyError(f"Missed datasets {kwargs}")
-        point_estimate_infos: dict[str, dict[str, Any]] = {}
-        for dataset_ in the_datasets:
-            the_name = dataset_.config.name
-            point_estimate_infos[the_name] = dataset_.get_extractor_inputs()
-        return get_multi_pz_point_estimate_data(point_estimate_infos)
-
-    def get_extractor_inputs(self) -> dict[str, Any]:
-        if self._datasets is None:
-            self._datasets = [
-                RailDatasetFactory.get_dataset(key) for key in self.config.datasets
-            ]
-
-        the_extractor_inputs = dict(
-            datasets=self._datasets,
-        )
-        self._validate_extractor_inputs(**the_extractor_inputs)
-        return the_extractor_inputs

@@ -74,6 +74,7 @@ class RailAlgorithmFactory(RailFactoryMixin):
         RailFactoryMixin.__init__(self)
         self._algorithm_holder_dict = {
             aclass_.yaml_tag: self.add_dict(aclass_) for aclass_ in self.client_classes
+            if issubclass(aclass_, RailAlgorithmHolder)
         }
 
     @classmethod
