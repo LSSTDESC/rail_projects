@@ -36,3 +36,10 @@ PlotGroups:
       name: tomo_bins
       plotter_list_name: tomo_bins
       dataset_list_name: blend_baseline_tomo_knn
+
+
+  # Make plots of input catalog quantities
+  - PlotGroup:
+      name: catalog_plots
+      plotter_list_name: catalog_plots
+      dataset_list_name: blend_baseline_catalog

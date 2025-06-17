@@ -123,5 +123,5 @@ Plots:
       plotters:
         - truth
         - magnitudes
-        - magntidues_v_truth
+        - magnitudes_v_truth
         - colors_v_truth
