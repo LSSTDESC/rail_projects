@@ -205,7 +205,7 @@ def run(
     exclude_groups = kwargs.pop("exclude_groups", None)
     make_html = kwargs.get("make_html", False)
     output_dir = kwargs.pop("outdir", None)
-    if not output_dir:
+    if not output_dir:  # pragma: no cover
         output_dir = yaml_file_dir
     if include_groups is None or not include_groups:
         include_groups = list(group_dict.keys())

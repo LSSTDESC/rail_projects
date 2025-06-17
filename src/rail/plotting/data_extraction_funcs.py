@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import glob
-import os
 from typing import Any
 
 import numpy as np
@@ -13,6 +11,7 @@ import tables_io
 from rail.utils.catalog_utils import CatalogConfigBase
 
 from rail.projects import RailProject, path_funcs
+from . import utility_functions
 
 
 def extract_z_true(
@@ -72,7 +71,7 @@ def extract_z_point(
 
 def extract_mag(
     filepath: str,
-    colname: str = "LSST_obs_i",    
+    colname: str = "LSST_obs_i",
 ) -> np.ndarray:
     """Extract the i-mag from a file
 
@@ -95,6 +94,38 @@ def extract_mag(
     """
     magnitude_table = tables_io.read(filepath)
     return magnitude_table[colname]
+
+
+def extract_magnitudes(
+    filepath: str,
+    template: str,
+    bands: list[str],
+) -> np.ndarray:
+    """Extract the magntidues from a file
+
+    Parameters
+    ----------
+    filepath: str
+        Path to file with tabular data
+
+    template:
+        Template to make the names
+
+    bands:
+        List of the bands to apply to the template
+
+    Returns
+    -------
+    magnitudes: np.ndarray
+        Magnitudes in question
+
+    Notes
+    -----
+    This assumes the magnitude are in a file that can be read by tables_io
+    """
+    magnitude_table = tables_io.read(filepath)
+    magnitudes = utility_functions.get_band_values(magnitude_table, template, bands)
+    return magnitudes
 
 
 def extract_z_pdf(
@@ -238,13 +269,15 @@ def get_pz_point_estimate_data(
         Data in question or None if a file is missing
     """
     z_true_path = path_funcs.get_z_true_path(project, selection, flavor, tag)
-    z_estimate_path = path_funcs.get_ceci_pz_output_path(project, selection, flavor, algo)
+    z_estimate_path = path_funcs.get_ceci_pz_output_path(
+        project, selection, flavor, algo
+    )
     if z_estimate_path is None:  # pragma: no cover
         return None
     z_true_data = extract_z_true(z_true_path)
     z_estimate_data = extract_z_point(z_estimate_path)
     flavor_info = project.get_flavor(flavor)
-    catalog_tag = flavor_info['catalog_tag']
+    catalog_tag = flavor_info["catalog_tag"]
     CatalogConfigBase.apply(catalog_tag)
     catalog_class = CatalogConfigBase.active_class()
     ref_band = catalog_class.band_template.format(band=catalog_class.ref_band)
@@ -281,12 +314,20 @@ def get_ztrue_and_magntidues(
     out_data: dict[str, np.ndarray] | None
         Data in question or None if a file is missing
     """
+    flavor_info = project.get_flavor(flavor)
+    catalog_tag = flavor_info["catalog_tag"]
+    CatalogConfigBase.apply(catalog_tag)
+    catalog_class = CatalogConfigBase.active_class()
+
     z_true_path = path_funcs.get_z_true_path(project, selection, flavor, tag)
-    z_true_data = extract_z_true(z_true_path)
-    mag_data = extract_magntidues(z_true_path)
+    z_true_data = extract_z_true(z_true_path, catalog_class.redshift_col)
+    mag_data = extract_magnitudes(
+        z_true_path, catalog_class.band_template, catalog_class.bandlist
+    )
     out_data = dict(
         truth=z_true_data,
-        magntidues=mag_data,
+        magnitudes=mag_data,
+        bands=catalog_class.bandlist,
     )
     return out_data
 

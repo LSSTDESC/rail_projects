@@ -1,4 +1,4 @@
-""" Functions to execute pipeline and other shell commands """
+"""Functions to execute pipeline and other shell commands"""
 
 import enum
 import os

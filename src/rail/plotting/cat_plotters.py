@@ -4,11 +4,7 @@ import os
 from typing import Any
 
 import numpy as np
-from astropy.stats import biweight_location, biweight_scale
 from ceci.config import StageParameter
-from matplotlib import colors
-from matplotlib import pyplot as plt
-from scipy.stats import sigmaclip
 
 from .dataset import RailDataset
 from .dataset_holder import RailDatasetHolder
@@ -110,7 +106,12 @@ class CatPlotterMagntidues(RailPlotter):
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
 
-        figure = plotting_functions.plot_feature_histograms(magnitudes, bands)
+        xbins = np.linspace(
+            self.config.mag_min, self.config.mag_max, self.config.n_magbins
+        )
+        figure = plotting_functions.plot_feature_histograms(
+            magnitudes, bands, bins=xbins
+        )
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
@@ -170,7 +171,14 @@ class CatPlotterMagntiduesVsTruth(RailPlotter):
         dataset_holder: RailDatasetHolder | None = None,
     ) -> RailPlotHolder:
 
-        figure = plotting_functinos.plot_feature_target_hist2d(magnitudes, truth, bands)
+        xbins = np.linspace(self.config.z_min, self.config.z_min, self.config.n_zbins)
+        ybins = np.linspace(
+            self.config.mag_min, self.config.mag_max, self.config.n_magbins
+        )
+
+        figure = plotting_functions.plot_feature_target_hist2d(
+            magnitudes, truth, bands, bins=(xbins, ybins)
+        )
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
@@ -233,8 +241,16 @@ class CatPlotterColorsVsTruth(RailPlotter):
     ) -> RailPlotHolder:
 
         colors = utility_functions.adjacent_band_colors(magnitudes)
-        color_names = utility_functions.adjacent_band_color_namees(bands)
-        figure = plotting_functions.plot_feature_target_hist2d(colors, truth, color_names)
+        color_names = []
+        for i in range(len(bands) - 1):
+            color_names.append(f"{bands[i+1]} - {bands[i]}")
+        xbins = np.linspace(self.config.z_min, self.config.z_min, self.config.n_zbins)
+        ybins = np.linspace(
+            self.config.color_min, self.config.color_max, self.config.n_colorbins
+        )
+        figure = plotting_functions.plot_feature_target_hist2d(
+            colors, truth, color_names, bins=(xbins, ybins)
+        )
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(

@@ -553,7 +553,7 @@ def wrap_pz_models(config_file: str, **kwargs: Any) -> int:
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
     selections = project.get_selection_args(kwargs.pop("selection"))
-    outdir = kwargs.get('outdir', '.')
+    outdir = kwargs.get("outdir", ".")
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     for kw in iter_kwargs:

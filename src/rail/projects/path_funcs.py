@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import glob
 import os
-from typing import Any
 
 from rail.projects import RailProject
 
@@ -78,7 +77,7 @@ def get_ceci_pz_model_paths(
     project: RailProject,
     selection: str,
     flavor: str,
-    algo: str|None = None,
+    algo: str | None = None,
 ) -> list[str]:
     """Get the paths to the file with pz model
     for a particualar analysis selection and flavor
@@ -105,8 +104,8 @@ def get_ceci_pz_model_paths(
     """
     outdir = project.get_path("ceci_output_dir", selection=selection, flavor=flavor)
     if algo is None:
-        basepath =  os.path.join(outdir, "model_inform_*.pkl")
-        paths = sorted(glob.glob(basepath)) 
+        basepath = os.path.join(outdir, "model_inform_*.pkl")
+        paths = sorted(glob.glob(basepath))
         return [output for output in paths if os.path.exists(output)]
     basename = f"model_inform_{algo}.pkl"
     outpath = os.path.join(outdir, basename)

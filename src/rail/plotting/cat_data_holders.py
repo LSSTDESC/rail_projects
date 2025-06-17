@@ -8,6 +8,7 @@ from rail.projects import RailProject, path_funcs
 
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
+from .data_extraction_funcs import get_ztrue_and_magntidues
 from .dataset_holder import (
     DatasetSplitMode,
     RailDatasetHolder,
@@ -157,12 +158,10 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
 
         dataset_list_dict: dict[str, list[str]] = {}
         dataset_key = dataset_list_name
-        if split_mode == DatasetSplitMode.no_split:
+        if split_mode == DatasetSplitMode.no_split:  # pragma: no cover
             dataset_list_dict[dataset_key] = []
 
         for key in flavors:
-            val = flavor_dict[key]
-
             for selection_ in selections:
                 dataset_key = f"{dataset_list_name}_{selection_}_{key}"
                 dataset_list_dict[dataset_key] = []
@@ -173,7 +172,7 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
                     flavor=key,
                     tag=kwargs.get("tag", "test"),
                 )
-                if path is None:
+                if path is None:  # pragma: no cover
                     continue
                 dataset_name = f"{selection_}_{key}"
                 dataset = cls(
@@ -188,7 +187,7 @@ class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):
 
         for ds_name, ds_list in dataset_list_dict.items():
             # Skip empty lists
-            if not ds_list:
+            if not ds_list:  # pragma: no cover
                 continue
             dataset_list = RailDatasetListHolder(
                 name=ds_name,

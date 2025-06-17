@@ -5,9 +5,8 @@ import os
 from typing import Any
 
 import yaml
-from rail.core.model import Model
-
 from ceci.config import StageParameter
+from rail.core.model import Model
 
 from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
@@ -1052,17 +1051,22 @@ class RailProject(Configurable):
         -------
         status: 0 for success, error_code otherwise
         """
-        tokens = path.split('_')
-        algo_name = tokens[-1].replace('.pkl', '')
-        algo = self.get_algorithm('PZAlgorithms', algo_name)
-        selection = kwargs['selection']
-        flavor_name = kwargs['flavor']
+        tokens = path.split("_")
+        algo_name = tokens[-1].replace(".pkl", "")
+        try:
+            algo = self.get_algorithm("PZAlgorithms", algo_name)
+        except KeyError:
+            return 0
+        selection = kwargs["selection"]
+        flavor_name = kwargs["flavor"]
         flavor = self.get_flavor(flavor_name)
-        module = algo['Module']
-        informer =  algo['Inform']
+        module = algo["Module"]
+        informer = algo["Inform"]
         catalog_tag = flavor.config.catalog_tag
         creation_class_name = f"{module}.{informer}"
-        outpath = os.path.join(outdir, f"model_{self.name}_{algo_name}_{flavor}_{selection}.pickle")
+        outpath = os.path.join(
+            outdir, f"model_{self.name}_{algo_name}_{flavor}_{selection}.pickle"
+        )
         Model.wrap(
             path,
             outpath,
@@ -1073,9 +1077,6 @@ class RailProject(Configurable):
                 project=self.name,
                 flavor=flavor_name,
                 selection=selection,
-            )
+            ),
         )
         return 0
-
-
-
