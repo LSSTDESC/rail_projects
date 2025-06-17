@@ -169,3 +169,13 @@ def test_project_class(setup_project_area: int) -> None:
 
     flavor_info = project.get_flavor("test_flavor")
     assert flavor_info
+
+    model_path = (
+        "tests/temp_data/projects/ci_test/data/blend_baseline/model_inform_knn.pkl"
+    )
+    project.wrap_pz_model(
+        model_path,
+        "tests/temp_data",
+        selection="blend",
+        flavor="baseline",
+    )
