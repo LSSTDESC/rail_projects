@@ -651,7 +651,12 @@ class RailProject(Configurable):
             pipeline_name, flavor, **kwcopy
         )
         try:
-            statuscode = execution.handle_commands(run_mode, [commands], script_path)
+            statuscode = execution.handle_commands(
+                run_mode,
+                [commands],
+                script_path,
+                site=kwargs.get('site', None),
+            )
         except Exception as msg:  # pragma: no cover
             print(msg)
             statuscode = 1
@@ -695,6 +700,7 @@ class RailProject(Configurable):
                     run_mode,
                     commands,
                     script_path,
+                    site=kwargs.get('site', None),
                 )
             except Exception as msg:  # pragma: no cover
                 print(msg)

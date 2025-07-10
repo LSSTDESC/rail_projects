@@ -119,7 +119,8 @@ selection = PartialOption(
 site = PartialOption(
     "--site",
     help="site for slurm submission",
-    default="s3df",
+    type=str
+    default=None,
 )
 
 

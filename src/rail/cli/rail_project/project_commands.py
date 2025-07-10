@@ -189,6 +189,7 @@ def run_group() -> None:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.site()
 def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the photometric errors analysis pipeline"""
     project = RailProject.load_config(config_file)
@@ -212,6 +213,7 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.site()
 def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the truth-to-observed data pipeline"""
     project = RailProject.load_config(config_file)
@@ -235,6 +237,7 @@ def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.site()
 def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the truth-to-observed data pipeline"""
     project = RailProject.load_config(config_file)
@@ -258,6 +261,7 @@ def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.site()
 def blending_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the blending analysis pipeline"""
     project = RailProject.load_config(config_file)
@@ -281,6 +285,7 @@ def blending_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.site()
 def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the spectroscopic selection data pipeline"""
     project = RailProject.load_config(config_file)
@@ -305,6 +310,7 @@ def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def inform_single(config_file: str, **kwargs: Any) -> int:
     """Run the inform pipeline"""
     pipeline_name = "inform"
@@ -328,6 +334,7 @@ def inform_single(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.run_mode()
 @project_options.input_tag()
+@project_options.site()
 def estimate_single(config_file: str, **kwargs: Any) -> int:
     """Run the estimation pipeline"""
     pipeline_name = "estimate"
@@ -350,6 +357,7 @@ def estimate_single(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def evaluate_single(config_file: str, **kwargs: Any) -> int:
     """Run the evaluation pipeline"""
     pipeline_name = "evaluate"
@@ -372,6 +380,7 @@ def evaluate_single(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def pz_single(config_file: str, **kwargs: Any) -> int:
     """Run the pz pipeline"""
     pipeline_name = "pz"
@@ -394,6 +403,7 @@ def pz_single(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def tomography_single(config_file: str, **kwargs: Any) -> int:
     """Run the tomography pipeline"""
     pipeline_name = "tomography"
@@ -416,6 +426,7 @@ def tomography_single(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def inform_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the sompz inform pipeline"""
     pipeline_name = "inform_sompz"
@@ -438,6 +449,7 @@ def inform_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no c
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def estimate_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the sompz estimate pipeline"""
     pipeline_name = "estimate_sompz"
@@ -460,6 +472,7 @@ def estimate_sompz_single(config_file: str, **kwargs: Any) -> int:  # pragma: no
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def inform_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the recalibration inform pipeline"""
     pipeline_name = "inform_recalib"
@@ -482,6 +495,7 @@ def inform_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def estimate_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the recalibration estimate pipeline"""
     pipeline_name = "estimate_recalib"
@@ -504,6 +518,7 @@ def estimate_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: 
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def inform_somlikesingle(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the somlike inform pipeline"""
     pipeline_name = "inform_somlike"
@@ -526,6 +541,7 @@ def inform_somlikesingle(config_file: str, **kwargs: Any) -> int:  # pragma: no 
 @project_options.flavor()
 @project_options.selection()
 @project_options.run_mode()
+@project_options.site()
 def somlike_recalib_single(config_file: str, **kwargs: Any) -> int:  # pragma: no cover
     """Run the somlike recalibration pipeline"""
     pipeline_name = "somlike_recalib"

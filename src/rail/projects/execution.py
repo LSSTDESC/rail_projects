@@ -85,6 +85,7 @@ def handle_commands(
     run_mode: RunMode,
     command_lines: list[list[str]],
     script_path: str | None = None,
+    site: str | None = None,
 ) -> int:  # pragma: no cover
     """Run a multiple commands in the mode requested
 
@@ -118,6 +119,13 @@ def handle_commands(
             "handle_commands with run_mode == RunMode.slurm requires a path to a script to write",
         )
 
+    if site is None:
+        raise ValueError(
+            "handle_commands with run_mode == RunMode.slurm requires a site",
+        )
+
+    slurm_options = SLURM_OPTIONS[site]
+
     try:
         os.makedirs(os.path.dirname(script_path))
     except FileExistsError:
@@ -130,7 +138,7 @@ def handle_commands(
 
     script_out = script_path.replace(".sh", ".out")
 
-    command_line = ["srun", "--output", script_out, "--error", script_path]
+    command_line = ["srun"] + slurm_options + ["--output", script_out, "--error", script_path]
     try:
         with subprocess.Popen(
             command_line,
@@ -173,6 +181,6 @@ def sbatch_wrap(
             f"{site} is not a recognized site, options are {SLURM_OPTIONS.keys()}"
         ) from msg
     command_line = (
-        ["sbatch"] + slurm_options + ["rail_pipe", "--run_mode", "slurm"] + list(args)
+        ["sbatch"] + slurm_options + ["rail-project", "--run_mode", "slurm"] + list(args)
     )
     return handle_command(run_mode, command_line)
