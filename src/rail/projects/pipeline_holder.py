@@ -484,6 +484,8 @@ def pz_input_callback(
     flavor = kwargs.pop("flavor")
     for key, val in input_file_tags.items():
         input_file_flavor = val.get("flavor", flavor)
+        if input_file_flavor!=flavor:
+            input_file_flavor=flavor
         input_files[key] = project.get_file_for_flavor(
             input_file_flavor, val["tag"], **kwargs
         )
