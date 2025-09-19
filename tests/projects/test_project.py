@@ -134,14 +134,14 @@ def test_project_class(setup_project_area: int) -> None:
 
     single_ceci_command = project.make_pipeline_single_input_command(
         pipeline_name="pz",
-        flavor="basline",
+        flavor="baseline",
         selection="gold",
     )
     assert single_ceci_command
 
     ceci_catalog_commands = project.make_pipeline_catalog_commands(
         pipeline_name="spec_selection",
-        flavor="basline",
+        flavor="baseline",
         selection="gold",
         spec_selections=list(project.get_spec_selections().keys()),
     )
