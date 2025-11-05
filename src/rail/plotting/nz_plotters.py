@@ -38,14 +38,12 @@ class NZPlotterTomoBins(RailPlotter):
 
     input_type = RailNZTomoBinsDataset
 
-    def _make_plot(
+    def get_stats(
         self,
-        prefix: str,
         truth: qp.Ensemble,
         nz_estimates: qp.Ensemble,
-        dataset_holder: RailDatasetHolder | None = None,
-    ) -> RailPlotHolder:
-        n_pdf = truth.npdf
+    ) -> dict[str, np.ndarray]:
+        n_pdf = truth.npdf        
         bin_edges = np.linspace(
             self.config.z_min, self.config.z_max, self.config.n_zbins + 1
         )
@@ -82,6 +80,35 @@ class NZPlotterTomoBins(RailPlotter):
             ]
         )
 
+        d_mean =  est_means - truth_means
+        d_sigma = np.sqrt(est_vars - truth_vars)
+
+        return dict(
+            d_mean=d_mean,
+            d_sigma=d_sigma,
+        )
+
+        
+    
+    def _make_plot(
+        self,
+        prefix: str,
+        truth: qp.Ensemble,
+        nz_estimates: qp.Ensemble,
+        dataset_holder: RailDatasetHolder | None = None,
+    ) -> RailPlotHolder:
+        n_pdf = truth.npdf
+        bin_edges = np.linspace(
+            self.config.z_min, self.config.z_max, self.config.n_zbins + 1
+        )
+        truth_vals = truth.pdf(bin_edges)
+        nz_vals = nz_estimates.pdf(bin_edges)
+
+        # Compute means and variances
+        stats = self.get_stats(truth=truth, nz_estimates=nz_estimates)
+        d_mean = stats['d_mean']
+        d_sigma = stats['d_sigma']
+        
         # Create subplots
         fig, axes = plt.subplots(n_pdf, 1, figsize=(8, 1.5 * n_pdf), sharex=True)
         if n_pdf == 1:  # pragma: no cover
@@ -96,11 +123,8 @@ class NZPlotterTomoBins(RailPlotter):
             ax.plot(bin_edges, truth_vals[i], "-", color=color, label="True")
             ax.plot(bin_edges, nz_vals[i], "--", color=color, label="Estimate")
 
-            d_mean = est_means[i] - truth_means[i]
-            d_sigma = np.sqrt(est_vars[i] - truth_vars[i])
-
             ax.legend(
-                title=f"$\\Delta \\mu_z$ = {d_mean:.3f}\n$\\Delta \\sigma_z$ = {d_sigma:.3f}",
+                title=f"$\\Delta \\mu_z$ = {d_mean[i]:.3f}\n$\\Delta \\sigma_z$ = {d_sigma[i]:.3f}",
                 loc="upper right",
                 fontsize="small",
                 title_fontsize="small",
