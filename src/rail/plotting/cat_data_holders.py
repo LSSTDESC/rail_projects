@@ -6,16 +6,12 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject, path_funcs
 
+from .cat_plotters import RailCatTruthAndMagnitudesDataset
+from .data_extraction_funcs import get_ztrue_and_magntidues
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
-from .data_extraction_funcs import get_ztrue_and_magntidues
-from .dataset_holder import (
-    DatasetSplitMode,
-    RailDatasetHolder,
-    RailDatasetListHolder,
-    RailProjectHolder,
-)
-from .cat_plotters import RailCatTruthAndMagnitudesDataset
+from .dataset_holder import (DatasetSplitMode, RailDatasetHolder,
+                             RailDatasetListHolder, RailProjectHolder)
 
 
 class RailCatTruthAndMagntiduesDataHolder(RailDatasetHolder):

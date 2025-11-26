@@ -4,8 +4,8 @@ from typing import Any
 
 from ceci.config import StageParameter
 from ceci.stage import PipelineStage
+from rail.core.configurable import Configurable
 
-from .configurable import Configurable
 from .dynamic_class import DynamicClass
 from .reducer import RailReducer
 from .subsampler import RailSubsampler

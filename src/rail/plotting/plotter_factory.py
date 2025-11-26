@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from rail.projects.factory_mixin import RailFactoryMixin
+from rail.core.factory_mixin import RailFactoryMixin
 
 from .plotter import RailPlotter, RailPlotterList
 
 if TYPE_CHECKING:
-    from rail.projects.configurable import Configurable
+    from rail.core.configurable import Configurable
 
     C = TypeVar("C", bound="Configurable")
 

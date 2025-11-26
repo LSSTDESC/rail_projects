@@ -6,13 +6,13 @@ from typing import Any
 
 import yaml
 from ceci.config import StageParameter
+from rail.core.configurable import Configurable
 from rail.core.model import Model
 
 from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
 from .catalog_template import RailProjectCatalogTemplate
-from .configurable import Configurable
 from .file_template import RailProjectFileTemplate
 from .pipeline_factory import RailPipelineFactory
 from .pipeline_holder import RailPipelineTemplate
@@ -655,7 +655,7 @@ class RailProject(Configurable):
                 run_mode,
                 [commands],
                 script_path,
-                site=kwargs.get('site', None),
+                site=kwargs.get("site", None),
             )
         except Exception as msg:  # pragma: no cover
             print(msg)
@@ -700,7 +700,7 @@ class RailProject(Configurable):
                     run_mode,
                     commands,
                     script_path,
-                    site=kwargs.get('site', None),
+                    site=kwargs.get("site", None),
                 )
             except Exception as msg:  # pragma: no cover
                 print(msg)

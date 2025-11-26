@@ -6,18 +6,12 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject, path_funcs
 
-from .data_extraction_funcs import (
-    get_tomo_bins_nz_estimate_data,
-    get_tomo_bins_true_nz_data,
-)
+from .data_extraction_funcs import (get_tomo_bins_nz_estimate_data,
+                                    get_tomo_bins_true_nz_data)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
-from .dataset_holder import (
-    DatasetSplitMode,
-    RailDatasetHolder,
-    RailDatasetListHolder,
-    RailProjectHolder,
-)
+from .dataset_holder import (DatasetSplitMode, RailDatasetHolder,
+                             RailDatasetListHolder, RailProjectHolder)
 from .nz_plotters import RailNZTomoBinsDataset
 
 

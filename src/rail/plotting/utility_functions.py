@@ -1,4 +1,5 @@
 from typing import Any
+
 import numpy as np
 from rail.utils.path_utils import find_rail_file
 

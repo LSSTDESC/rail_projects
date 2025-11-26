@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 from ceci.config import StageParameter
+from rail.core.configurable import Configurable
 from rail.core.stage import RailPipeline
 from rail.utils import catalog_utils
-
-from .configurable import Configurable
 
 if TYPE_CHECKING:
     from .project import RailProject

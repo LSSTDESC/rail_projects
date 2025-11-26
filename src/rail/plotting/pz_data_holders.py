@@ -6,19 +6,14 @@ from ceci.config import StageParameter
 
 from rail.projects import RailProject, path_funcs
 
-from .data_extraction_funcs import (
-    get_multi_pz_point_estimate_data,
-    get_pz_point_estimate_data,
-)
+from .data_extraction_funcs import (get_multi_pz_point_estimate_data,
+                                    get_pz_point_estimate_data)
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory
-from .dataset_holder import (
-    DatasetSplitMode,
-    RailDatasetHolder,
-    RailDatasetListHolder,
-    RailProjectHolder,
-)
-from .pz_plotters import RailPZMultiPointEstimateDataset, RailPZPointEstimateDataset
+from .dataset_holder import (DatasetSplitMode, RailDatasetHolder,
+                             RailDatasetListHolder, RailProjectHolder)
+from .pz_plotters import (RailPZMultiPointEstimateDataset,
+                          RailPZPointEstimateDataset)
 
 
 class RailPZPointEstimateDataHolder(RailDatasetHolder):

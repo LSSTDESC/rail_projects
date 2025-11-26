@@ -7,10 +7,10 @@ import subprocess
 import urllib.request
 
 import yaml
+from rail.core.factory_mixin import RailFactoryMixin
 
 from .algorithm_factory import ALGORITHM_TYPES, RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
-from .factory_mixin import RailFactoryMixin
 from .pipeline_factory import RailPipelineFactory
 from .project_file_factory import RailProjectFileFactory
 from .selection_factory import RailSelectionFactory

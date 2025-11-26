@@ -6,8 +6,7 @@ import os
 from typing import Any
 
 import yaml
-
-from rail.projects.factory_mixin import RailFactoryMixin
+from rail.core.factory_mixin import RailFactoryMixin
 
 from .dataset_factory import RailDatasetFactory
 from .dataset_holder import RailDatasetHolder

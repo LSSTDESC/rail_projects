@@ -138,7 +138,9 @@ def handle_commands(
 
     script_out = script_path.replace(".sh", ".out")
 
-    command_line = ["srun"] + slurm_options + ["--output", script_out, "--error", script_path]
+    command_line = (
+        ["srun"] + slurm_options + ["--output", script_out, "--error", script_path]
+    )
     try:
         with subprocess.Popen(
             command_line,
@@ -181,6 +183,9 @@ def sbatch_wrap(
             f"{site} is not a recognized site, options are {SLURM_OPTIONS.keys()}"
         ) from msg
     command_line = (
-        ["sbatch"] + slurm_options + ["rail-project", "--run_mode", "slurm"] + list(args)
+        ["sbatch"]
+        + slurm_options
+        + ["rail-project", "--run_mode", "slurm"]
+        + list(args)
     )
     return handle_command(run_mode, command_line)
