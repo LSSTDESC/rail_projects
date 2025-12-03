@@ -23,7 +23,6 @@ jobs:
         sudo apt-get update
         sudo apt install libbz2-dev	
         python -m pip install --upgrade pip
-        conda install -c conda-forge somuclu
         pip install wheel
         pip install .
         pip install .[dev]
