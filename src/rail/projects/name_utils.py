@@ -3,6 +3,7 @@ Utility code to help define standard paths for various data products
 """
 
 import copy
+import os
 import re
 from functools import partial
 from typing import Any
@@ -70,6 +71,9 @@ def format_template(template: str, **kwargs: Any) -> str:
 
     required_interpolants = re.findall("{.*?}", template)
     interpolants = kwargs.copy()
+
+    env_interpolants = {key: val for key, val in os.environ.items() if (key.find('PZ') == 0 or key.find('RAIL') == 0)}
+    interpolants.update(**env_interpolants)
 
     for interpolant_ in required_interpolants:
         interpolants.setdefault(
@@ -208,8 +212,10 @@ class NameFactory:
     @interpolants.setter
     def interpolants(self, config: dict) -> None:
         """Update the dict of interpolants that are used to resolve templates"""
+        env_interpolants = {key: val for key, val in os.environ.items() if (key.find('PZ') == 0 or key.find('RAIL') == 0)}
+
         for key, value in config.items():
-            new_value = value.format(**self.interpolants)
+            new_value = value.format(**self.interpolants, **env_interpolants)
             self.interpolants[key] = new_value
 
     @interpolants.deleter
