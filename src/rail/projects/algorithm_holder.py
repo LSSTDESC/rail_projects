@@ -182,6 +182,13 @@ class RailErrorModelAlgorithmHolder(RailAlgorithmHolder):
             required=False,
             msg="Bands to apply errors to",
         ),
+        Overrides=StageParameter(
+            dict,
+            {},
+            fmt="%s",
+            required=False,
+            msg="Parameter overrides",
+        ),
     )
     yaml_tag = "ErrorModel"
 
