@@ -1,8 +1,7 @@
-import numpy as np
-from matplotlib.figure import Figure
-
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import cm
+from matplotlib.figure import Figure
 
 
 def get_subplot_nrow_ncol(nfig: int) -> tuple[int, int]:

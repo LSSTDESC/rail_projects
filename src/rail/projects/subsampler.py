@@ -7,8 +7,8 @@ import numpy as np
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 from ceci.config import StageParameter
+from rail.core.configurable import Configurable
 
-from .configurable import Configurable
 from .dynamic_class import DynamicClass
 
 

@@ -5,8 +5,7 @@ import os
 from typing import Any
 
 from ceci.config import StageParameter
-
-from .configurable import Configurable
+from rail.core.configurable import Configurable
 
 
 class RailProjectCatalogInstance(Configurable):

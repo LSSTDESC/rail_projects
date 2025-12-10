@@ -4,12 +4,12 @@ import re
 from typing import Any
 
 import yaml
-
-from rail.projects.factory_mixin import RailFactoryMixin
-from rail.projects.configurable import Configurable
+from rail.core.configurable import Configurable
+from rail.core.factory_mixin import RailFactoryMixin
 
 from .dataset_factory import RailDatasetFactory
-from .dataset_holder import RailDatasetHolder, RailDatasetListHolder, RailProjectHolder
+from .dataset_holder import (RailDatasetHolder, RailDatasetListHolder,
+                             RailProjectHolder)
 from .plot_group import RailPlotGroup
 from .plotter import RailPlotterList
 from .plotter_factory import RailPlotterFactory

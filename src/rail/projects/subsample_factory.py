@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from ceci.config import StageParameter
-
-from .configurable import Configurable
-from .factory_mixin import RailFactoryMixin
+from rail.core.configurable import Configurable
+from rail.core.factory_mixin import RailFactoryMixin
 
 
 class RailSubsample(Configurable):

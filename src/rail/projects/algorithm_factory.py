@@ -3,18 +3,16 @@ from __future__ import annotations
 import os
 
 import yaml
+from rail.core.factory_mixin import RailFactoryMixin
 
-from .algorithm_holder import (
-    RailAlgorithmHolder,
-    RailClassificationAlgorithmHolder,
-    RailErrorModelAlgorithmHolder,
-    RailPZAlgorithmHolder,
-    RailReducerAlgorithmHolder,
-    RailSpecSelectionAlgorithmHolder,
-    RailSubsamplerAlgorithmHolder,
-    RailSummarizerAlgorithmHolder,
-)
-from .factory_mixin import RailFactoryMixin
+from .algorithm_holder import (RailAlgorithmHolder,
+                               RailClassificationAlgorithmHolder,
+                               RailErrorModelAlgorithmHolder,
+                               RailPZAlgorithmHolder,
+                               RailReducerAlgorithmHolder,
+                               RailSpecSelectionAlgorithmHolder,
+                               RailSubsamplerAlgorithmHolder,
+                               RailSummarizerAlgorithmHolder)
 
 ALGORITHM_TYPES: list[str] = [
     "SpecSelections",
@@ -73,7 +71,8 @@ class RailAlgorithmFactory(RailFactoryMixin):
         """C'tor, build an empty RailDatasetFactory"""
         RailFactoryMixin.__init__(self)
         self._algorithm_holder_dict = {
-            aclass_.yaml_tag: self.add_dict(aclass_) for aclass_ in self.client_classes
+            aclass_.yaml_tag: self.add_dict(aclass_)
+            for aclass_ in self.client_classes
             if issubclass(aclass_, RailAlgorithmHolder)
         }
 

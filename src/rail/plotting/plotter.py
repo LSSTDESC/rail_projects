@@ -4,8 +4,8 @@ import os
 from typing import TYPE_CHECKING, Any
 
 from ceci.config import StageParameter
+from rail.core.configurable import Configurable
 
-from rail.projects.configurable import Configurable
 from rail.projects.dynamic_class import DynamicClass
 
 from .dataset import RailDataset

@@ -7,8 +7,7 @@ from typing import Any
 
 from ceci.config import StageParameter
 from jinja2 import Environment, FileSystemLoader, Template
-
-from rail.projects.configurable import Configurable
+from rail.core.configurable import Configurable
 
 from .dataset import RailDataset
 from .dataset_factory import RailDatasetFactory

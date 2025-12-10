@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .factory_mixin import RailFactoryMixin
+from rail.core.factory_mixin import RailFactoryMixin
+
 from .pipeline_holder import RailPipelineInstance, RailPipelineTemplate
 
 

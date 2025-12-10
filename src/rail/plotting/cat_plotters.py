@@ -6,12 +6,11 @@ from typing import Any
 import numpy as np
 from ceci.config import StageParameter
 
+from . import plotting_functions, utility_functions
 from .dataset import RailDataset
 from .dataset_holder import RailDatasetHolder
 from .plot_holder import RailPlotHolder
 from .plotter import RailPlotter
-from . import plotting_functions
-from . import utility_functions
 
 
 class RailCatTruthDataset(RailDataset):

@@ -4,8 +4,8 @@ from typing import Any
 
 from ceci.config import StageParameter
 from ceci.stage import PipelineStage
+from rail.core.configurable import Configurable
 
-from .configurable import Configurable
 from .dynamic_class import DynamicClass
 from .reducer import RailReducer
 from .subsampler import RailSubsampler
@@ -181,6 +181,13 @@ class RailErrorModelAlgorithmHolder(RailAlgorithmHolder):
             fmt="%s",
             required=False,
             msg="Bands to apply errors to",
+        ),
+        Overrides=StageParameter(
+            dict,
+            {},
+            fmt="%s",
+            required=False,
+            msg="Parameter overrides",
         ),
     )
     yaml_tag = "ErrorModel"

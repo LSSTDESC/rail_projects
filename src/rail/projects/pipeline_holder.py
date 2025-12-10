@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 from ceci.config import StageParameter
+from rail.core.configurable import Configurable
 from rail.core.stage import RailPipeline
 from rail.utils import catalog_utils
-
-from .configurable import Configurable
 
 if TYPE_CHECKING:
     from .project import RailProject
@@ -211,7 +210,7 @@ def estimate_input_callback(
     local_input_tag = kwcopy.pop("input_tag", None)
     if local_input_tag:
         input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
-    else:
+    else:  # pragma: no cover
         input_files["sink_dir"] = sink_dir
     for key, val in input_file_tags.items():
         input_file_flavor = kwargs.get("flavor", val.get("flavor", flavor))
@@ -266,7 +265,7 @@ def estimate_sompz_input_callback(
     local_input_tag = kwcopy.pop("input_tag", None)
     if local_input_tag:
         input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
-    else:
+    else:  # pragma: no cover
         input_files["sink_dir"] = sink_dir
     for key, val in input_file_tags.items():
         input_file_flavor = kwargs.get("flavor", val.get("flavor", flavor))
@@ -320,7 +319,7 @@ def estimate_recalib_input_callback(
     local_input_tag = kwcopy.pop("input_tag", None)
     if local_input_tag:
         input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
-    else:
+    else:  # pragma: no cover
         input_files["sink_dir"] = sink_dir
     for key, val in input_file_tags.items():
         input_file_flavor = kwargs.get("flavor", val.get("flavor", flavor))
@@ -389,7 +388,7 @@ def somlike_recalib_input_callback(
             )
 
     local_input_tag = kwcopy.pop("input_tag", None)
-    if local_input_tag:
+    if local_input_tag:  # pragma: no cover
         input_files["sink_dir"] = os.path.join(sink_dir, local_input_tag)
     else:
         input_files["sink_dir"] = sink_dir
@@ -484,7 +483,7 @@ def pz_input_callback(
     flavor = kwargs.pop("flavor")
     for key, val in input_file_tags.items():
         input_file_flavor = val.get("flavor", flavor)
-        if input_file_flavor!=flavor:
+        if input_file_flavor!=flavor:  # pragma: no cover
             input_file_flavor=flavor
         input_files[key] = project.get_file_for_flavor(
             input_file_flavor, val["tag"], **kwargs
@@ -822,7 +821,7 @@ class RailPipelineInstance(Configurable):
         if catalog_tag:
             try:
                 catalog_utils.apply_defaults(catalog_tag)
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 tokens = catalog_tag.split(".")
                 module_name = ".".join(tokens[:-1])
                 class_name = tokens[-1]

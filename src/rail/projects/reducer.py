@@ -8,11 +8,11 @@ import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
+import yaml
 from ceci.config import StageParameter
 from pyarrow import acero
-import yaml
+from rail.core.configurable import Configurable
 
-from .configurable import Configurable
 from .dynamic_class import DynamicClass
 
 COLUMNS = [
@@ -342,7 +342,7 @@ class DP1Reducer(RailReducer):
 
         topdir = os.path.dirname(os.path.dirname(input_catalog))
         columns_file = os.path.join(topdir, "columns.yaml")
-        with open(columns_file, "r", encoding='utf-8') as fin:
+        with open(columns_file, "r", encoding="utf-8") as fin:
             columns = yaml.safe_load(fin)
 
         if self.config.cuts:
