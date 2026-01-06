@@ -27,7 +27,7 @@ def validate_inputs(a_class: type, expected_inputs: dict, **kwargs: Any) -> None
                 raise TypeError(
                     f"{key} provided to {a_class.__name__} was "
                     f"{type(data)}, not {expected_type.__origin__}"
-                )
+                )  # pragma: no cover
             continue  # pragma: no cover
         if not isinstance(data, expected_type):  # pragma: no cover
             raise TypeError(
