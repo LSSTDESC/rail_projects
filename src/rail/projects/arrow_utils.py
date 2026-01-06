@@ -1,15 +1,43 @@
 from typing import Any
 
 import pyarrow as pa
-import pyarrow.dataset as ds
 import pyarrow.compute as pc
+import pyarrow.dataset as ds
+
+
+class ProjectedDataset:
+    """Wrapper for a new dataset with a custom scanner that projects columns
+
+    PyArrow datasets don't directly support column projection, so we use
+    a factory pattern
+    """
+
+    def __init__(self, source_dataset: ds.Dataset, column_list: list[str]):
+        self._dataset = source_dataset
+        self._columns = column_list
+
+    def __getattr__(self, name: str) -> Any:
+        # Delegate all other attributes to the underlying dataset
+        return getattr(self._dataset, name)
+
+    def scanner(self, **kwargs: Any) -> ds.Scanner:
+        """Override scanner to include column projection"""
+        if "columns" not in kwargs:
+            kwargs["columns"] = self._columns
+        return self._dataset.scanner(**kwargs)
+
+    def to_table(self, **kwargs: Any) -> pa.Table:
+        """Convenience method for materialization with projection"""
+        if "columns" not in kwargs:
+            kwargs["columns"] = self._columns
+        return self._dataset.to_table(**kwargs)
 
 
 def filter_dataset(
     dataset: ds.Dataset,
     filter_conditions: dict[str, Any] | list[dict[str, Any]],
     columns: list[str],
-) -> ds.Dataset:
+) -> ProjectedDataset:
     """
     Filter a PyArrow dataset and select specific columns.
 
@@ -23,13 +51,13 @@ def filter_dataset(
         The PyArrow dataset to filter.
     filter_conditions
         Filter specification in one of two formats:
-        
+
         - Single dict: Conditions are combined with AND logic. Each value can
           be a scalar (equality), a tuple of (operator, value) for
           comparisons, or a tuple of (operator, value1, value2) for BETWEEN.
         - List of dicts: Each dict represents a group of AND conditions.
           Groups are combined with OR logic.
-        
+
         Supported operators: '==', '!=', '<', '<=', '>', '>=', 'between'.
     columns
         List of column names to retain in the filtered dataset. All other
@@ -55,21 +83,21 @@ def filter_dataset(
     ...     'value': [10, 20, 30, 40]
     ... })
     >>> dataset = ds.dataset(table)
-    
+
     Simple equality filter (AND logic):
     >>> filtered = filter_dataset(
     ...     dataset,
     ...     {'category': 'A', 'value': ('>', 15)},
     ...     ['id', 'value']
     ... )
-    
+
     OR logic between condition groups:
     >>> filtered = filter_dataset(
     ...     dataset,
     ...     [{'category': 'A'}, {'value': ('>=', 40)}],
     ...     ['id', 'category', 'value']
     ... )
-    
+
     Range query with BETWEEN:
     >>> filtered = filter_dataset(
     ...     dataset,
@@ -95,7 +123,7 @@ def filter_dataset(
     # Validate columns
     schema_names = set(schema.names)
     requested_cols = set(columns)
-    
+
     # Collect all filter columns from all condition groups
     filter_cols = set()
     for group in condition_groups:
@@ -126,7 +154,7 @@ def filter_dataset(
 
 
 def _build_filter_expression(
-    condition_groups: list[dict[str, Any]]
+    condition_groups: list[dict[str, Any]],
 ) -> pc.Expression | None:
     """
     Build a PyArrow filter expression from condition groups.
@@ -150,62 +178,62 @@ def _build_filter_expression(
 
     for group in condition_groups:
         and_expr = None
-        
+
         for column_name, condition in group.items():
             field = pc.field(column_name)
-            
+
             # Parse condition
             if isinstance(condition, tuple):
                 operator = condition[0]
-                
-                if operator == 'between':
+
+                if operator == "between":
                     if len(condition) != 3:
                         raise ValueError(
                             f"'between' operator requires 2 values, got "
                             f"{len(condition) - 1}"
                         )
                     expr = (field >= condition[1]) & (field <= condition[2])
-                elif operator == '==':
+                elif operator == "==":
                     expr = field == condition[1]
-                elif operator == '!=':
+                elif operator == "!=":
                     expr = field != condition[1]
-                elif operator == '<':
+                elif operator == "<":
                     expr = field < condition[1]
-                elif operator == '<=':
+                elif operator == "<=":
                     expr = field <= condition[1]
-                elif operator == '>':
+                elif operator == ">":
                     expr = field > condition[1]
-                elif operator == '>=':
+                elif operator == ">=":
                     expr = field >= condition[1]
                 else:
                     raise ValueError(f"Unsupported operator: {operator}")
             else:
                 # Scalar value means equality
                 expr = field == condition
-            
+
             # Combine with AND
             if and_expr is None:
                 and_expr = expr
             else:
                 and_expr = and_expr & expr
-        
+
         if and_expr is not None:
             or_expressions.append(and_expr)
-    
+
     # Combine groups with OR
     if not or_expressions:
         return None
-    
+
     final_expr = or_expressions[0]
     for expr in or_expressions[1:]:
         final_expr = final_expr | expr
-    
+
     return final_expr
 
 
 def _create_projected_dataset(
     dataset: ds.Dataset, columns: list[str]
-) -> ds.Dataset:
+) -> ProjectedDataset:
     """
     Create a dataset wrapper that projects only specified columns.
 
@@ -220,35 +248,11 @@ def _create_projected_dataset(
     -------
         Dataset that will project columns when scanned.
     """
-    # Create a new dataset with a custom scanner that projects columns
-    # PyArrow datasets don't directly support column projection, so we use
-    # a factory pattern
-    class ProjectedDataset:
-        def __init__(self, source_dataset: ds.Dataset, column_list: list[str]):
-            self._dataset = source_dataset
-            self._columns = column_list
-        
-        def __getattr__(self, name: str) -> Any:
-            # Delegate all other attributes to the underlying dataset
-            return getattr(self._dataset, name)
-        
-        def scanner(self, **kwargs: Any) -> ds.Scanner:
-            # Override scanner to include column projection
-            if 'columns' not in kwargs:
-                kwargs['columns'] = self._columns
-            return self._dataset.scanner(**kwargs)
-        
-        def to_table(self, **kwargs: Any) -> pa.Table:
-            # Convenience method for materialization with projection
-            if 'columns' not in kwargs:
-                kwargs['columns'] = self._columns
-            return self._dataset.to_table(**kwargs)
-    
     return ProjectedDataset(dataset, columns)
 
 
 def inner_join_datasets(
-    datasets: dict[str, Any],
+    datasets: dict[str, ProjectedDataset],
     join_key: str,
 ) -> pa.Table:
     """
@@ -286,7 +290,7 @@ def inner_join_datasets(
     --------
     >>> import pyarrow as pa
     >>> import pyarrow.dataset as ds
-    >>> 
+    >>>
     >>> # Create sample datasets
     >>> users_ds = ds.dataset(pa.table({
     ...     'id': [1, 2, 3],
@@ -298,7 +302,7 @@ def inner_join_datasets(
     ...     'dept': ['Engineering', 'Sales', 'HR'],
     ...     'total': [700, 600, 550]
     ... }))
-    >>> 
+    >>>
     >>> # Perform inner join
     >>> result = inner_join_datasets(
     ...     {'users': users_ds, 'orders': orders_ds},
@@ -326,7 +330,7 @@ def inner_join_datasets(
         raise ValueError("At least one dataset must be provided")
 
     # Validate dataset names don't contain underscores
-    invalid_names = [name for name in datasets.keys() if '_' in name]
+    invalid_names = [name for name in datasets.keys() if "_" in name]
     if invalid_names:
         raise ValueError(
             f"Dataset names cannot contain underscores: {invalid_names}. "
