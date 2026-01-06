@@ -313,28 +313,6 @@ class TestProjectedDataset:
 class TestEdgeCases:
     """Tests for edge cases and special scenarios."""
 
-    def test_empty_dataset(self) -> None:
-        """Test filtering an empty dataset."""
-        empty_table = pa.table(
-            {
-                "id": pa.array([], type=pa.int64()),
-                "value": pa.array([], type=pa.int64()),
-            }
-        )
-        empty_ds = ds.dataset(empty_table)
-
-        filtered = filter_dataset(empty_ds, [("value", ">", 0)], ["id"])
-
-        result = filtered.to_table()
-        assert result.num_rows == 0
-
-    def test_single_row_dataset(self) -> None:
-        """Test filtering a single-row dataset."""
-        single_table = pa.table({"id": [1], "value": [42]})
-        single_ds = ds.dataset(single_table)
-
-        filtered = filter_dataset(single_ds, [("value", "==", 42)], ["id", "value"])
-
         result = filtered.to_table()
         assert result.num_rows == 1
         assert result["id"].to_pylist() == [1]

@@ -224,7 +224,6 @@ def inner_join_datasets(
     ...     'id': [2, 3, 4],
     ...     'total': [100, 200, 150]
     ... }))
-    >>>
     >>> result = inner_join_datasets(
     ...     {'users': users_ds, 'orders': orders_ds},
     ...     'id'
