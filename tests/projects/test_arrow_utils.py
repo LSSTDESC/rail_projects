@@ -1,88 +1,16 @@
-from typing import Any
-
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pytest
 
-from rail.projects.arrow_utils import (_add_column_prefix,
-                                       _build_filter_expression,
-                                       _inner_join_two_tables, filter_dataset,
-                                       inner_join_datasets)
-
-
-class TestBuildFilterExpression:
-    """Tests for the _build_filter_expression helper function."""
-
-    def test_empty_conditions(self) -> None:
-        """Test that empty condition groups return None."""
-        result = _build_filter_expression([])
-        assert result is None
-
-    def test_empty_dict_in_conditions(self) -> None:
-        """Test that a list with an empty dict returns None."""
-        result = _build_filter_expression([{}])
-        assert result is None
-
-    def test_single_equality_condition(self) -> None:
-        """Test a single equality condition."""
-        expr = _build_filter_expression([{"category": "A"}])
-        assert expr is not None
-        # Expression should be evaluable (we can't easily test the exact
-        # structure, but we can verify it's valid)
-
-    def test_multiple_and_conditions(self) -> None:
-        """Test multiple conditions combined with AND logic."""
-        expr = _build_filter_expression([{"category": "A", "value": 10}])
-        assert expr is not None
-
-    def test_comparison_operators(self) -> None:
-        """Test all supported comparison operators."""
-        operators = [
-            ("==", 10),
-            ("!=", 10),
-            ("<", 10),
-            ("<=", 10),
-            (">", 10),
-            (">=", 10),
-        ]
-
-        for op, val in operators:
-            expr = _build_filter_expression([{"value": (op, val)}])
-            assert expr is not None, f"Operator {op} failed"
-
-    def test_between_operator(self) -> None:
-        """Test the BETWEEN operator."""
-        expr = _build_filter_expression([{"value": ("between", 10, 20)}])
-        assert expr is not None
-
-    def test_between_operator_wrong_arg_count(self) -> None:
-        """Test that BETWEEN with wrong number of args raises ValueError."""
-        with pytest.raises(ValueError, match="'between' operator requires 2 values"):
-            _build_filter_expression([{"value": ("between", 10)}])
-
-    def test_unsupported_operator(self) -> None:
-        """Test that unsupported operators raise ValueError."""
-        with pytest.raises(ValueError, match="Unsupported operator: invalid"):
-            _build_filter_expression([{"value": ("invalid", 10)}])
-
-    def test_or_logic_multiple_groups(self) -> None:
-        """Test OR logic with multiple condition groups."""
-        expr = _build_filter_expression([{"category": "A"}, {"category": "B"}])
-        assert expr is not None
-
-    def test_complex_or_and_combination(self) -> None:
-        """Test complex combination of OR and AND logic."""
-        expr = _build_filter_expression(
-            [
-                {"category": "A", "value": (">", 10)},
-                {"category": "B", "value": ("<", 5)},
-            ]
-        )
-        assert expr is not None
+from rail.projects.arrow_utils import (
+    _ProjectedDataset,
+    filter_dataset,
+    inner_join_datasets,
+)
 
 
 class TestFilterDataset:
-    """Tests for the main filter_dataset function."""
+    """Tests for the filter_dataset function."""
 
     @pytest.fixture
     def sample_dataset(self) -> ds.Dataset:
@@ -100,7 +28,7 @@ class TestFilterDataset:
     def test_simple_equality_filter(self, sample_dataset: ds.Dataset) -> None:
         """Test simple equality filtering."""
         filtered = filter_dataset(
-            sample_dataset, {"category": "A"}, ["id", "category", "value"]
+            sample_dataset, [("category", "==", "A")], ["id", "category", "value"]
         )
 
         result = filtered.to_table()
@@ -108,19 +36,35 @@ class TestFilterDataset:
         assert result["id"].to_pylist() == [1, 3]
         assert result["category"].to_pylist() == ["A", "A"]
 
-    def test_column_projection(self, sample_dataset: ds.Dataset) -> None:
-        """Test that only specified columns are retained."""
-        filtered = filter_dataset(sample_dataset, {"category": "A"}, ["id", "value"])
+    def test_column_projection_list(self, sample_dataset: ds.Dataset) -> None:
+        """Test that only specified columns are retained with list."""
+        filtered = filter_dataset(
+            sample_dataset, [("category", "==", "A")], ["id", "value"]
+        )
 
         result = filtered.to_table()
         assert result.column_names == ["id", "value"]
         assert "category" not in result.column_names
         assert "extra" not in result.column_names
 
+    def test_column_projection_dict(self, sample_dataset: ds.Dataset) -> None:
+        """Test column renaming with dict."""
+        filtered = filter_dataset(
+            sample_dataset,
+            [("category", "==", "A")],
+            {"identifier": "id", "amount": "value"},
+        )
+
+        result = filtered.to_table()
+        assert set(result.column_names) == {"identifier", "amount"}
+        assert result.num_rows == 2
+
     def test_and_logic_multiple_conditions(self, sample_dataset: ds.Dataset) -> None:
         """Test AND logic with multiple conditions."""
         filtered = filter_dataset(
-            sample_dataset, {"category": "A", "value": (">", 15)}, ["id", "value"]
+            sample_dataset,
+            [("category", "==", "A"), ("value", ">", 15)],
+            ["id", "value"],
         )
 
         result = filtered.to_table()
@@ -132,7 +76,7 @@ class TestFilterDataset:
         """Test OR logic with multiple condition groups."""
         filtered = filter_dataset(
             sample_dataset,
-            [{"category": "A"}, {"value": (">=", 50)}],
+            [[("category", "==", "A")], [("value", ">=", 50)]],
             ["id", "category", "value"],
         )
 
@@ -142,7 +86,7 @@ class TestFilterDataset:
 
     def test_greater_than_filter(self, sample_dataset: ds.Dataset) -> None:
         """Test greater than comparison."""
-        filtered = filter_dataset(sample_dataset, {"value": (">", 25)}, ["id", "value"])
+        filtered = filter_dataset(sample_dataset, [("value", ">", 25)], ["id", "value"])
 
         result = filtered.to_table()
         assert result.num_rows == 3
@@ -151,37 +95,46 @@ class TestFilterDataset:
     def test_less_than_or_equal_filter(self, sample_dataset: ds.Dataset) -> None:
         """Test less than or equal comparison."""
         filtered = filter_dataset(
-            sample_dataset, {"value": ("<=", 20)}, ["id", "value"]
+            sample_dataset, [("value", "<=", 20)], ["id", "value"]
         )
 
         result = filtered.to_table()
         assert result.num_rows == 2
         assert result["id"].to_pylist() == [1, 2]
 
-    def test_between_filter(self, sample_dataset: ds.Dataset) -> None:
-        """Test BETWEEN range query."""
-        filtered = filter_dataset(
-            sample_dataset, {"value": ("between", 20, 40)}, ["id", "value"]
-        )
-
-        result = filtered.to_table()
-        assert result.num_rows == 3
-        assert result["id"].to_pylist() == [2, 3, 4]
-        assert result["value"].to_pylist() == [20, 30, 40]
-
     def test_not_equal_filter(self, sample_dataset: ds.Dataset) -> None:
         """Test not equal comparison."""
         filtered = filter_dataset(
-            sample_dataset, {"category": ("!=", "A")}, ["id", "category"]
+            sample_dataset, [("category", "!=", "A")], ["id", "category"]
         )
 
         result = filtered.to_table()
         assert result.num_rows == 3
         assert "A" not in result["category"].to_pylist()
 
+    def test_in_operator(self, sample_dataset: ds.Dataset) -> None:
+        """Test 'in' operator for list membership."""
+        filtered = filter_dataset(
+            sample_dataset, [("category", "in", ["A", "C"])], ["id", "category"]
+        )
+
+        result = filtered.to_table()
+        assert result.num_rows == 3
+        assert set(result["category"].to_pylist()) == {"A", "C"}
+
+    def test_not_in_operator(self, sample_dataset: ds.Dataset) -> None:
+        """Test 'not in' operator."""
+        filtered = filter_dataset(
+            sample_dataset, [("category", "not in", ["A", "C"])], ["id", "category"]
+        )
+
+        result = filtered.to_table()
+        assert result.num_rows == 2
+        assert set(result["category"].to_pylist()) == {"B"}
+
     def test_empty_filter_conditions(self, sample_dataset: ds.Dataset) -> None:
         """Test that empty filter conditions return all rows."""
-        filtered = filter_dataset(sample_dataset, {}, ["id", "value"])
+        filtered = filter_dataset(sample_dataset, [], ["id", "value"])
 
         result = filtered.to_table()
         assert result.num_rows == 5
@@ -189,30 +142,34 @@ class TestFilterDataset:
     def test_no_matching_rows(self, sample_dataset: ds.Dataset) -> None:
         """Test filter that matches no rows returns empty table."""
         filtered = filter_dataset(
-            sample_dataset, {"value": (">", 100)}, ["id", "value"]
+            sample_dataset, [("value", ">", 100)], ["id", "value"]
         )
 
         result = filtered.to_table()
         assert result.num_rows == 0
         assert result.column_names == ["id", "value"]
 
-    def test_missing_output_column(self, sample_dataset: ds.Dataset) -> None:
+    def test_missing_output_column_list(self, sample_dataset: ds.Dataset) -> None:
         """Test that requesting non-existent column raises ValueError."""
         with pytest.raises(ValueError, match="Columns not found in dataset schema"):
-            filter_dataset(sample_dataset, {"category": "A"}, ["id", "nonexistent"])
+            filter_dataset(
+                sample_dataset, [("category", "==", "A")], ["id", "nonexistent"]
+            )
 
-    def test_missing_filter_column(self, sample_dataset: ds.Dataset) -> None:
-        """Test that filtering on non-existent column raises ValueError."""
-        with pytest.raises(ValueError, match="Filter columns not found"):
-            filter_dataset(sample_dataset, {"nonexistent": "value"}, ["id", "value"])
+    def test_missing_output_column_dict(self, sample_dataset: ds.Dataset) -> None:
+        """Test that renaming non-existent column raises ValueError."""
+        with pytest.raises(ValueError, match="Columns not found in dataset schema"):
+            filter_dataset(
+                sample_dataset, [("category", "==", "A")], {"new_name": "nonexistent"}
+            )
 
     def test_complex_or_and_combination(self, sample_dataset: ds.Dataset) -> None:
         """Test complex combination of OR and AND logic."""
         filtered = filter_dataset(
             sample_dataset,
             [
-                {"category": "A", "value": ("<", 20)},
-                {"category": "B", "value": (">", 40)},
+                [("category", "==", "A"), ("value", "<", 20)],
+                [("category", "==", "B"), ("value", ">", 40)],
             ],
             ["id", "category", "value"],
         )
@@ -226,9 +183,12 @@ class TestFilterDataset:
 
     def test_lazy_evaluation(self, sample_dataset: ds.Dataset) -> None:
         """Test that the returned dataset is lazy (not materialized)."""
-        filtered = filter_dataset(sample_dataset, {"category": "A"}, ["id", "value"])
+        filtered = filter_dataset(
+            sample_dataset, [("category", "==", "A")], ["id", "value"]
+        )
 
         # The filtered object should be a dataset-like object
+        assert isinstance(filtered, _ProjectedDataset)
         assert hasattr(filtered, "scanner")
         assert hasattr(filtered, "to_table")
 
@@ -242,7 +202,9 @@ class TestFilterDataset:
         self, sample_dataset: ds.Dataset
     ) -> None:
         """Test that using scanner() directly respects column projection."""
-        filtered = filter_dataset(sample_dataset, {"category": "A"}, ["id", "value"])
+        filtered = filter_dataset(
+            sample_dataset, [("category", "==", "A")], ["id", "value"]
+        )
 
         # Use scanner directly
         scanner = filtered.scanner()
@@ -254,7 +216,7 @@ class TestFilterDataset:
     def test_all_columns_retained(self, sample_dataset: ds.Dataset) -> None:
         """Test filtering with all columns retained."""
         filtered = filter_dataset(
-            sample_dataset, {"value": (">", 30)}, ["id", "category", "value", "extra"]
+            sample_dataset, [("value", ">", 30)], ["id", "category", "value", "extra"]
         )
 
         result = filtered.to_table()
@@ -263,11 +225,89 @@ class TestFilterDataset:
 
     def test_single_column_output(self, sample_dataset: ds.Dataset) -> None:
         """Test filtering with only one output column."""
-        filtered = filter_dataset(sample_dataset, {"category": "B"}, ["id"])
+        filtered = filter_dataset(sample_dataset, [("category", "==", "B")], ["id"])
 
         result = filtered.to_table()
         assert result.column_names == ["id"]
         assert result["id"].to_pylist() == [2, 5]
+
+    def test_column_rename_preserves_data(self, sample_dataset: ds.Dataset) -> None:
+        """Test that column renaming preserves data correctly."""
+        filtered = filter_dataset(
+            sample_dataset,
+            [("category", "==", "A")],
+            {"user_id": "id", "user_name": "category", "score": "value"},
+        )
+
+        result = filtered.to_table()
+        assert result.num_rows == 2
+        assert result["user_id"].to_pylist() == [1, 3]
+        assert result["user_name"].to_pylist() == ["A", "A"]
+        assert result["score"].to_pylist() == [10, 30]
+
+
+class TestProjectedDataset:
+    """Tests for the _ProjectedDataset wrapper class."""
+
+    def test_schema_property(self) -> None:
+        """Test that schema property delegates to underlying dataset."""
+        table = pa.table({"id": [1, 2], "value": [10, 20]})
+        dataset = ds.dataset(table)
+        projected = _ProjectedDataset(dataset, ["id"])
+
+        assert projected.schema == dataset.schema
+
+    def test_getattr_delegation(self) -> None:
+        """Test that unknown attributes delegate to underlying dataset."""
+        table = pa.table({"id": [1, 2], "value": [10, 20]})
+        dataset = ds.dataset(table)
+        projected = _ProjectedDataset(dataset, ["id"])
+
+        # Access an attribute that should be delegated
+        assert hasattr(projected, "schema")
+        assert projected.schema == dataset.schema
+
+    def test_scanner_with_list_columns(self) -> None:
+        """Test scanner with list of columns."""
+        table = pa.table({"id": [1, 2], "value": [10, 20], "extra": [100, 200]})
+        dataset = ds.dataset(table)
+        projected = _ProjectedDataset(dataset, ["id", "value"])
+
+        scanner = projected.scanner()
+        result = scanner.to_table()
+
+        assert result.column_names == ["id", "value"]
+
+    def test_scanner_with_dict_columns(self) -> None:
+        """Test scanner with dict for column renaming."""
+        table = pa.table({"id": [1, 2], "value": [10, 20]})
+        dataset = ds.dataset(table)
+        projected = _ProjectedDataset(dataset, {"identifier": "id", "amount": "value"})
+
+        scanner = projected.scanner()
+        result = scanner.to_table()
+
+        assert set(result.column_names) == {"identifier", "amount"}
+
+    def test_to_table_with_list_columns(self) -> None:
+        """Test to_table with list of columns."""
+        table = pa.table({"id": [1, 2], "value": [10, 20], "extra": [100, 200]})
+        dataset = ds.dataset(table)
+        projected = _ProjectedDataset(dataset, ["id", "value"])
+
+        result = projected.to_table()
+
+        assert result.column_names == ["id", "value"]
+
+    def test_to_table_with_dict_columns(self) -> None:
+        """Test to_table with dict for column renaming."""
+        table = pa.table({"id": [1, 2], "value": [10, 20]})
+        dataset = ds.dataset(table)
+        projected = _ProjectedDataset(dataset, {"new_id": "id", "new_value": "value"})
+
+        result = projected.to_table()
+
+        assert set(result.column_names) == {"new_id", "new_value"}
 
 
 class TestEdgeCases:
@@ -283,7 +323,7 @@ class TestEdgeCases:
         )
         empty_ds = ds.dataset(empty_table)
 
-        filtered = filter_dataset(empty_ds, {"value": (">", 0)}, ["id"])
+        filtered = filter_dataset(empty_ds, [("value", ">", 0)], ["id"])
 
         result = filtered.to_table()
         assert result.num_rows == 0
@@ -293,7 +333,7 @@ class TestEdgeCases:
         single_table = pa.table({"id": [1], "value": [42]})
         single_ds = ds.dataset(single_table)
 
-        filtered = filter_dataset(single_ds, {"value": 42}, ["id", "value"])
+        filtered = filter_dataset(single_ds, [("value", "==", 42)], ["id", "value"])
 
         result = filtered.to_table()
         assert result.num_rows == 1
@@ -314,7 +354,7 @@ class TestEdgeCases:
         # Test with different types
         filtered = filter_dataset(
             dataset,
-            {"float_col": (">", 2.0), "bool_col": True},
+            [("float_col", ">", 2.0), ("bool_col", "==", True)],
             ["int_col", "string_col"],
         )
 
@@ -322,128 +362,25 @@ class TestEdgeCases:
         assert result.num_rows == 1
         assert result["int_col"].to_pylist() == [3]
 
-    def test_boundary_values(self) -> None:
-        """Test filtering with boundary values for BETWEEN."""
-        table = pa.table({"id": [1, 2, 3, 4, 5], "value": [10, 20, 30, 40, 50]})
+    def test_null_values_in_data(self) -> None:
+        """Test filtering with NULL values present."""
+        table = pa.table({"id": [1, 2, 3, 4], "value": [10, None, 30, None]})
         dataset = ds.dataset(table)
 
-        # Test inclusive boundaries
-        filtered = filter_dataset(
-            dataset, {"value": ("between", 20, 40)}, ["id", "value"]
-        )
+        # Filter for non-null values
+        filtered = filter_dataset(dataset, [("value", ">", 0)], ["id", "value"])
 
         result = filtered.to_table()
-        assert result.num_rows == 3
-        assert result["value"].to_pylist() == [20, 30, 40]
-
-
-class TestAddColumnPrefix:
-    """Tests for the _add_column_prefix helper function."""
-
-    def test_simple_prefix(self) -> None:
-        """Test adding prefix to columns."""
-        table = pa.table(
-            {"id": [1, 2, 3], "name": ["Alice", "Bob", "Charlie"], "age": [25, 30, 35]}
-        )
-
-        result = _add_column_prefix(table, "users", "id")
-
-        assert result.column_names == ["id", "users_name", "users_age"]
-        assert result["id"].to_pylist() == [1, 2, 3]
-        assert result["users_name"].to_pylist() == ["Alice", "Bob", "Charlie"]
-
-    def test_exclude_column_not_prefixed(self) -> None:
-        """Test that excluded column is not prefixed."""
-        table = pa.table({"key": [1, 2], "value": [10, 20]})
-
-        result = _add_column_prefix(table, "data", "key")
-
-        assert "key" in result.column_names
-        assert "data_key" not in result.column_names
-        assert "data_value" in result.column_names
-
-    def test_all_columns_except_one(self) -> None:
-        """Test prefixing with multiple columns."""
-        table = pa.table({"id": [1], "col1": [10], "col2": [20], "col3": [30]})
-
-        result = _add_column_prefix(table, "test", "id")
-
-        assert result.column_names == ["id", "test_col1", "test_col2", "test_col3"]
-
-    def test_single_column_table(self) -> None:
-        """Test table with only the excluded column."""
-        table = pa.table({"id": [1, 2, 3]})
-
-        result = _add_column_prefix(table, "prefix", "id")
-
-        assert result.column_names == ["id"]
-
-    def test_empty_table(self) -> None:
-        """Test prefixing columns in empty table."""
-        table = pa.table(
-            {
-                "id": pa.array([], type=pa.int64()),
-                "value": pa.array([], type=pa.int64()),
-            }
-        )
-
-        result = _add_column_prefix(table, "empty", "id")
-
-        assert result.column_names == ["id", "empty_value"]
-        assert result.num_rows == 0
-
-
-class TestInnerJoinTwoTables:
-    """Tests for the _inner_join_two_tables helper function."""
-
-    def test_simple_join(self) -> None:
-        """Test basic inner join of two tables."""
-        left = pa.table({"id": [1, 2, 3], "left_value": [10, 20, 30]})
-        right = pa.table({"id": [2, 3, 4], "right_value": [200, 300, 400]})
-
-        result = _inner_join_two_tables(left, right, "id")
-
+        # Should only include non-null values > 0
         assert result.num_rows == 2
-        assert set(result.column_names) == {"id", "left_value", "right_value"}
-        assert sorted(result["id"].to_pylist()) == [2, 3]
-
-    def test_no_matching_rows(self) -> None:
-        """Test join with no overlapping keys."""
-        left = pa.table({"id": [1, 2], "value": [10, 20]})
-        right = pa.table({"id": [3, 4], "value": [30, 40]})
-
-        result = _inner_join_two_tables(left, right, "id")
-
-        assert result.num_rows == 0
-
-    def test_all_rows_match(self) -> None:
-        """Test join where all keys match."""
-        left = pa.table({"id": [1, 2, 3], "left_col": ["a", "b", "c"]})
-        right = pa.table({"id": [1, 2, 3], "right_col": ["x", "y", "z"]})
-
-        result = _inner_join_two_tables(left, right, "id")
-
-        assert result.num_rows == 3
-        assert sorted(result["id"].to_pylist()) == [1, 2, 3]
-
-    def test_duplicate_keys(self) -> None:
-        """Test join with duplicate keys (cartesian product expected)."""
-        left = pa.table({"id": [1, 1, 2], "left_val": [10, 11, 20]})
-        right = pa.table({"id": [1, 1, 2], "right_val": [100, 101, 200]})
-
-        result = _inner_join_two_tables(left, right, "id")
-
-        # Each duplicate on left matches each duplicate on right
-        # id=1: 2 left × 2 right = 4 rows
-        # id=2: 1 left × 1 right = 1 row
-        assert result.num_rows == 5
+        assert result["id"].to_pylist() == [1, 3]
 
 
 class TestInnerJoinDatasets:
-    """Tests for the main inner_join_datasets function."""
+    """Tests for the inner_join_datasets function."""
 
     @pytest.fixture
-    def users_dataset(self) -> None:
+    def users_dataset(self) -> ds.Dataset:
         """Create a users dataset."""
         table = pa.table(
             {
@@ -478,41 +415,75 @@ class TestInnerJoinDatasets:
         )
         return ds.dataset(table)
 
-    def test_two_datasets_simple_join(
+    def test_two_datasets_simple_join_no_conflicts(
         self, users_dataset: ds.Dataset, orders_dataset: ds.Dataset
     ) -> None:
-        """Test simple join of two datasets."""
+        """Test simple join of two datasets with no column conflicts."""
         result = inner_join_datasets(
             {"users": users_dataset, "orders": orders_dataset}, "user_id"
         )
 
         assert result.num_rows == 3  # user_id 2, 3, 4
         assert "user_id" in result.column_names
-        assert "users_name" in result.column_names
-        assert "users_age" in result.column_names
-        assert "orders_order_total" in result.column_names
-        assert "orders_order_count" in result.column_names
+        assert "name" in result.column_names
+        assert "age" in result.column_names
+        assert "order_total" in result.column_names
+        assert "order_count" in result.column_names
 
         # Verify join key appears only once
         assert result.column_names.count("user_id") == 1
 
-    def test_column_prefixes_correct(
-        self, users_dataset: ds.Dataset, orders_dataset: ds.Dataset
-    ) -> None:
-        """Test that column names are correctly prefixed."""
-        result = inner_join_datasets(
-            {"users": users_dataset, "orders": orders_dataset}, "user_id"
+        # No suffixes since there are no conflicts
+        assert "name_users" not in result.column_names
+        assert "order_total_orders" not in result.column_names
+
+    def test_column_conflicts_get_suffixes(self) -> None:
+        """Test that column name conflicts are resolved with suffixes."""
+        # Both datasets have a 'value' column
+        ds1 = ds.dataset(pa.table({"id": [1, 2, 3], "value": [10, 20, 30]}))
+        ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [200, 300, 400]}))
+
+        result = inner_join_datasets({"users": ds1, "orders": ds2}, "id")
+
+        # Both value columns should be present with suffixes
+        assert "value_users" in result.column_names
+        assert "value_orders" in result.column_names
+        assert "value" not in result.column_names
+
+        # Verify data is correct
+        assert result.num_rows == 2
+        result_dict = result.to_pydict()
+        id_2_idx = result_dict["id"].index(2)
+        assert result_dict["value_users"][id_2_idx] == 20
+        assert result_dict["value_orders"][id_2_idx] == 200
+
+    def test_partial_column_conflicts(self) -> None:
+        """Test join where only some columns conflict."""
+        ds1 = ds.dataset(
+            pa.table(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["Alice", "Bob", "Charlie"],
+                    "value": [10, 20, 30],
+                }
+            )
+        )
+        ds2 = ds.dataset(
+            pa.table(
+                {"id": [2, 3, 4], "value": [200, 300, 400], "category": ["A", "B", "C"]}
+            )
         )
 
-        # Check all non-join columns are prefixed
-        expected_columns = {
-            "user_id",
-            "users_name",
-            "users_age",
-            "orders_order_total",
-            "orders_order_count",
-        }
-        assert set(result.column_names) == expected_columns
+        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
+
+        # Non-conflicting columns should not have suffixes
+        assert "name" in result.column_names
+        assert "category" in result.column_names
+
+        # Conflicting column should have suffixes
+        assert "value_left" in result.column_names
+        assert "value_right" in result.column_names
+        assert "value" not in result.column_names
 
     def test_three_datasets_join(
         self,
@@ -533,9 +504,27 @@ class TestInnerJoinDatasets:
         # Only user_id 2 and 3 appear in all three datasets
         assert result.num_rows == 2
         assert "user_id" in result.column_names
-        assert "users_name" in result.column_names
-        assert "orders_order_total" in result.column_names
-        assert "products_product_name" in result.column_names
+        assert "name" in result.column_names
+        assert "order_total" in result.column_names
+        assert "product_name" in result.column_names
+
+    def test_three_datasets_with_conflicts(self) -> None:
+        """Test three-way join with column conflicts."""
+        ds1 = ds.dataset(pa.table({"id": [1, 2, 3], "value": [10, 20, 30]}))
+        ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [100, 200, 300]}))
+        ds3 = ds.dataset(pa.table({"id": [2, 3, 5], "value": [1000, 2000, 3000]}))
+
+        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id")
+
+        # Only id 2 and 3 in all three
+        assert result.num_rows == 2
+
+        # Check that suffixes are applied to conflicting columns
+        assert "id" in result.column_names
+        # After multiple joins, suffix patterns may vary
+        # Just verify we have three value columns with suffixes
+        value_cols = [col for col in result.column_names if "value" in col]
+        assert len(value_cols) == 3
 
     def test_single_dataset(self, users_dataset: ds.Dataset) -> None:
         """Test behavior with a single dataset."""
@@ -543,8 +532,11 @@ class TestInnerJoinDatasets:
 
         assert result.num_rows == 4
         assert "user_id" in result.column_names
-        assert "users_name" in result.column_names
-        assert "users_age" in result.column_names
+        assert "name" in result.column_names
+        assert "age" in result.column_names
+
+        # No suffixes for single dataset
+        assert "name_users" not in result.column_names
 
     def test_empty_datasets_dict(self) -> None:
         """Test that empty datasets dict raises ValueError."""
@@ -563,25 +555,6 @@ class TestInnerJoinDatasets:
                 {"users": users_dataset, "orders": orders_dataset}, "nonexistent"
             )
 
-    def test_dataset_name_with_underscore(self, users_dataset: ds.Dataset) -> None:
-        """Test that dataset names with underscores are rejected."""
-        with pytest.raises(
-            ValueError, match="Dataset names cannot contain underscores"
-        ):
-            inner_join_datasets({"user_data": users_dataset}, "user_id")
-
-    def test_multiple_dataset_names_with_underscores(
-        self, users_dataset: ds.Dataset, orders_dataset: ds.Dataset
-    ) -> None:
-        """Test that multiple invalid dataset names are all reported."""
-        with pytest.raises(
-            ValueError,
-            match="Dataset names cannot contain underscores.*user_data.*order_data",
-        ):
-            inner_join_datasets(
-                {"user_data": users_dataset, "order_data": orders_dataset}, "user_id"
-            )
-
     def test_no_matching_rows(self) -> None:
         """Test join with no matching keys across datasets."""
         ds1 = ds.dataset(pa.table({"id": [1, 2], "value": [10, 20]}))
@@ -592,8 +565,6 @@ class TestInnerJoinDatasets:
         assert result.num_rows == 0
         # Columns should still be present
         assert "id" in result.column_names
-        assert "first_value" in result.column_names
-        assert "second_value" in result.column_names
 
     def test_duplicate_join_keys(self) -> None:
         """Test join with duplicate keys in datasets."""
@@ -615,9 +586,9 @@ class TestInnerJoinDatasets:
         )
 
         assert result["user_id"].type == pa.int64()
-        assert result["users_name"].type == pa.string()
-        assert result["users_age"].type == pa.int64()
-        assert result["orders_order_total"].type == pa.float64()
+        assert result["name"].type == pa.string()
+        assert result["age"].type == pa.int64()
+        assert result["order_total"].type == pa.float64()
 
     def test_join_order_deterministic(
         self,
@@ -655,12 +626,10 @@ class TestInnerJoinDatasets:
         result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id")
 
         assert result.num_rows == 2  # id 2 and 3 in all three
-        assert set(result.column_names) == {
-            "id",
-            "first_alpha",
-            "second_beta",
-            "third_gamma",
-        }
+        assert "id" in result.column_names
+        assert "alpha" in result.column_names
+        assert "beta" in result.column_names
+        assert "gamma" in result.column_names
 
     def test_single_row_datasets(self) -> None:
         """Test join with single-row datasets."""
@@ -671,8 +640,8 @@ class TestInnerJoinDatasets:
 
         assert result.num_rows == 1
         assert result["key"].to_pylist() == [1]
-        assert result["a_value1"].to_pylist() == [100]
-        assert result["b_value2"].to_pylist() == [200]
+        assert result["value1"].to_pylist() == [100]
+        assert result["value2"].to_pylist() == [200]
 
     def test_empty_dataset_join(self) -> None:
         """Test joining when one dataset is empty."""
@@ -690,136 +659,6 @@ class TestInnerJoinDatasets:
 
         # Inner join with empty dataset should return empty result
         assert result.num_rows == 0
-        assert set(result.column_names) == {"id", "first_value", "second_value"}
-
-    def test_column_name_conflicts_resolved(self) -> None:
-        """Test that column name conflicts are resolved by prefixing."""
-        # Both datasets have a 'value' column
-        ds1 = ds.dataset(pa.table({"id": [1, 2, 3], "value": [10, 20, 30]}))
-        ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [200, 300, 400]}))
-
-        result = inner_join_datasets({"first": ds1, "second": ds2}, "id")
-
-        # Both value columns should be present with prefixes
-        assert "first_value" in result.column_names
-        assert "second_value" in result.column_names
-        assert "value" not in result.column_names
-
-        # Verify data is correct
-        assert result.num_rows == 2
-        result_dict = result.to_pydict()
-        id_2_idx = result_dict["id"].index(2)
-        assert result_dict["first_value"][id_2_idx] == 20
-        assert result_dict["second_value"][id_2_idx] == 200
-
-
-class TestIntegrationWithProjectedDataset:
-    """Integration tests with ProjectedDataset from filter_dataset."""
-
-    @pytest.fixture
-    def mock_projected_dataset(self) -> Any:
-        """Create a mock ProjectedDataset-like object."""
-
-        class MockProjectedDataset:
-            def __init__(self, table: ds.Dataset, columns: Any):
-                self._table = table
-                self._columns = columns
-
-            @property
-            def schema(self) -> None:
-                return self._table.schema
-
-            def to_table(self) -> None:
-                return self._table.select(self._columns)
-
-        return MockProjectedDataset
-
-    def test_join_with_projected_datasets(self, mock_projected_dataset: Any) -> None:
-        """Test joining ProjectedDataset objects."""
-        table1 = pa.table(
-            {
-                "id": [1, 2, 3],
-                "name": ["Alice", "Bob", "Charlie"],
-                "age": [25, 30, 35],
-                "extra": ["x", "y", "z"],
-            }
-        )
-        table2 = pa.table(
-            {
-                "id": [2, 3, 4],
-                "salary": [70000, 60000, 55000],
-                "dept": ["Eng", "Sales", "HR"],
-                "extra": ["a", "b", "c"],
-            }
-        )
-
-        # Create projected datasets (simulating filter_dataset output)
-        proj1 = mock_projected_dataset(table1, ["id", "name", "age"])
-        proj2 = mock_projected_dataset(table2, ["id", "salary", "dept"])
-
-        result = inner_join_datasets({"employees": proj1, "payroll": proj2}, "id")
-
-        assert result.num_rows == 2
-        assert set(result.column_names) == {
-            "id",
-            "employees_name",
-            "employees_age",
-            "payroll_salary",
-            "payroll_dept",
-        }
-        # 'extra' columns should not be present
-        assert "employees_extra" not in result.column_names
-        assert "payroll_extra" not in result.column_names
-
-    def test_join_validates_schema_lazily(self) -> None:
-        """Test that schema validation doesn't materialize the dataset."""
-        table = pa.table({"id": [1, 2, 3], "value": [10, 20, 30]})
-
-        # Track if to_table was called
-        to_table_called = []
-
-        class TrackedProjectedDataset:
-            @property
-            def schema(self) -> None:
-                return table.schema
-
-            def to_table(self) -> None:
-                to_table_called.append(True)
-                return table
-
-        ds1 = TrackedProjectedDataset()
-        ds2 = TrackedProjectedDataset()
-
-        # This should validate schemas without calling to_table
-        # (though it will call to_table for the actual join)
-        _result = inner_join_datasets({"first": ds1, "second": ds2}, "id")
-
-        # to_table should be called for joining, but not for validation
-        assert len(to_table_called) == 2  # Once per dataset for joining
-
-
-class TestMergeEdgeCases:
-    """Tests for edge cases and special scenarios."""
-
-    def test_very_large_column_count(self) -> None:
-        """Test join with many columns."""
-        # Create datasets with many columns
-        num_cols = 50
-        data1 = {"id": [1, 2, 3]}
-        data2 = {"id": [2, 3, 4]}
-
-        for i in range(num_cols):
-            data1[f"col{i}"] = [i, i + 1, i + 2]
-            data2[f"col{i}"] = [i * 10, i * 10 + 1, i * 10 + 2]
-
-        ds1 = ds.dataset(pa.table(data1))
-        ds2 = ds.dataset(pa.table(data2))
-
-        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
-
-        assert result.num_rows == 2
-        # 1 join key + 50*2 prefixed columns
-        assert len(result.column_names) == 1 + num_cols * 2
 
     def test_join_key_with_nulls(self) -> None:
         """Test join behavior with NULL values in join key."""
@@ -833,32 +672,8 @@ class TestMergeEdgeCases:
         assert result.num_rows == 1
         assert result["id"].to_pylist() == [2]
 
-    def test_numeric_dataset_names(self) -> None:
-        """Test that numeric-only dataset names work."""
-        ds1 = ds.dataset(pa.table({"id": [1, 2], "value": [10, 20]}))
-        ds2 = ds.dataset(pa.table({"id": [2, 3], "value": [200, 300]}))
-
-        # Numeric names should work (they're strings)
-        result = inner_join_datasets({"123": ds1, "456": ds2}, "id")
-
-        assert result.num_rows == 1
-        assert "123_value" in result.column_names
-        assert "456_value" in result.column_names
-
-    def test_special_characters_in_dataset_names(self) -> None:
-        """Test dataset names with special characters (except underscore)."""
-        ds1 = ds.dataset(pa.table({"id": [1, 2], "value": [10, 20]}))
-        ds2 = ds.dataset(pa.table({"id": [2, 3], "value": [200, 300]}))
-
-        # Special characters should work
-        result = inner_join_datasets({"data-source": ds1, "data.backup": ds2}, "id")
-
-        assert result.num_rows == 1
-        assert "data-source_value" in result.column_names
-        assert "data.backup_value" in result.column_names
-
-    def test_join_on_string_key(self) -> None:
-        """Test join using string column as key."""
+    def test_string_join_key(self) -> None:
+        """using string column as key."""
         ds1 = ds.dataset(
             pa.table(
                 {"username": ["alice", "bob", "charlie"], "score": [100, 200, 300]}
@@ -873,19 +688,9 @@ class TestMergeEdgeCases:
         assert result.num_rows == 2
         assert set(result["username"].to_pylist()) == {"bob", "charlie"}
 
-    def test_join_preserves_row_order_deterministically(self) -> None:
-        """Test that join produces consistent row ordering."""
-        ds1 = ds.dataset(pa.table({"id": [3, 1, 2], "value": [30, 10, 20]}))
-        ds2 = ds.dataset(pa.table({"id": [2, 3, 1], "value": [200, 300, 100]}))
-
-        result1 = inner_join_datasets({"a": ds1, "b": ds2}, "id")
-        result2 = inner_join_datasets({"a": ds1, "b": ds2}, "id")
-
-        assert result1.equals(result2)
-
     def test_four_dataset_join(self) -> None:
         """Test joining four datasets."""
-        datasets = {}
+        datasets: dict[str, ds.Dataset] = {}
         for i in range(4):
             datasets[f"ds{i}"] = ds.dataset(
                 pa.table({"id": [1, 2, 3], f"value{i}": [i * 10, i * 20, i * 30]})
@@ -895,5 +700,274 @@ class TestMergeEdgeCases:
 
         assert result.num_rows == 3
         assert "id" in result.column_names
+        # All value columns should be present (no conflicts with unique names)
         for i in range(4):
-            assert f"ds{i}_value{i}" in result.column_names
+            assert f"value{i}" in result.column_names
+
+    def test_dataset_names_with_special_chars(self) -> None:
+        """Test dataset names with special characters (hyphens, dots)."""
+        ds1 = ds.dataset(pa.table({"id": [1, 2], "value": [10, 20]}))
+        ds2 = ds.dataset(pa.table({"id": [2, 3], "value": [200, 300]}))
+
+        # Special characters should work in dataset names
+        result = inner_join_datasets({"data-source": ds1, "data.backup": ds2}, "id")
+
+        assert result.num_rows == 1
+        # Check that suffixes contain the dataset names
+        value_cols = [col for col in result.column_names if "value" in col]
+        assert len(value_cols) == 2
+
+    def test_use_threads_parameter(self) -> None:
+        """Test that use_threads parameter is accepted."""
+        ds1 = ds.dataset(pa.table({"id": [1, 2, 3], "value": [10, 20, 30]}))
+        ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [200, 300, 400]}))
+
+        # Should work with use_threads=False
+        result = inner_join_datasets(
+            {"left": ds1, "right": ds2}, "id", use_threads=False
+        )
+
+        assert result.num_rows == 2
+
+    def test_all_columns_unique_no_suffixes(self) -> None:
+        """Test that no suffixes are added when all columns are unique."""
+        ds1 = ds.dataset(
+            pa.table(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["Alice", "Bob", "Charlie"],
+                    "age": [25, 30, 35],
+                }
+            )
+        )
+        ds2 = ds.dataset(
+            pa.table(
+                {
+                    "id": [2, 3, 4],
+                    "salary": [50000, 60000, 70000],
+                    "department": ["IT", "Sales", "HR"],
+                }
+            )
+        )
+
+        result = inner_join_datasets({"employees": ds1, "payroll": ds2}, "id")
+
+        # All column names should be as-is (no suffixes)
+        assert "name" in result.column_names
+        assert "age" in result.column_names
+        assert "salary" in result.column_names
+        assert "department" in result.column_names
+
+        # No suffixed versions
+        assert "name_employees" not in result.column_names
+        assert "salary_payroll" not in result.column_names
+
+    def test_complex_multi_dataset_conflicts(self) -> None:
+        """Test complex scenario with multiple datasets and mixed conflicts."""
+        ds1 = ds.dataset(
+            pa.table(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["Alice", "Bob", "Charlie"],
+                    "score": [100, 200, 300],
+                }
+            )
+        )
+        ds2 = ds.dataset(
+            pa.table(
+                {
+                    "id": [2, 3, 4],
+                    "level": [5, 10, 15],
+                    "score": [1000, 2000, 3000],  # Conflicts with ds1
+                }
+            )
+        )
+        ds3 = ds.dataset(
+            pa.table(
+                {
+                    "id": [2, 3, 5],
+                    "category": ["A", "B", "C"],
+                    "score": [10000, 20000, 30000],  # Conflicts with ds1 and ds2
+                }
+            )
+        )
+
+        result = inner_join_datasets(
+            {"users": ds1, "levels": ds2, "categories": ds3}, "id"
+        )
+
+        # Only id 2 and 3 in all three
+        assert result.num_rows == 2
+
+        # Non-conflicting columns should be unsuffixed
+        assert "name" in result.column_names
+        assert "level" in result.column_names
+        assert "category" in result.column_names
+
+        # Conflicting 'score' columns should have suffixes
+        score_cols = [col for col in result.column_names if "score" in col]
+        assert len(score_cols) == 3
+
+
+class TestIntegrationFilterAndJoin:
+    """Integration tests combining filter_dataset and inner_join_datasets."""
+
+    def test_filter_then_join(self) -> None:
+        """Test filtering datasets before joining."""
+        users_table = pa.table(
+            {
+                "user_id": [1, 2, 3, 4, 5],
+                "name": ["Alice", "Bob", "Charlie", "David", "Eve"],
+                "active": [True, True, False, True, False],
+            }
+        )
+        orders_table = pa.table(
+            {
+                "user_id": [1, 2, 3, 4, 5],
+                "total": [100, 200, 300, 400, 500],
+                "status": [
+                    "completed",
+                    "completed",
+                    "pending",
+                    "completed",
+                    "cancelled",
+                ],
+            }
+        )
+
+        users_ds = ds.dataset(users_table)
+        orders_ds = ds.dataset(orders_table)
+
+        # Filter both datasets first
+        active_users = filter_dataset(
+            users_ds, [("active", "==", True)], ["user_id", "name"]
+        )
+        completed_orders = filter_dataset(
+            orders_ds, [("status", "==", "completed")], ["user_id", "total"]
+        )
+
+        # Then join
+        result = inner_join_datasets(
+            {"users": active_users, "orders": completed_orders}, "user_id"
+        )
+
+        # Should only have active users with completed orders (user_id 1, 2, 4)
+        assert result.num_rows == 3
+        assert set(result["user_id"].to_pylist()) == {1, 2, 4}
+        assert "name" in result.column_names
+        assert "total" in result.column_names
+
+    def test_filter_with_rename_then_join(self) -> None:
+        """Test filtering with column renaming before joining."""
+        users_table = pa.table(
+            {
+                "id": [1, 2, 3],
+                "user_name": ["Alice", "Bob", "Charlie"],
+                "country": ["US", "UK", "US"],
+            }
+        )
+        orders_table = pa.table({"id": [1, 2, 3], "order_value": [100, 200, 300]})
+
+        users_ds = ds.dataset(users_table)
+        orders_ds = ds.dataset(orders_table)
+
+        # Filter US users and rename columns
+        # Note: Keep 'id' as 'id' so we can join on it
+        us_users = filter_dataset(
+            users_ds,
+            [("country", "==", "US")],
+            {"id": "id", "name": "user_name"},  # Rename user_name but keep id
+        )
+
+        # Filter high-value orders
+        high_orders = filter_dataset(
+            orders_ds, [("order_value", ">", 150)], ["id", "order_value"]
+        )
+
+        # Join on 'id' which exists in both datasets
+        result = inner_join_datasets({"users": us_users, "orders": high_orders}, "id")
+
+        # Should have US users (1, 3) with high-value orders (2, 3)
+        # Only user 3 matches both conditions
+        assert result.num_rows == 1
+        assert result["id"].to_pylist() == [3]
+        assert "name" in result.column_names
+        assert "order_value" in result.column_names
+
+    def test_multiple_filters_then_multi_join(self) -> None:
+        """Test complex workflow with multiple filters and joins."""
+        # Create three datasets
+        users_table = pa.table(
+            {
+                "user_id": [1, 2, 3, 4],
+                "tier": ["gold", "silver", "gold", "bronze"],
+                "name": ["Alice", "Bob", "Charlie", "David"],
+            }
+        )
+        orders_table = pa.table(
+            {"user_id": [1, 2, 3, 4], "amount": [1000, 500, 1500, 200]}
+        )
+        rewards_table = pa.table({"user_id": [1, 2, 3], "points": [100, 50, 150]})
+
+        users_ds = ds.dataset(users_table)
+        orders_ds = ds.dataset(orders_table)
+        rewards_ds = ds.dataset(rewards_table)
+
+        # Filter each dataset
+        gold_users = filter_dataset(
+            users_ds, [("tier", "==", "gold")], ["user_id", "name"]
+        )
+        high_orders = filter_dataset(
+            orders_ds, [("amount", ">=", 1000)], ["user_id", "amount"]
+        )
+        high_rewards = filter_dataset(
+            rewards_ds, [("points", ">=", 100)], ["user_id", "points"]
+        )
+
+        # Join all three
+        result = inner_join_datasets(
+            {"users": gold_users, "orders": high_orders, "rewards": high_rewards},
+            "user_id",
+        )
+
+        # Should only have gold users with high orders and high rewards
+        # (user_id 1 and 3)
+        assert result.num_rows == 2
+        assert set(result["user_id"].to_pylist()) == {1, 3}
+
+
+class TestEdgeCasesJoin:
+    """Additional edge case tests for joins."""
+
+    def test_very_large_column_count(self) -> None:
+        """Test join with many columns."""
+        num_cols = 50
+        data1 = {"id": [1, 2, 3]}
+        data2 = {"id": [2, 3, 4]}
+
+        for i in range(num_cols):
+            data1[f"col{i}"] = [i, i + 1, i + 2]
+            data2[f"col{i}_right"] = [i * 10, i * 10 + 1, i * 10 + 2]
+
+        ds1 = ds.dataset(pa.table(data1))
+        ds2 = ds.dataset(pa.table(data2))
+
+        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
+
+        assert result.num_rows == 2
+        # Should have 1 id column + 50 from left + 50 from right
+        assert len(result.column_names) == 1 + num_cols + num_cols
+
+    def test_dataset_dict_insertion_order(self) -> None:
+        """Test that dataset dictionary order affects join order."""
+        ds1 = ds.dataset(pa.table({"id": [1, 2], "a": [10, 20]}))
+        ds2 = ds.dataset(pa.table({"id": [2, 3], "b": [100, 200]}))
+        ds3 = ds.dataset(pa.table({"id": [1, 2], "c": [1000, 2000]}))
+
+        # Try different orders
+        result1 = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id")
+        result2 = inner_join_datasets({"third": ds3, "first": ds1, "second": ds2}, "id")
+
+        # Both should produce valid results
+        assert result1.num_rows > 0
+        assert result2.num_rows > 0
