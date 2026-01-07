@@ -68,6 +68,37 @@ def get_band_values(
     return values
 
 
+def fluxes_to_mags(
+    flux: np.ndarray,
+    zero_point: float = 31.4,
+) -> np.ndarray:
+    """Convert flux values to AB magnitudes.
+
+    This function converts flux measurements to AB magnitudes using the
+    standard astronomical magnitude formula: m = -2.5 * log10(flux) + zero_point.
+    Negative or zero flux values result in NaN magnitudes.
+
+    Parameters
+    ----------
+    flux
+        Array of flux values. Must be non-negative for valid magnitude
+        calculations. Values <= 0 will produce NaN in the output.
+    zero_point
+        Zero-point offset to apply to the magnitude calculation. This accounts
+        for the flux scale and instrumental calibration. Default is 31.4.
+
+    Returns
+    -------
+        Array of AB magnitudes with the same shape as the input flux array.
+        Elements corresponding to flux <= 0 will be NaN.
+    """
+    # Handle negative and zero fluxes by replacing with NaN
+    with np.errstate(divide="ignore", invalid="ignore"):
+        mags = -2.5 * np.log10(flux) + zero_point
+
+    return mags
+
+
 def adjacent_band_colors(mags: np.ndarray) -> np.ndarray:
     """Return a set of colors using magnitudes in adjacent bands
 

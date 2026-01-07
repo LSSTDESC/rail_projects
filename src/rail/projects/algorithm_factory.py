@@ -5,14 +5,16 @@ import os
 import yaml
 from rail.core.factory_mixin import RailFactoryMixin
 
-from .algorithm_holder import (RailAlgorithmHolder,
-                               RailClassificationAlgorithmHolder,
-                               RailErrorModelAlgorithmHolder,
-                               RailPZAlgorithmHolder,
-                               RailReducerAlgorithmHolder,
-                               RailSpecSelectionAlgorithmHolder,
-                               RailSubsamplerAlgorithmHolder,
-                               RailSummarizerAlgorithmHolder)
+from .algorithm_holder import (
+    RailAlgorithmHolder,
+    RailClassificationAlgorithmHolder,
+    RailErrorModelAlgorithmHolder,
+    RailPZAlgorithmHolder,
+    RailReducerAlgorithmHolder,
+    RailSpecSelectionAlgorithmHolder,
+    RailSubsamplerAlgorithmHolder,
+    RailSummarizerAlgorithmHolder,
+)
 
 ALGORITHM_TYPES: list[str] = [
     "SpecSelections",

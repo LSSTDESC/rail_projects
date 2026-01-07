@@ -102,7 +102,8 @@ def test_cli_run(pipeline: str) -> None:
 
     result = runner.invoke(
         project_cli,
-        f"run {pipeline} --selection gold --flavor baseline {label_str}--run-mode dry_run tests/ci_project.yaml",
+        f"run {pipeline} --selection gold --flavor baseline {label_str} "
+        "--run-mode dry_run tests/ci_project.yaml",
     )
     check_result(result)
 

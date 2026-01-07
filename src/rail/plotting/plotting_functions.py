@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import cm
 from matplotlib.figure import Figure
 
 
@@ -160,6 +159,8 @@ def plot_colors_v_redshifts_with_templates(
     nrow, ncol = get_subplot_nrow_ncol(n_colors)
     axs = fig.subplots(nrow, ncol)
 
+    cmap = plt.get_cmap("rainbow")
+
     for icolor in range(n_colors):
         icol = int(icolor / ncol)
         irow = icolor % ncol
@@ -173,7 +174,7 @@ def plot_colors_v_redshifts_with_templates(
                     val[0][mask],
                     val[2][icolor][mask],
                     label=key,
-                    c=cm.rainbow(1.0 - val[3] / len(templates)),
+                    c=cmap(1.0 - val[3] / len(templates)),
                 )
         # axs[icol][irow].legend()
         axs[icol][irow].set_xlabel("redshift")
@@ -195,6 +196,8 @@ def plot_colors_v_colors_with_templates(
     nrow, ncol = n_colors - 1, n_colors - 1
     axs = fig.subplots(nrow, ncol)
 
+    cmap = plt.get_cmap("rainbow")
+
     for icol in range(n_colors - 1):
         for irow in range(n_colors - 1):
             axs[icol][irow].set_xlim(-3.0, 3.0)
@@ -214,7 +217,7 @@ def plot_colors_v_colors_with_templates(
                         val[2][icol][mask],
                         val[2][irow + 1][mask],
                         label=key,
-                        c=cm.rainbow(1.0 - val[3] / len(templates)),
+                        c=cmap(1.0 - val[3] / len(templates)),
                     )
             # axs[icol][irow].legend()
     return fig

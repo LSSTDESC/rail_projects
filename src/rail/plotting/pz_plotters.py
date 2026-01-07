@@ -635,7 +635,7 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
         out_dict[plot.name] = plot
         return out_dict
 
-    def process_data(
+    def process_data(  # pylint: disable=too-many-arguments
         self,
         zphot: np.ndarray,
         specz: np.ndarray,
@@ -667,7 +667,7 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
             for _j in range(nclip):
                 subset_clip, _, _ = sigmaclip(subset_clip, low=3, high=3)
 
-            if len(subset_clip) == 0:   # pragma: no cover
+            if len(subset_clip) == 0:  # pragma: no cover
                 biweight_mean.append(np.nan)
                 biweight_std.append(np.nan)
                 biweight_sigma.append(np.nan)

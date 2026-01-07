@@ -6,8 +6,7 @@ from rail.core.factory_mixin import RailFactoryMixin
 
 from rail.projects import RailProject
 
-from .dataset_holder import (RailDatasetHolder, RailDatasetListHolder,
-                             RailProjectHolder)
+from .dataset_holder import RailDatasetHolder, RailDatasetListHolder, RailProjectHolder
 
 if TYPE_CHECKING:
     from rail.core.configurable import Configurable
