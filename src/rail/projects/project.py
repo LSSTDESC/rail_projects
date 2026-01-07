@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import os
-from typing import Any
+from typing import Any, Type, cast
 
 import yaml
 from ceci.config import StageParameter
@@ -468,7 +468,7 @@ class RailProject(Configurable):
         subsampler_class_name: str,
         subsample_name: str,
         dry_run: bool = False,
-        **kwargs: dict[str, Any],
+        **kwargs: Any,
     ) -> str:
         """Subsammple some data
 
@@ -503,14 +503,30 @@ class RailProject(Configurable):
         subsampler_class = library.get_algorithm_class(
             "Subsampler", subsampler_class_name, "Subsample"
         )
+        subsampler_config_keys = cast(
+            Type[Configurable], subsampler_class
+        ).config_options.keys()
         subsampler_args = library.get_subsample(subsample_name)
-        subsampler = subsampler_class(**subsampler_args.config.to_dict())
 
-        sources = self.get_catalog_files(catalog_template, **kwargs)
+        use_pairs = {
+            key: val
+            for key, val in subsampler_args.config.to_dict().items()
+            if key in subsampler_config_keys
+        }
+
+        subsampler = subsampler_class(**use_pairs)
+
+        basename_dict: dict[str, str] = subsampler.get_basename_dict()
+        sources_dict: dict[str, list[str]] = {}
+
+        for key, val in basename_dict.items():
+            kwargs_copy = kwargs.copy()
+            kwargs_copy["basename"] = val
+            sources_dict[key] = self.get_catalog_files(catalog_template, **kwargs_copy)
 
         # output_dir = os.path.dirname(output)
         if not dry_run:  # pragma: no cover
-            subsampler.run(sources, output)
+            subsampler.run(sources_dict, output)
 
         return output
 

@@ -13,6 +13,7 @@ from ceci.config import StageParameter
 from pyarrow import acero
 from rail.core.configurable import Configurable
 
+from .arrow_utils import parse_item
 from .dynamic_class import DynamicClass
 
 COLUMNS = [
@@ -178,16 +179,23 @@ class RomanRubinReducer(RailReducer):
         input_catalog: str,
         output_catalog: str,
     ) -> None:
-        # FIXME: do this right
-        if self.config.cuts:
-            if "maglim_i" in self.config.cuts:
-                predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
-            elif "maglim_Y" in self.config.cuts:
-                predicate = pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
-            else:
-                raise ValueError("No valid cut")
-        else:  # pragma: no cover
-            predicate = None
+        # Try to do this right
+        try:
+            parsed_filter = parse_item(self.config.cuts)
+            predicate = pq.filters_to_expression(parsed_filter)
+        except Exception as msg:
+            # Fallback to old way.  FIXME, deprecate this
+            if self.config.cuts:
+                if "maglim_i" in self.config.cuts:
+                    predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
+                elif "maglim_Y" in self.config.cuts:
+                    predicate = (
+                        pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
+                    )
+                else:
+                    raise ValueError("No valid cut") from msg
+            else:  # pragma: no cover
+                predicate = None
 
         dataset = ds.dataset(
             input_catalog,
@@ -257,14 +265,20 @@ class ComCamReducer(RailReducer):
         input_catalog: str,
         output_catalog: str,
     ) -> None:  # pragma: no cover
-        # FIXME: do this right
-        mag_cut = self.config.cuts["maglim_i"][1]
-        flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
 
-        if self.config.cuts:
-            predicate = pc.field("i_cModelFlux") > flux_cut
-        else:  # pragma: no cover
-            predicate = None
+        # Try to do this right
+        try:
+            parsed_filter = parse_item(self.config.cuts)
+            predicate = pq.filters_to_expression(parsed_filter)
+        except Exception:
+            # Fallback to old way.  FIXME, deprecate this
+            mag_cut = self.config.cuts["maglim_i"][1]
+            flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
+
+            if self.config.cuts:
+                predicate = pc.field("i_cModelFlux") > flux_cut
+            else:  # pragma: no cover
+                predicate = None
 
         dataset = ds.dataset(
             input_catalog,
@@ -336,31 +350,32 @@ class DP1Reducer(RailReducer):
         input_catalog: str,
         output_catalog: str,
     ) -> None:  # pragma: no cover
-        # FIXME: do this right
-        mag_cut = self.config.cuts["maglim_i"][1]
-        flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
 
         topdir = os.path.dirname(os.path.dirname(input_catalog))
         columns_file = os.path.join(topdir, "columns.yaml")
         with open(columns_file, "r", encoding="utf-8") as fin:
             columns = yaml.safe_load(fin)
 
-        if self.config.cuts:
-            predicate = (
-                (pc.field("i_psfFlux") > flux_cut)
-                & (pc.field("i_psfFlux") / pc.field("i_psfFluxErr") > 5)
-                &
-                #                pc.field("g_psfFlux_flag") &
-                #                pc.field("r_psfFlux_flag") &
-                #                pc.field("i_psfFlux_flag") &
-                (
-                    (pc.field("g_extendedness") > 0.5)
-                    | (pc.field("r_extendedness") > 0.5)
+        # Try to do this right
+        try:
+            parsed_filter = parse_item(self.config.cuts)
+            predicate = pq.filters_to_expression(parsed_filter)
+        except Exception:
+            # Fallback to old way.  FIXME, deprecate this
+            mag_cut = self.config.cuts["maglim_i"][1]
+            flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
+            if self.config.cuts:
+                predicate = (
+                    (pc.field("i_psfFlux") > flux_cut)
+                    & (pc.field("i_psfFlux") / pc.field("i_psfFluxErr") > 5)
+                    & (
+                        (pc.field("g_extendedness") > 0.5)
+                        | (pc.field("r_extendedness") > 0.5)
+                    )
                 )
-            )
 
-        else:  # pragma: no cover
-            predicate = None
+            else:  # pragma: no cover
+                predicate = None
 
         dataset = ds.dataset(
             input_catalog,
