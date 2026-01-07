@@ -120,27 +120,6 @@ def adjacent_band_colors(mags: np.ndarray) -> np.ndarray:
     return np.vstack(colors).T
 
 
-def fluxes_to_mags(
-    fluxes: np.ndarray,
-    zero_point: float,
-) -> np.ndarray:
-    """Compute magntiduges
-
-    Parameters
-    ----------
-    fluxes:
-        Fluxes
-
-    zero_point:
-        Zero-point offset
-
-    Returns
-    -------
-    Output magnitduges
-    """
-    return -2.5 * np.log10(fluxes) + zero_point
-
-
 def build_template_dict(
     seds: list[str], filters: list[str]
 ) -> dict[str, tuple[np.ndarray, np.ndarray, np.ndarray, int]]:  # pragma: no cover

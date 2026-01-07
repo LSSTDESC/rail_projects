@@ -916,10 +916,6 @@ class TestProjectedDataset:
 class TestEdgeCases:
     """Tests for edge cases and special scenarios."""
 
-        result = filtered.to_table()
-        assert result.num_rows == 1
-        assert result["id"].to_pylist() == [1]
-
     def test_multiple_data_types(self) -> None:
         """Test filtering with various data types."""
         table = pa.table(
@@ -1441,7 +1437,7 @@ class TestIntegrationFilterAndJoin:
         result = inner_join_datasets(
             {"users": active_users, "orders": completed_orders}, "user_id"
         ).to_table()
-7
+
         # Should only have active users with completed orders (user_id 1, 2, 4)
         assert result.num_rows == 3
         assert set(result["user_id"].to_pylist()) == {1, 2, 4}
