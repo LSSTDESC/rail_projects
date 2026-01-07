@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any
 
 import pyarrow as pa
@@ -10,7 +11,7 @@ def filter_dataset(
     dataset: ds.Dataset,
     filter_conditions: list[tuple[str, str, Any]] | list[list[tuple[str, str, Any]]],
     columns: list[str] | dict[str, str],
-) -> ds.Dataset:
+) -> _ProjectedDataset:
     """
     Filter a PyArrow dataset and select specific columns.
 
@@ -170,23 +171,7 @@ class _ProjectedDataset:
 
     def to_table(self, **kwargs: Any) -> pa.Table:
         """Materialize the dataset with column projection applied."""
-        if "columns" not in kwargs:
-            if isinstance(self._columns, dict):
-                # For renaming, materialize first then rename
-                if self._columns:
-                    # Get only the columns we need
-                    old_names = list(self._columns.values())
-                    table = self._dataset.to_table(columns=old_names)
-                    # Rename them
-                    new_names = [
-                        new_name for new_name, old_name in self._columns.items()
-                    ]
-                    return table.rename_columns(new_names)
-                else:
-                    return self._dataset.to_table()
-            else:
-                kwargs["columns"] = self._columns
-        return self._dataset.to_table(**kwargs)
+        return self.scanner(**kwargs).to_table()
 
 
 def inner_join_datasets(
@@ -288,10 +273,16 @@ def inner_join_datasets(
 
     # Perform sequential joins using PyArrow's native join with suffixes
     first_name, first_dataset = dataset_items[0]
-    result = first_dataset.to_table()
+    if isinstance(first_dataset, _ProjectedDataset):
+        result = first_dataset.to_table()
+    else:
+        result = first_dataset
 
     for name, dataset in dataset_items[1:]:
-        right_table = dataset.to_table()
+        if isinstance(dataset, _ProjectedDataset):
+            right_table = dataset.to_table()
+        else:
+            right_table = dataset
 
         # Perform inner join with automatic suffix handling
         result = result.join(
@@ -307,4 +298,6 @@ def inner_join_datasets(
         # (this accumulates previous dataset names)
         first_name = f"{first_name}+{name}"
 
-    return result
+    if isinstance(result, pa.Table):
+        return result
+    return result.to_table()
