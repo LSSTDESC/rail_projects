@@ -101,6 +101,14 @@ Subsamplers:
       Module: rail.projects.subsampler
 
 
+# These describe the ways we can split the data
+Splitters:
+  - Splitter:
+      name: random_splitter
+      Split: RandomSplitter
+      Module: rail.projects.splitter
+  
+
 # These describe the ways we can reduce the data (by removing columns and applying selections)
 Reducers:
   - Reducer:
