@@ -270,19 +270,19 @@ def inner_join_datasets(
         # Single dataset
         _, dataset = dataset_items[0]
         if isinstance(dataset, _ProjectedDataset):
-            return ds.dataset(dataset.to_table().to_batches())
+            return ds.dataset(dataset.to_table())
         return dataset
 
     # Perform sequential joins using PyArrow's native join with suffixes
     first_name, first_dataset = dataset_items[0]
     if isinstance(first_dataset, _ProjectedDataset):
-        result = ds.dataset(first_dataset.to_table().to_batches())
+        result = ds.dataset(first_dataset.to_table())
     else:
         result = first_dataset
 
     for name, dataset in dataset_items[1:]:
         if isinstance(dataset, _ProjectedDataset):
-            right_table = ds.dataset(dataset.to_table().to_batches())
+            right_table = ds.dataset(dataset.to_table())
         else:
             right_table = dataset
 
