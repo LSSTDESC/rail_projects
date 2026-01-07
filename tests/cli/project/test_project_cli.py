@@ -71,6 +71,24 @@ def test_cli_subsample() -> None:
     check_result(result)
 
 
+def test_cli_split() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        project_cli,
+        "split "
+        "--flavor baseline "
+        "--file-template train_file_10 "
+        "--test-file-template test_split_file "
+        "--train-file-template train_split_file "
+        "--splitter-class-name random_splitter "
+        "--run-mode dry_run "
+        "--selection gold "
+        "tests/ci_project.yaml",
+    )
+    check_result(result)
+
+
 @pytest.mark.parametrize(
     "pipeline",
     [

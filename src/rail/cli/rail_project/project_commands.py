@@ -76,6 +76,61 @@ def build_command(config_file: str, **kwargs: Any) -> int:
     return ok
 
 
+@project_cli.command(name="split")
+@project_options.config_file()
+@project_options.run_mode()
+@project_options.file_template()
+@project_options.test_file_template()
+@project_options.train_file_template()
+@project_options.splitter_class_name()
+@project_options.selection()
+@project_options.flavor()
+def split_command(
+    config_file: str, run_mode: project_options.RunMode, **kwargs: Any
+) -> int:
+    """Make a training and test data set by randomly selecting objects from
+    an input file
+
+    This will:
+    resolve an input file from the flavor and selection parameters,
+    resolve output files from the test_file_template and train_file_template,
+    flavor and selection parameters,
+    subsample from the input file and write to the output files.
+    """
+
+    if run_mode == project_options.RunMode.slurm:
+        raise NotImplementedError("split_command not set up to run under slurm")
+
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+
+    dry_run = run_mode == project_options.RunMode.dry_run
+
+    ok = 0
+    for kw in iter_kwargs:
+        output_paths = project.split_data(
+            dry_run=dry_run,
+            **kw,
+            **kwargs,
+        )
+        for output_path_ in output_paths:
+            hdf5_output = output_path_.replace(".parquet", ".hdf5")
+            ok |= execution.handle_command(
+                run_mode,
+                [
+                    "tables-io",
+                    "convert",
+                    "--input",
+                    f"{output_path_}",
+                    "--output",
+                    f"{hdf5_output}",
+                ],
+            )
+    return ok
+
+
 @project_cli.command(name="subsample")
 @project_options.config_file()
 @project_options.run_mode()

@@ -62,7 +62,7 @@ class RailFlavor(Configurable):
         Configurable.__init__(self, **kwargs)
 
 
-class RailProject(Configurable):
+class RailProject(Configurable):  # pylint: disable=too-many-public-methods
     """Main analysis driver class, this collects all the elements needed to
     run a collection of studies using RAIL.
 
@@ -153,6 +153,13 @@ class RailProject(Configurable):
         Subsample data from a catalog to make a testing or training file.
         This is run after catalog level pipelines, but before pipeliens run
         on indvidudal training/ testing samples
+
+        split_data:
+        ---------------
+        Split data from an input file to make testing and training file.
+        This is run after catalog level pipelines, and subsample_data, but
+        before pipeliens run on indvidudal training/ testing samples.
+        This is an alternative to using subsample_data to make these files.
 
         build_pipelines:
         ----------------
@@ -529,6 +536,61 @@ class RailProject(Configurable):
             subsampler.run(sources_dict, output)
 
         return output
+
+    def split_data(
+        self,
+        file_template: str,
+        test_file_template: str,
+        train_file_template: str,
+        splitter_class_name: str,
+        dry_run: bool = False,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Subsammple some data
+
+        Parameters
+        ----------
+        file_template: str
+            Which label to apply to output dataset
+
+        train_file_template: str
+            Which label to apply to train output dataset
+
+        test_file_template: str
+            Which label to apply to test output dataset
+
+        splitter_class_name: str,
+            Name of the class to use for splitting
+
+        dry_run: bool
+            If true, do not actually run
+
+        **kwargs:
+            Used to provide values for additional interpolants, e.g., flavor, basename, etc...
+
+        Returns
+        -------
+        str:
+            Path to output file
+        """
+        input_file = self.get_file(file_template, **kwargs).replace(".hdf5", ".parquet")
+        output_train_file = self.get_file(train_file_template, **kwargs).replace(
+            ".hdf5", ".parquet"
+        )
+        output_test_file = self.get_file(test_file_template, **kwargs).replace(
+            ".hdf5", ".parquet"
+        )
+
+        splitter_class = library.get_algorithm_class(
+            "Splitter", splitter_class_name, "Split"
+        )
+        splitter = splitter_class(name=splitter_class_name)
+
+        # output_dir = os.path.dirname(output)
+        if not dry_run:  # pragma: no cover
+            splitter.run(input_file, output_train_file, output_test_file)
+
+        return [output_train_file, output_test_file]
 
     def build_pipelines(
         self,

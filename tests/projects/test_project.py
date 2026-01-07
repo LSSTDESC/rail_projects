@@ -132,6 +132,15 @@ def test_project_class(setup_project_area: int) -> None:
         selection="gold",
     )
 
+    project.split_data(
+        file_template="train_file_10",
+        test_file_template="test_split_file",
+        train_file_template="train_split_file",
+        splitter_class_name="random_splitter",
+        flavor="baseline",
+        selection="gold",
+    )
+
     single_ceci_command = project.make_pipeline_single_input_command(
         pipeline_name="pz",
         flavor="baseline",
