@@ -514,7 +514,9 @@ class TestInnerJoinDatasets:
         ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [100, 200, 300]}))
         ds3 = ds.dataset(pa.table({"id": [2, 3, 5], "value": [1000, 2000, 3000]}))
 
-        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id").to_table()
+        result = inner_join_datasets(
+            {"first": ds1, "second": ds2, "third": ds3}, "id"
+        ).to_table()
 
         # Only id 2 and 3 in all three
         assert result.num_rows == 2
@@ -623,7 +625,9 @@ class TestInnerJoinDatasets:
         ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "beta": ["x", "y", "z"]}))
         ds3 = ds.dataset(pa.table({"id": [1, 2, 3], "gamma": [10, 20, 30]}))
 
-        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id").to_table()
+        result = inner_join_datasets(
+            {"first": ds1, "second": ds2, "third": ds3}, "id"
+        ).to_table()
 
         assert result.num_rows == 2  # id 2 and 3 in all three
         assert "id" in result.column_names
@@ -683,7 +687,9 @@ class TestInnerJoinDatasets:
             pa.table({"username": ["bob", "charlie", "david"], "level": [5, 10, 15]})
         )
 
-        result = inner_join_datasets({"scores": ds1, "levels": ds2}, "username").to_table()
+        result = inner_join_datasets(
+            {"scores": ds1, "levels": ds2}, "username"
+        ).to_table()
 
         assert result.num_rows == 2
         assert set(result["username"].to_pylist()) == {"bob", "charlie"}
@@ -710,7 +716,9 @@ class TestInnerJoinDatasets:
         ds2 = ds.dataset(pa.table({"id": [2, 3], "value": [200, 300]}))
 
         # Special characters should work in dataset names
-        result = inner_join_datasets({"data-source": ds1, "data.backup": ds2}, "id").to_table()
+        result = inner_join_datasets(
+            {"data-source": ds1, "data.backup": ds2}, "id"
+        ).to_table()
 
         assert result.num_rows == 1
         # Check that suffixes contain the dataset names
@@ -750,7 +758,9 @@ class TestInnerJoinDatasets:
             )
         )
 
-        result = inner_join_datasets({"employees": ds1, "payroll": ds2}, "id").to_table()
+        result = inner_join_datasets(
+            {"employees": ds1, "payroll": ds2}, "id"
+        ).to_table()
 
         # All column names should be as-is (no suffixes)
         assert "name" in result.column_names
@@ -885,7 +895,9 @@ class TestIntegrationFilterAndJoin:
         )
 
         # Join on 'id' which exists in both datasets
-        result = inner_join_datasets({"users": us_users, "orders": high_orders}, "id").to_table()
+        result = inner_join_datasets(
+            {"users": us_users, "orders": high_orders}, "id"
+        ).to_table()
 
         # Should have US users (1, 3) with high-value orders (2, 3)
         # Only user 3 matches both conditions
@@ -965,8 +977,12 @@ class TestEdgeCasesJoin:
         ds3 = ds.dataset(pa.table({"id": [1, 2], "c": [1000, 2000]}))
 
         # Try different orders
-        result1 = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id").to_table()
-        result2 = inner_join_datasets({"third": ds3, "first": ds1, "second": ds2}, "id").to_table()
+        result1 = inner_join_datasets(
+            {"first": ds1, "second": ds2, "third": ds3}, "id"
+        ).to_table()
+        result2 = inner_join_datasets(
+            {"third": ds3, "first": ds1, "second": ds2}, "id"
+        ).to_table()
 
         # Both should produce valid results
         assert result1.num_rows > 0
