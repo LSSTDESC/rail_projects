@@ -175,10 +175,10 @@ class _ProjectedDataset:
 
 
 def inner_join_datasets(
-    datasets: dict[str, Any],
+    datasets: dict[str, ds.Dataset | _ProjectedDataset],
     join_key: str,
     use_threads: bool = True,
-) -> pa.Table:
+) -> ds.Dataset:
     """
     Perform an inner join on multiple datasets using a specified join key.
 
@@ -267,20 +267,22 @@ def inner_join_datasets(
     dataset_items = list(datasets.items())
 
     if len(dataset_items) == 1:
-        # Single dataset - just return as table
+        # Single dataset
         _, dataset = dataset_items[0]
-        return dataset.to_table()
+        if isinstance(dataset, _ProjectedDataset):
+            return ds.dataset(dataset.to_table().to_batches())
+        return dataset
 
     # Perform sequential joins using PyArrow's native join with suffixes
     first_name, first_dataset = dataset_items[0]
     if isinstance(first_dataset, _ProjectedDataset):
-        result = first_dataset.to_table()
+        result = ds.dataset(first_dataset.to_table().to_batches())
     else:
         result = first_dataset
 
     for name, dataset in dataset_items[1:]:
         if isinstance(dataset, _ProjectedDataset):
-            right_table = dataset.to_table()
+            right_table = ds.dataset(dataset.to_table().to_batches())
         else:
             right_table = dataset
 
@@ -298,6 +300,4 @@ def inner_join_datasets(
         # (this accumulates previous dataset names)
         first_name = f"{first_name}+{name}"
 
-    if isinstance(result, pa.Table):
-        return result
-    return result.to_table()
+    return result

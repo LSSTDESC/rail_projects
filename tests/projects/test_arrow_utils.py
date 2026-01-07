@@ -421,7 +421,7 @@ class TestInnerJoinDatasets:
         """Test simple join of two datasets with no column conflicts."""
         result = inner_join_datasets(
             {"users": users_dataset, "orders": orders_dataset}, "user_id"
-        )
+        ).to_table()
 
         assert result.num_rows == 3  # user_id 2, 3, 4
         assert "user_id" in result.column_names
@@ -443,7 +443,7 @@ class TestInnerJoinDatasets:
         ds1 = ds.dataset(pa.table({"id": [1, 2, 3], "value": [10, 20, 30]}))
         ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [200, 300, 400]}))
 
-        result = inner_join_datasets({"users": ds1, "orders": ds2}, "id")
+        result = inner_join_datasets({"users": ds1, "orders": ds2}, "id").to_table()
 
         # Both value columns should be present with suffixes
         assert "value_users" in result.column_names
@@ -474,7 +474,7 @@ class TestInnerJoinDatasets:
             )
         )
 
-        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
+        result = inner_join_datasets({"left": ds1, "right": ds2}, "id").to_table()
 
         # Non-conflicting columns should not have suffixes
         assert "name" in result.column_names
@@ -499,7 +499,7 @@ class TestInnerJoinDatasets:
                 "products": products_dataset,
             },
             "user_id",
-        )
+        ).to_table()
 
         # Only user_id 2 and 3 appear in all three datasets
         assert result.num_rows == 2
@@ -514,7 +514,7 @@ class TestInnerJoinDatasets:
         ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "value": [100, 200, 300]}))
         ds3 = ds.dataset(pa.table({"id": [2, 3, 5], "value": [1000, 2000, 3000]}))
 
-        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id")
+        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id").to_table()
 
         # Only id 2 and 3 in all three
         assert result.num_rows == 2
@@ -528,7 +528,7 @@ class TestInnerJoinDatasets:
 
     def test_single_dataset(self, users_dataset: ds.Dataset) -> None:
         """Test behavior with a single dataset."""
-        result = inner_join_datasets({"users": users_dataset}, "user_id")
+        result = inner_join_datasets({"users": users_dataset}, "user_id").to_table()
 
         assert result.num_rows == 4
         assert "user_id" in result.column_names
@@ -553,14 +553,14 @@ class TestInnerJoinDatasets:
         ):
             inner_join_datasets(
                 {"users": users_dataset, "orders": orders_dataset}, "nonexistent"
-            )
+            ).to_table()
 
     def test_no_matching_rows(self) -> None:
         """Test join with no matching keys across datasets."""
         ds1 = ds.dataset(pa.table({"id": [1, 2], "value": [10, 20]}))
         ds2 = ds.dataset(pa.table({"id": [3, 4], "value": [30, 40]}))
 
-        result = inner_join_datasets({"first": ds1, "second": ds2}, "id")
+        result = inner_join_datasets({"first": ds1, "second": ds2}, "id").to_table()
 
         assert result.num_rows == 0
         # Columns should still be present
@@ -571,7 +571,7 @@ class TestInnerJoinDatasets:
         ds1 = ds.dataset(pa.table({"id": [1, 1, 2], "value": [10, 11, 20]}))
         ds2 = ds.dataset(pa.table({"id": [1, 2, 2], "value": [100, 200, 201]}))
 
-        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
+        result = inner_join_datasets({"left": ds1, "right": ds2}, "id").to_table()
 
         # id=1: 2 × 1 = 2 rows
         # id=2: 1 × 2 = 2 rows
@@ -583,7 +583,7 @@ class TestInnerJoinDatasets:
         """Test that data types are preserved after join."""
         result = inner_join_datasets(
             {"users": users_dataset, "orders": orders_dataset}, "user_id"
-        )
+        ).to_table()
 
         assert result["user_id"].type == pa.int64()
         assert result["name"].type == pa.string()
@@ -604,7 +604,7 @@ class TestInnerJoinDatasets:
                 "products": products_dataset,
             },
             "user_id",
-        )
+        ).to_table()
 
         result2 = inner_join_datasets(
             {
@@ -613,7 +613,7 @@ class TestInnerJoinDatasets:
                 "products": products_dataset,
             },
             "user_id",
-        )
+        ).to_table()
 
         assert result1.equals(result2)
 
@@ -623,7 +623,7 @@ class TestInnerJoinDatasets:
         ds2 = ds.dataset(pa.table({"id": [2, 3, 4], "beta": ["x", "y", "z"]}))
         ds3 = ds.dataset(pa.table({"id": [1, 2, 3], "gamma": [10, 20, 30]}))
 
-        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id")
+        result = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id").to_table()
 
         assert result.num_rows == 2  # id 2 and 3 in all three
         assert "id" in result.column_names
@@ -636,7 +636,7 @@ class TestInnerJoinDatasets:
         ds1 = ds.dataset(pa.table({"key": [1], "value1": [100]}))
         ds2 = ds.dataset(pa.table({"key": [1], "value2": [200]}))
 
-        result = inner_join_datasets({"a": ds1, "b": ds2}, "key")
+        result = inner_join_datasets({"a": ds1, "b": ds2}, "key").to_table()
 
         assert result.num_rows == 1
         assert result["key"].to_pylist() == [1]
@@ -655,7 +655,7 @@ class TestInnerJoinDatasets:
             )
         )
 
-        result = inner_join_datasets({"first": ds1, "second": ds2}, "id")
+        result = inner_join_datasets({"first": ds1, "second": ds2}, "id").to_table()
 
         # Inner join with empty dataset should return empty result
         assert result.num_rows == 0
@@ -665,7 +665,7 @@ class TestInnerJoinDatasets:
         ds1 = ds.dataset(pa.table({"id": [1, 2, None], "value": [10, 20, 30]}))
         ds2 = ds.dataset(pa.table({"id": [2, None, 4], "value": [200, 300, 400]}))
 
-        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
+        result = inner_join_datasets({"left": ds1, "right": ds2}, "id").to_table()
 
         # PyArrow join behavior: NULLs don't match
         # Only id=2 should match
@@ -683,7 +683,7 @@ class TestInnerJoinDatasets:
             pa.table({"username": ["bob", "charlie", "david"], "level": [5, 10, 15]})
         )
 
-        result = inner_join_datasets({"scores": ds1, "levels": ds2}, "username")
+        result = inner_join_datasets({"scores": ds1, "levels": ds2}, "username").to_table()
 
         assert result.num_rows == 2
         assert set(result["username"].to_pylist()) == {"bob", "charlie"}
@@ -696,7 +696,7 @@ class TestInnerJoinDatasets:
                 pa.table({"id": [1, 2, 3], f"value{i}": [i * 10, i * 20, i * 30]})
             )
 
-        result = inner_join_datasets(datasets, "id")
+        result = inner_join_datasets(datasets, "id").to_table()
 
         assert result.num_rows == 3
         assert "id" in result.column_names
@@ -710,7 +710,7 @@ class TestInnerJoinDatasets:
         ds2 = ds.dataset(pa.table({"id": [2, 3], "value": [200, 300]}))
 
         # Special characters should work in dataset names
-        result = inner_join_datasets({"data-source": ds1, "data.backup": ds2}, "id")
+        result = inner_join_datasets({"data-source": ds1, "data.backup": ds2}, "id").to_table()
 
         assert result.num_rows == 1
         # Check that suffixes contain the dataset names
@@ -725,7 +725,7 @@ class TestInnerJoinDatasets:
         # Should work with use_threads=False
         result = inner_join_datasets(
             {"left": ds1, "right": ds2}, "id", use_threads=False
-        )
+        ).to_table()
 
         assert result.num_rows == 2
 
@@ -750,7 +750,7 @@ class TestInnerJoinDatasets:
             )
         )
 
-        result = inner_join_datasets({"employees": ds1, "payroll": ds2}, "id")
+        result = inner_join_datasets({"employees": ds1, "payroll": ds2}, "id").to_table()
 
         # All column names should be as-is (no suffixes)
         assert "name" in result.column_names
@@ -794,7 +794,7 @@ class TestInnerJoinDatasets:
 
         result = inner_join_datasets(
             {"users": ds1, "levels": ds2, "categories": ds3}, "id"
-        )
+        ).to_table()
 
         # Only id 2 and 3 in all three
         assert result.num_rows == 2
@@ -849,7 +849,7 @@ class TestIntegrationFilterAndJoin:
         # Then join
         result = inner_join_datasets(
             {"users": active_users, "orders": completed_orders}, "user_id"
-        )
+        ).to_table()
 
         # Should only have active users with completed orders (user_id 1, 2, 4)
         assert result.num_rows == 3
@@ -885,7 +885,7 @@ class TestIntegrationFilterAndJoin:
         )
 
         # Join on 'id' which exists in both datasets
-        result = inner_join_datasets({"users": us_users, "orders": high_orders}, "id")
+        result = inner_join_datasets({"users": us_users, "orders": high_orders}, "id").to_table()
 
         # Should have US users (1, 3) with high-value orders (2, 3)
         # Only user 3 matches both conditions
@@ -928,7 +928,7 @@ class TestIntegrationFilterAndJoin:
         result = inner_join_datasets(
             {"users": gold_users, "orders": high_orders, "rewards": high_rewards},
             "user_id",
-        )
+        ).to_table()
 
         # Should only have gold users with high orders and high rewards
         # (user_id 1 and 3)
@@ -952,7 +952,7 @@ class TestEdgeCasesJoin:
         ds1 = ds.dataset(pa.table(data1))
         ds2 = ds.dataset(pa.table(data2))
 
-        result = inner_join_datasets({"left": ds1, "right": ds2}, "id")
+        result = inner_join_datasets({"left": ds1, "right": ds2}, "id").to_table()
 
         assert result.num_rows == 2
         # Should have 1 id column + 50 from left + 50 from right
@@ -965,8 +965,8 @@ class TestEdgeCasesJoin:
         ds3 = ds.dataset(pa.table({"id": [1, 2], "c": [1000, 2000]}))
 
         # Try different orders
-        result1 = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id")
-        result2 = inner_join_datasets({"third": ds3, "first": ds1, "second": ds2}, "id")
+        result1 = inner_join_datasets({"first": ds1, "second": ds2, "third": ds3}, "id").to_table()
+        result2 = inner_join_datasets({"third": ds3, "first": ds1, "second": ds2}, "id").to_table()
 
         # Both should produce valid results
         assert result1.num_rows > 0
