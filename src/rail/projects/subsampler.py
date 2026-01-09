@@ -161,8 +161,13 @@ class MultiCatalogSubsampler(RailSubsampler):
 
     def _sub_selection(self, key: str, file_list: list[str]) -> ds.Dataset:
         sub_selection_params = self.config.inputs[key]
-        all_cuts = self.config.cuts.copy()
-        all_cuts.update(sub_selection_params.get("cuts", {}))
+        if self.config.cuts is not None:
+            all_cuts = self.config.cuts.copy()
+        else:
+            all_cuts = []
+        sub_sel_cuts = sub_selection_params.get("cuts", [])
+        if sub_sel_cuts:
+            all_cuts += sub_sel_cuts
         parsed_cuts = parse_item(all_cuts)
         dataset = ds.dataset(file_list)
         save_cols: list[str] = [self.config.object_id_col]
