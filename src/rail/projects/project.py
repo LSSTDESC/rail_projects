@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import os
-from typing import Any
+from typing import Any, Type, cast
 
 import yaml
 from ceci.config import StageParameter
@@ -62,7 +62,7 @@ class RailFlavor(Configurable):
         Configurable.__init__(self, **kwargs)
 
 
-class RailProject(Configurable):
+class RailProject(Configurable):  # pylint: disable=too-many-public-methods
     """Main analysis driver class, this collects all the elements needed to
     run a collection of studies using RAIL.
 
@@ -153,6 +153,13 @@ class RailProject(Configurable):
         Subsample data from a catalog to make a testing or training file.
         This is run after catalog level pipelines, but before pipeliens run
         on indvidudal training/ testing samples
+
+        split_data:
+        ---------------
+        Split data from an input file to make testing and training file.
+        This is run after catalog level pipelines, and subsample_data, but
+        before pipeliens run on indvidudal training/ testing samples.
+        This is an alternative to using subsample_data to make these files.
 
         build_pipelines:
         ----------------
@@ -468,7 +475,7 @@ class RailProject(Configurable):
         subsampler_class_name: str,
         subsample_name: str,
         dry_run: bool = False,
-        **kwargs: dict[str, Any],
+        **kwargs: Any,
     ) -> str:
         """Subsammple some data
 
@@ -503,16 +510,87 @@ class RailProject(Configurable):
         subsampler_class = library.get_algorithm_class(
             "Subsampler", subsampler_class_name, "Subsample"
         )
+        subsampler_config_keys = cast(
+            Type[Configurable], subsampler_class
+        ).config_options.keys()
         subsampler_args = library.get_subsample(subsample_name)
-        subsampler = subsampler_class(**subsampler_args.config.to_dict())
 
-        sources = self.get_catalog_files(catalog_template, **kwargs)
+        use_pairs = {
+            key: val
+            for key, val in subsampler_args.config.to_dict().items()
+            if key in subsampler_config_keys
+        }
+
+        subsampler = subsampler_class(**use_pairs)
+
+        basename_dict: dict[str, str] = subsampler.get_basename_dict()
+        sources_dict: dict[str, list[str]] = {}
+
+        for key, val in basename_dict.items():
+            kwargs_copy = kwargs.copy()
+            kwargs_copy["basename"] = val
+            sources_dict[key] = self.get_catalog_files(catalog_template, **kwargs_copy)
 
         # output_dir = os.path.dirname(output)
         if not dry_run:  # pragma: no cover
-            subsampler.run(sources, output)
+            subsampler.run(sources_dict, output)
 
         return output
+
+    def split_data(
+        self,
+        file_template: str,
+        test_file_template: str,
+        train_file_template: str,
+        splitter_class_name: str,
+        dry_run: bool = False,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Subsammple some data
+
+        Parameters
+        ----------
+        file_template: str
+            Which label to apply to output dataset
+
+        train_file_template: str
+            Which label to apply to train output dataset
+
+        test_file_template: str
+            Which label to apply to test output dataset
+
+        splitter_class_name: str,
+            Name of the class to use for splitting
+
+        dry_run: bool
+            If true, do not actually run
+
+        **kwargs:
+            Used to provide values for additional interpolants, e.g., flavor, basename, etc...
+
+        Returns
+        -------
+        str:
+            Path to output file
+        """
+        input_file = self.get_file(file_template, **kwargs).replace(".hdf5", ".parquet")
+        output_train_file = self.get_file(train_file_template, **kwargs).replace(
+            ".hdf5", ".parquet"
+        )
+        output_test_file = self.get_file(test_file_template, **kwargs).replace(
+            ".hdf5", ".parquet"
+        )
+
+        splitter_class = library.get_algorithm_class(
+            "Splitter", splitter_class_name, "Split"
+        )
+        splitter = splitter_class(name=splitter_class_name)
+
+        # output_dir = os.path.dirname(output)
+        if not dry_run:  # pragma: no cover
+            splitter.run(input_file, output_train_file, output_test_file)
+
+        return [output_train_file, output_test_file]
 
     def build_pipelines(
         self,

@@ -1,3 +1,5 @@
+"""Command line interface for rail-plot"""
+
 from .plot_commands import (
     plot_cli,
     run_command,

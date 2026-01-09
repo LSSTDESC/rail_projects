@@ -12,6 +12,7 @@ from .algorithm_holder import (
     RailPZAlgorithmHolder,
     RailReducerAlgorithmHolder,
     RailSpecSelectionAlgorithmHolder,
+    RailSplitterAlgorithmHolder,
     RailSubsamplerAlgorithmHolder,
     RailSummarizerAlgorithmHolder,
 )
@@ -22,6 +23,7 @@ ALGORITHM_TYPES: list[str] = [
     "Classifiers",
     "Summarizers",
     "ErrorModels",
+    "Splitters",
     "Subsamplers",
     "Reducers",
 ]
@@ -63,6 +65,7 @@ class RailAlgorithmFactory(RailFactoryMixin):
         RailClassificationAlgorithmHolder,
         RailSummarizerAlgorithmHolder,
         RailErrorModelAlgorithmHolder,
+        RailSplitterAlgorithmHolder,
         RailSubsamplerAlgorithmHolder,
         RailReducerAlgorithmHolder,
     ]

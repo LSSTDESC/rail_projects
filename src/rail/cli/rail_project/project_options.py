@@ -28,8 +28,11 @@ __all__: list[str] = [
     "run_mode",
     "selection",
     "site",
+    "splitter_class_name",
     "subsampler_class_name",
     "subsample_name",
+    "test_file_template",
+    "train_file_template",
     "output_dir",
     "output_file",
     "output_catalog_template",
@@ -121,6 +124,14 @@ site = PartialOption(
     help="site for slurm submission",
     type=str,
     default=None,
+)
+
+
+splitter_class_name = PartialOption(
+    "--splitter-class-name",
+    help="Class for the splitter",
+    type=str,
+    default="random_splitter",
 )
 
 
@@ -232,6 +243,19 @@ size = PartialOption(
     type=int,
     default=100_000,
     help="Number of objects in file",
+)
+
+test_file_template = PartialOption(
+    "--test-file-template",
+    type=str,
+    help="Name of the file template to use for test file",
+)
+
+
+train_file_template = PartialOption(
+    "--train-file-template",
+    type=str,
+    help="Name of the file template to use for train file",
 )
 
 

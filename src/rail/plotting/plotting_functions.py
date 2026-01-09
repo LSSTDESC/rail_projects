@@ -210,6 +210,7 @@ def plot_colors_v_colors_with_templates(
             axs[icol][irow].scatter(
                 color_data[:, icol], color_data[:, irow + 1], color="black", s=1
             )
+
             if templates is not None:
                 for key, val in templates.items():
                     mask = val[0] < zmax

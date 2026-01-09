@@ -56,6 +56,12 @@ Files:
       name: train_file_10
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_10.hdf5"
   - FileTemplate:
+      name: test_split_file
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_split_test_10.hdf5"
+  - FileTemplate:
+      name: train_split_file
+      path_template: "{catalogs_dir}/train/{project}_{selection}_baseline_split_train_10.hdf5"      
+  - FileTemplate:
       name: deep_file_full
       path_template: "{catalogs_dir}/som/{project}_deep_data_full.hdf5"
   - FileTemplate:
@@ -172,6 +178,10 @@ Subsamplers:
   - Subsampler:
       name: random_subsampler
       Subsample: RandomSubsampler
+      Module: rail.projects.subsampler
+  - Subsampler:
+      name: multi_catalog_subsampler
+      Subsample: MultiCatalogSubsample
       Module: rail.projects.subsampler
 
 
@@ -407,3 +417,41 @@ Subsamples:
       name: train_10
       seed: 5555
       num_objects: 100000
+  - Subsample:
+      name: multi_catalog
+      seed: 5555
+      num_objects: 1000
+      weight_map: "tests/dummy_weight_map.fits"
+      cuts:                          # data selection cuts
+        - ['ra', '>', 45]
+        - ['ra', '<', 47]
+        - ['dec', '>', 101]
+        - ['dec', '<', 102]
+      inputs:                        # All the inputs
+        rubin:                            # rubin input config
+          basename: output_lsst_wfd_1yr.pq     # file to look for
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']              # bands to consider
+          mag_band_name_template: "{band}_cModelMag"         # template for columns
+          mag_err_band_name_template: "{band}_cModelMagErr"  # template for columns
+          extra_cols: []                                     # extra columns to copy
+          cuts:
+            - ['i_cModelMag', '<', 25]
+        roman:
+          basename: output_roman_medium.pq
+          bands: ['Y106', 'J129', 'H158']
+          mag_band_name_template: "ROMAN_obs_{band}"
+          mag_err_band_name_template: "ROMAN_obs_{band}_err"
+          extra_cols: []
+        euclid:
+          basename: output_euclid_3band.pq
+          bands: ['Y', 'J', 'H']
+          mag_band_name_template: "euclid_{band}_unifMag"
+          mag_err_band_name_template: "euclid_{band}_unifMagErr"
+          extra_cols: []
+
+# These describe the ways we can split the data
+Splitters:
+  - Splitter:
+      name: random_splitter
+      Split: RandomSplitter
+      Module: rail.projects.splitter

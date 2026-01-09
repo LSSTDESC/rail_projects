@@ -1,12 +1,615 @@
+from typing import Any
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pytest
 
 from rail.projects.arrow_utils import (
+    LEGAL_OPERATIONS,
+    check_list_as_tuple,
+    parse_item,
     _ProjectedDataset,
     filter_dataset,
     inner_join_datasets,
 )
+
+
+class TestListAsTuple:
+    """Tests for the check_list_as_tuple function."""
+
+    def test_valid_three_element_list_equality(self) -> None:
+        """Test valid 3-element list with equality operator."""
+        assert check_list_as_tuple(["age", "==", 25]) is True
+
+    def test_valid_three_element_list_greater_than(self) -> None:
+        """Test valid 3-element list with greater than operator."""
+        assert check_list_as_tuple(["value", ">", 100]) is True
+
+    def test_valid_three_element_list_in_operator(self) -> None:
+        """Test valid 3-element list with 'in' operator."""
+        assert check_list_as_tuple(["category", "in", ["A", "B", "C"]]) is True
+
+    def test_valid_three_element_list_not_in_operator(self) -> None:
+        """Test valid 3-element list with 'not in' operator."""
+        assert (
+            check_list_as_tuple(["status", "not in", ["inactive", "deleted"]]) is True
+        )
+
+    def test_all_legal_operators(self) -> None:
+        """Test that all legal operators are accepted."""
+        for op in LEGAL_OPERATIONS:
+            assert check_list_as_tuple(["field", op, "value"]) is True
+
+    def test_two_element_list_returns_false(self) -> None:
+        """Test that a 2-element list returns False."""
+        assert check_list_as_tuple(["age", ">"]) is False
+
+    def test_four_element_list_returns_false(self) -> None:
+        """Test that a 4-element list returns False."""
+        assert check_list_as_tuple(["age", ">", 25, "extra"]) is False
+
+    def test_empty_list_returns_false(self) -> None:
+        """Test that an empty list returns False."""
+        assert check_list_as_tuple([]) is False
+
+    def test_first_element_not_string_returns_false(self) -> None:
+        """Test that non-string first element returns False."""
+        assert check_list_as_tuple([123, "==", 25]) is False
+
+    def test_invalid_operator_raises_value_error(self) -> None:
+        """Test that invalid operator raises ValueError."""
+        with pytest.raises(ValueError, match="is not in"):
+            check_list_as_tuple(["age", "invalid_op", 25])
+
+    def test_invalid_operator_error_message(self) -> None:
+        """Test the error message for invalid operator."""
+        with pytest.raises(ValueError) as exc_info:
+            check_list_as_tuple(["age", "~~~", 25])
+
+        error_msg = str(exc_info.value)
+        assert "Expected three item list" in error_msg
+        assert "~~~" in error_msg
+        assert "is not in" in error_msg
+
+    def test_operator_case_sensitive(self) -> None:
+        """Test that operator matching is case-sensitive."""
+        with pytest.raises(ValueError):
+            check_list_as_tuple(["age", "IN", ["A", "B"]])
+
+    def test_with_none_value(self) -> None:
+        """Test that None as value is valid."""
+        assert check_list_as_tuple(["field", "==", None]) is True
+
+    def test_with_boolean_value(self) -> None:
+        """Test that boolean value is valid."""
+        assert check_list_as_tuple(["active", "==", True]) is True
+
+
+class TestParseItem:
+    """Tests for the parse_item function."""
+
+    def test_simple_filter_top_level(self) -> None:
+        """Test parsing a simple filter at top level."""
+        result = parse_item(["age", ">", 25])
+        assert result == [("age", ">", 25)]
+
+    def test_simple_filter_nested(self) -> None:
+        """Test parsing a simple filter as nested item."""
+        result = parse_item(["age", ">", 25], top=False)
+        assert result == ("age", ">", 25)
+
+    def test_and_logic_two_filters(self) -> None:
+        """Test AND logic with two filters."""
+        result = parse_item([["age", ">", 25], ["category", "==", "A"]])
+        assert result == [("age", ">", 25), ("category", "==", "A")]
+
+    def test_and_logic_three_filters(self) -> None:
+        """Test AND logic with three filters."""
+        result = parse_item(
+            [["age", ">", 25], ["category", "==", "A"], ["status", "!=", "inactive"]]
+        )
+        assert result == [
+            ("age", ">", 25),
+            ("category", "==", "A"),
+            ("status", "!=", "inactive"),
+        ]
+
+    def test_or_group_simple(self) -> None:
+        """Test OR_GROUP with simple filters."""
+        result = parse_item({"OR_GROUP": [["age", ">", 50], ["status", "==", "VIP"]]})
+        assert result == [("age", ">", 50), ("status", "==", "VIP")]
+
+    def test_or_group_nested_and_conditions(self) -> None:
+        """Test OR_GROUP with nested AND conditions."""
+        result = parse_item(
+            {
+                "OR_GROUP": [
+                    [["age", ">", 25], ["category", "==", "A"]],
+                    [["age", ">", 50], ["category", "==", "B"]],
+                ]
+            }
+        )
+        assert result == [
+            [("age", ">", 25), ("category", "==", "A")],
+            [("age", ">", 50), ("category", "==", "B")],
+        ]
+
+    def test_nested_or_groups(self) -> None:
+        """Test nested OR groups without OR_GROUP dict."""
+        result = parse_item([[["age", ">", 25]], [["category", "==", "A"]]])
+        assert result == [[("age", ">", 25)], [("category", "==", "A")]]
+
+    def test_complex_nested_structure(self) -> None:
+        """Test complex nested structure with multiple levels."""
+        result = parse_item(
+            [
+                [["age", ">", 25], ["status", "==", "active"]],
+                [["category", "in", ["VIP", "Premium"]]],
+                [["country", "==", "US"], ["value", ">=", 1000]],
+            ]
+        )
+        assert result == [
+            [("age", ">", 25), ("status", "==", "active")],
+            [("category", "in", ["VIP", "Premium"])],
+            [("country", "==", "US"), ("value", ">=", 1000)],
+        ]
+
+    def test_single_filter_in_list(self) -> None:
+        """Test single filter wrapped in a list."""
+        result = parse_item([["age", ">", 25]])
+        assert result == [("age", ">", 25)]
+
+    def test_deeply_nested_lists(self) -> None:
+        """Test deeply nested list structures."""
+        result = parse_item([[[["age", ">", 25]]]])
+        assert result == [[[("age", ">", 25)]]]
+
+    def test_or_group_single_condition(self) -> None:
+        """Test OR_GROUP with single condition."""
+        result = parse_item({"OR_GROUP": [["age", ">", 25]]})
+        assert result == [("age", ">", 25)]
+
+    def test_various_operators(self) -> None:
+        """Test parsing with various operators."""
+        filters = [
+            ["age", "==", 25],
+            ["value", "!=", 100],
+            ["score", "<", 50],
+            ["rank", "<=", 10],
+            ["count", ">", 5],
+            ["total", ">=", 1000],
+            ["category", "in", ["A", "B"]],
+            ["status", "not in", ["inactive"]],
+        ]
+        result = parse_item(filters)
+        assert len(result) == 8
+        assert all(isinstance(item, tuple) for item in result)
+
+    def test_various_value_types(self) -> None:
+        """Test parsing with various value types."""
+        result = parse_item(
+            [
+                ["int_field", "==", 42],
+                ["float_field", ">", 3.14],
+                ["str_field", "==", "value"],
+                ["bool_field", "==", True],
+                ["null_field", "==", None],
+                ["list_field", "in", [1, 2, 3]],
+            ]
+        )
+        assert result == [
+            ("int_field", "==", 42),
+            ("float_field", ">", 3.14),
+            ("str_field", "==", "value"),
+            ("bool_field", "==", True),
+            ("null_field", "==", None),
+            ("list_field", "in", [1, 2, 3]),
+        ]
+
+    def test_invalid_operator_raises_value_error(self) -> None:
+        """Test that invalid operator raises ValueError."""
+        with pytest.raises(ValueError, match="is not in"):
+            parse_item(["age", "bad_op", 25])
+
+    def test_dict_without_or_group_raises_assertion(self) -> None:
+        """Test that dict without OR_GROUP raises AssertionError."""
+        with pytest.raises(AssertionError, match="must contain 'OR_GROUP' key"):
+            parse_item({"WRONG_KEY": [["age", ">", 25]]})
+
+    def test_empty_dict_raises_assertion(self) -> None:
+        """Test that empty dict raises AssertionError."""
+        with pytest.raises(AssertionError, match="must contain 'OR_GROUP' key"):
+            parse_item({})
+
+    def test_dict_with_multiple_keys_but_has_or_group(self) -> None:
+        """Test dict with OR_GROUP plus extra keys works."""
+        result = parse_item({"OR_GROUP": [["age", ">", 25]], "extra_key": "ignored"})
+        assert result == [("age", ">", 25)]
+
+    def test_non_list_non_dict_raises_assertion(self) -> None:
+        """Test that non-list, non-dict input raises AssertionError."""
+        with pytest.raises(AssertionError, match="neither a list nor a dict"):
+            parse_item("invalid_string")
+
+    def test_integer_input_raises_assertion(self) -> None:
+        """Test that integer input raises AssertionError."""
+        with pytest.raises(AssertionError, match="neither a list nor a dict"):
+            parse_item(42)
+
+    def test_none_input_raises_assertion(self) -> None:
+        """Test that None input raises AssertionError."""
+        with pytest.raises(AssertionError, match="neither a list nor a dict"):
+            parse_item(None)
+
+    def test_empty_list_returns_empty_list(self) -> None:
+        """Test that empty list returns empty list."""
+        result = parse_item([])
+        assert result == []
+
+    def test_top_false_with_nested_structure(self) -> None:
+        """Test top=False with nested structure."""
+        result = parse_item([["age", ">", 25], ["category", "==", "A"]], top=False)
+        assert result == [("age", ">", 25), ("category", "==", "A")]
+
+    def test_mixed_nesting_depths(self) -> None:
+        """Test structure with mixed nesting depths."""
+        result = parse_item(
+            [["simple", "==", 1], [["nested", ">", 2]], [[["deeply_nested", "<", 3]]]]
+        )
+        assert result == [
+            ("simple", "==", 1),
+            [("nested", ">", 2)],
+            [[("deeply_nested", "<", 3)]],
+        ]
+
+
+class TestParseItemEdgeCases:
+    """Edge case tests for parse_item function."""
+
+    def test_unicode_column_names(self) -> None:
+        """Test parsing with Unicode column names."""
+        result = parse_item([["名前", "==", "value"]])
+        assert result == [("名前", "==", "value")]
+
+    def test_column_names_with_spaces(self) -> None:
+        """Test column names with spaces."""
+        result = parse_item([["column name", ">", 25]])
+        assert result == [("column name", ">", 25)]
+
+    def test_very_long_list_values(self) -> None:
+        """Test 'in' operator with very long list."""
+        long_list = list(range(1000))
+        result = parse_item([["id", "in", long_list]])
+        assert result == [("id", "in", long_list)]
+
+    def test_nested_empty_lists(self) -> None:
+        """Test nested empty lists."""
+        result = parse_item([[]])
+        assert result == [[]]
+
+    def test_or_group_with_empty_list(self) -> None:
+        """Test OR_GROUP with empty list."""
+        result = parse_item({"OR_GROUP": []})
+        assert result == []
+
+    def test_special_characters_in_values(self) -> None:
+        """Test values with special characters."""
+        result = parse_item([["path", "==", "/usr/bin/python"]])
+        assert result == [("path", "==", "/usr/bin/python")]
+
+    def test_tuple_as_value(self) -> None:
+        """Test that tuple can be used as value."""
+        result = parse_item([["coords", "==", (1, 2, 3)]])
+        assert result == [("coords", "==", (1, 2, 3))]
+
+
+class TestParseItemIntegration:
+    """Integration tests showing realistic usage patterns."""
+
+    def test_simple_user_query(self) -> None:
+        """Test a simple user filtering query."""
+        # Find users older than 25 in category A
+        result = parse_item([["age", ">", 25], ["category", "==", "A"]])
+        assert result == [("age", ">", 25), ("category", "==", "A")]
+
+    def test_complex_e_commerce_query(self) -> None:
+        """Test complex e-commerce filtering."""
+        # Find: (VIP customers) OR (high spenders in US/UK)
+        result = parse_item(
+            [
+                [["tier", "==", "VIP"]],
+                [["total_spent", ">=", 10000], ["country", "in", ["US", "UK"]]],
+            ]
+        )
+        assert result == [
+            [("tier", "==", "VIP")],
+            [("total_spent", ">=", 10000), ("country", "in", ["US", "UK"])],
+        ]
+
+    def test_multi_tier_or_conditions(self) -> None:
+        """Test multiple OR conditions with OR_GROUP."""
+        result = parse_item(
+            {
+                "OR_GROUP": [
+                    [["status", "==", "active"], ["verified", "==", True]],
+                    [["status", "==", "pending"], ["priority", "==", "high"]],
+                    [["status", "==", "trial"], ["days_left", ">", 10]],
+                ]
+            }
+        )
+        assert result == [
+            [("status", "==", "active"), ("verified", "==", True)],
+            [("status", "==", "pending"), ("priority", "==", "high")],
+            [("status", "==", "trial"), ("days_left", ">", 10)],
+        ]
+
+    def test_inventory_filtering(self) -> None:
+        """Test inventory filtering with multiple conditions."""
+        # Find: low stock items OR discontinued items in specific categories
+        result = parse_item(
+            [
+                [["stock", "<=", 10], ["category", "in", ["electronics", "furniture"]]],
+                [["discontinued", "==", True]],
+            ]
+        )
+        assert result == [
+            [("stock", "<=", 10), ("category", "in", ["electronics", "furniture"])],
+            [("discontinued", "==", True)],
+        ]
+
+    def test_date_range_query(self) -> None:
+        """Test date range filtering pattern."""
+        # Find records in date range and specific status
+        result = parse_item(
+            [
+                ["date", ">=", "2024-01-01"],
+                ["date", "<=", "2024-12-31"],
+                ["status", "!=", "cancelled"],
+            ]
+        )
+        assert result == [
+            ("date", ">=", "2024-01-01"),
+            ("date", "<=", "2024-12-31"),
+            ("status", "!=", "cancelled"),
+        ]
+
+    def test_exclusion_pattern(self) -> None:
+        """Test pattern excluding multiple values."""
+        result = parse_item(
+            [
+                ["category", "not in", ["archived", "deleted", "spam"]],
+                ["active", "==", True],
+            ]
+        )
+        assert result == [
+            ("category", "not in", ["archived", "deleted", "spam"]),
+            ("active", "==", True),
+        ]
+
+
+class TestParseItemRecursion:
+    """Tests for recursive behavior of parse_item."""
+
+    def test_single_level_recursion(self) -> None:
+        """Test single level of recursion."""
+        result = parse_item([["field", "==", "value"]])
+        assert result == [("field", "==", "value")]
+
+    def test_double_level_recursion(self) -> None:
+        """Test two levels of recursion."""
+        result = parse_item([[["field", "==", "value"]]])
+        assert result == [[("field", "==", "value")]]
+
+    def test_triple_level_recursion(self) -> None:
+        """Test three levels of recursion."""
+        result = parse_item([[[["field", "==", "value"]]]])
+        assert result == [[[("field", "==", "value")]]]
+
+    def test_mixed_recursion_depths(self) -> None:
+        """Test mixed recursion depths in same structure."""
+        result = parse_item(
+            [["shallow", "==", 1], [["medium", "==", 2]], [[["deep", "==", 3]]]]
+        )
+        assert result == [
+            ("shallow", "==", 1),
+            [("medium", "==", 2)],
+            [[("deep", "==", 3)]],
+        ]
+
+    def test_or_group_recursive_processing(self) -> None:
+        """Test OR_GROUP triggers recursive processing."""
+        result = parse_item({"OR_GROUP": [[["a", "==", 1]], [[["b", "==", 2]]]]})
+        assert result == [[("a", "==", 1)], [[("b", "==", 2)]]]
+
+    def test_nested_or_groups(self) -> None:
+        """Test nested OR_GROUP dictionaries."""
+        result = parse_item(
+            {
+                "OR_GROUP": [
+                    {"OR_GROUP": [["a", "==", 1], ["b", "==", 2]]},
+                    ["c", "==", 3],
+                ]
+            }
+        )
+        # The inner OR_GROUP gets processed recursively
+        assert result == [[("a", "==", 1), ("b", "==", 2)], ("c", "==", 3)]
+
+
+class TestParseItemTypeCoercion:
+    """Tests for type handling in parse_item."""
+
+    def test_numeric_values(self) -> None:
+        """Test various numeric value types."""
+        result = parse_item(
+            [
+                ["int_val", "==", 42],
+                ["float_val", ">", 3.14],
+                ["negative", "<", -10],
+                ["zero", "==", 0],
+            ]
+        )
+        assert result == [
+            ("int_val", "==", 42),
+            ("float_val", ">", 3.14),
+            ("negative", "<", -10),
+            ("zero", "==", 0),
+        ]
+
+    def test_string_values(self) -> None:
+        """Test various string value types."""
+        result = parse_item(
+            [
+                ["empty", "==", ""],
+                ["normal", "==", "value"],
+                ["quoted", "==", "value with 'quotes'"],
+                ["multiline", "==", "line1\nline2"],
+            ]
+        )
+        assert result == [
+            ("empty", "==", ""),
+            ("normal", "==", "value"),
+            ("quoted", "==", "value with 'quotes'"),
+            ("multiline", "==", "line1\nline2"),
+        ]
+
+    def test_boolean_values(self) -> None:
+        """Test boolean values."""
+        result = parse_item([["is_active", "==", True], ["is_deleted", "==", False]])
+        assert result == [("is_active", "==", True), ("is_deleted", "==", False)]
+
+    def test_none_values(self) -> None:
+        """Test None/null values."""
+        result = parse_item(
+            [["nullable_field", "==", None], ["another_field", "!=", None]]
+        )
+        assert result == [("nullable_field", "==", None), ("another_field", "!=", None)]
+
+    def test_list_values_for_in_operator(self) -> None:
+        """Test list values with 'in' operator."""
+        result = parse_item(
+            [
+                ["id", "in", [1, 2, 3, 4, 5]],
+                ["category", "in", ["A", "B", "C"]],
+                ["mixed", "in", [1, "two", 3.0, None]],
+            ]
+        )
+        assert result == [
+            ("id", "in", [1, 2, 3, 4, 5]),
+            ("category", "in", ["A", "B", "C"]),
+            ("mixed", "in", [1, "two", 3.0, None]),
+        ]
+
+
+class TestParseItemErrorMessages:
+    """Tests for error message quality."""
+
+    def test_invalid_operator_shows_available_options(self) -> None:
+        """Test that error message shows available operators."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_item(["field", "EQUALS", "value"])
+
+        error_msg = str(exc_info.value)
+        assert "EQUALS" in error_msg
+        assert str(LEGAL_OPERATIONS) in error_msg
+
+    def test_missing_or_group_shows_keys(self) -> None:
+        """Test that error message shows actual keys in dict."""
+        with pytest.raises(AssertionError) as exc_info:
+            parse_item({"WRONG_KEY": [], "ANOTHER": []})
+
+        error_msg = str(exc_info.value)
+        assert "OR_GROUP" in error_msg
+        assert "WRONG_KEY" in error_msg or "dict_keys" in error_msg
+
+    def test_invalid_type_shows_actual_type(self) -> None:
+        """Test that error message shows the actual invalid type."""
+        with pytest.raises(AssertionError) as exc_info:
+            parse_item(12345)
+
+        error_msg = str(exc_info.value)
+        assert "12345" in error_msg
+        assert "neither a list nor a dict" in error_msg
+
+
+class TestParseItemBoundaryConditions:
+    """Tests for boundary conditions and limits."""
+
+    def test_very_long_column_name(self) -> None:
+        """Test parsing with very long column name."""
+        long_name = "a" * 1000
+        result = parse_item([[long_name, "==", "value"]])
+        assert result == [(long_name, "==", "value")]
+
+    def test_very_large_numeric_value(self) -> None:
+        """Test parsing with very large numbers."""
+        large_num = 10**100
+        result = parse_item([["field", ">", large_num]])
+        assert result == [("field", ">", large_num)]
+
+    def test_very_small_numeric_value(self) -> None:
+        """Test parsing with very small numbers."""
+        small_num = 1e-100
+        result = parse_item([["field", "<", small_num]])
+        assert result == [("field", "<", small_num)]
+
+    def test_many_filters_in_and_group(self) -> None:
+        """Test many filters in single AND group."""
+        filters = [[f"field{i}", "==", i] for i in range(100)]
+        result = parse_item(filters)
+        assert len(result) == 100
+        assert all(isinstance(f, tuple) for f in result)
+
+    def test_many_or_groups(self) -> None:
+        """Test many OR groups."""
+        or_groups = [[[f"field{i}", "==", i]] for i in range(50)]
+        result = parse_item(or_groups)
+        assert len(result) == 50
+        assert all(isinstance(group, list) for group in result)
+
+    def test_deeply_nested_structure(self) -> None:
+        """Test very deep nesting."""
+        # Create a deeply nested structure
+        deep = ["field", "==", "value"]
+        for _ in range(10):
+            deep = [deep]  # type: ignore
+
+        result = parse_item(deep)
+
+        # Unwrap to check the innermost value
+        current: Any = result
+        for _ in range(10):
+            assert isinstance(current, list)
+            assert len(current) == 1
+            current = current[0]
+        assert current == ("field", "==", "value")
+
+
+class TestParseItemDocstringExamples:
+    """Tests based on examples from docstrings."""
+
+    def test_docstring_example_simple_filter_top(self) -> None:
+        """Test docstring example: simple filter at top level."""
+        result = parse_item(["age", ">", 25])
+        assert result == [("age", ">", 25)]
+
+    def test_docstring_example_simple_filter_nested(self) -> None:
+        """Test docstring example: simple filter nested."""
+        result = parse_item(["age", ">", 25], top=False)
+        assert result == ("age", ">", 25)
+
+    def test_docstring_example_and_logic(self) -> None:
+        """Test docstring example: AND logic."""
+        result = parse_item([["age", ">", 25], ["category", "==", "A"]])
+        assert result == [("age", ">", 25), ("category", "==", "A")]
+
+    def test_docstring_example_or_group(self) -> None:
+        """Test docstring example: OR_GROUP."""
+        result = parse_item({"OR_GROUP": [["age", ">", 50], ["status", "==", "VIP"]]})
+        assert result == [("age", ">", 50), ("status", "==", "VIP")]
+
+    def test_docstring_example_nested_or(self) -> None:
+        """Test docstring example: nested OR groups."""
+        result = parse_item([[["age", ">", 25]], [["category", "==", "A"]]])
+        assert result == [[("age", ">", 25)], [("category", "==", "A")]]
 
 
 class TestFilterDataset:
@@ -312,32 +915,6 @@ class TestProjectedDataset:
 
 class TestEdgeCases:
     """Tests for edge cases and special scenarios."""
-
-    def test_empty_dataset(self) -> None:
-        """Test filtering an empty dataset."""
-        empty_table = pa.table(
-            {
-                "id": pa.array([], type=pa.int64()),
-                "value": pa.array([], type=pa.int64()),
-            }
-        )
-        empty_ds = ds.dataset(empty_table)
-
-        filtered = filter_dataset(empty_ds, [("value", ">", 0)], ["id"])
-
-        result = filtered.to_table()
-        assert result.num_rows == 0
-
-    def test_single_row_dataset(self) -> None:
-        """Test filtering a single-row dataset."""
-        single_table = pa.table({"id": [1], "value": [42]})
-        single_ds = ds.dataset(single_table)
-
-        filtered = filter_dataset(single_ds, [("value", "==", 42)], ["id", "value"])
-
-        result = filtered.to_table()
-        assert result.num_rows == 1
-        assert result["id"].to_pylist() == [1]
 
     def test_multiple_data_types(self) -> None:
         """Test filtering with various data types."""

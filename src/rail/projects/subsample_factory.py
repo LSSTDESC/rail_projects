@@ -21,6 +21,16 @@ class RailSubsample(Configurable):
         num_objects=StageParameter(
             int, None, fmt="%i", required=True, msg="Number of objects to pick"
         ),
+        weight_map=StageParameter(
+            str, None, required=False, fmt="%s", msg="File with selection weights"
+        ),
+        object_id_col=StageParameter(
+            str, "object_id", required=False, fmt="%s", msg="Object Id column name"
+        ),
+        cuts=StageParameter(list, None, fmt="%s", required=False, msg="Selection cuts"),
+        inputs=StageParameter(
+            dict, None, fmt="%s", required=False, msg="Input catalog detatils"
+        ),
     )
     yaml_tag = "Subsample"
 

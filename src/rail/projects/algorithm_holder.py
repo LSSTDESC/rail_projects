@@ -8,6 +8,7 @@ from rail.core.configurable import Configurable
 
 from .dynamic_class import DynamicClass
 from .reducer import RailReducer
+from .splitter import RailSplitter
 from .subsampler import RailSubsampler
 
 
@@ -268,5 +269,43 @@ class RailSubsamplerAlgorithmHolder(RailAlgorithmHolder):
                 f"RailSubsamplerAlgorithmHolder does not have {key} in {self.config.to_dict().keys}"
             ) from missing_key
         return RailSubsampler.get_sub_class(
+            class_name, f"{self.config.Module}.{class_name}"
+        )
+
+
+class RailSplitterAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that split files
+    to provide testing and training data sets.
+
+    This wraps the Splitter class, which is typically a `RailSplitter` object.
+
+    Typically a single Splitter is used to create a number of different
+    test and training data sets for a particular project.
+    """
+
+    config_options = RailAlgorithmHolder.config_options.copy()
+    config_options.update(
+        Split=StageParameter(
+            str,
+            None,
+            fmt="%s",
+            required=True,
+            msg="Data splitter Class",
+        ),
+    )
+    yaml_tag = "Splitter"
+
+    def __init__(self, **kwargs: Any):
+        RailAlgorithmHolder.__init__(self, **kwargs)
+
+    def resolve(self, key: str) -> type:
+        """Get the associated class one of the parts of the algorithm"""
+        try:
+            class_name = self.config[key]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"RailSplitterAlgorithmHolder does not have {key} in {self.config.to_dict().keys}"
+            ) from missing_key
+        return RailSplitter.get_sub_class(
             class_name, f"{self.config.Module}.{class_name}"
         )

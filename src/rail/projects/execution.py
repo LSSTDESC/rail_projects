@@ -72,10 +72,8 @@ def handle_command(
         raise RuntimeError(
             "handle_command should not be called with run_mode == RunMode.slurm"
         )
-    else:
-        raise AssertionError(
-            f"handle_commond received unexpected run_mode {run_mode}"
-        )
+    else:  # pragma: no cover
+        raise AssertionError(f"Unknown run mode {run_mode}")
 
     returncode = finished.returncode
     _end_time = time.time()

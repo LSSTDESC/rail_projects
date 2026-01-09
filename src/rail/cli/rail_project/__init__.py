@@ -1,3 +1,5 @@
+"""Command line interface for rail-plot"""
+
 from .project_commands import (
     project_cli,
     inspect_command,
@@ -6,6 +8,7 @@ from .project_commands import (
     reduce_command,
     run_group,
 )
+
 
 __all__ = [
     "project_cli",

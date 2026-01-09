@@ -7,10 +7,10 @@ from typing import Any
 import numpy as np
 import qp
 import tables_io
-
 from rail.utils.catalog_utils import CatalogConfigBase
 
 from rail.projects import RailProject, path_funcs
+
 from . import utility_functions
 
 

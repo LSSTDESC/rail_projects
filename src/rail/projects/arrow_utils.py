@@ -7,6 +7,152 @@ import pyarrow.dataset as ds
 from pyarrow.parquet import filters_to_expression
 
 
+# Legal PyArrow comparison operators for filter expressions
+LEGAL_OPERATIONS = ["==", "!=", "<", "<=", ">", ">=", "in", "not in"]
+
+
+def check_list_as_tuple(the_list: list[Any]) -> bool:
+    """
+    Test if a list can be converted to a PyArrow filter tuple.
+
+    A valid PyArrow filter tuple has the form: (column_name, operator, value)
+    where column_name is a string, operator is one of the legal operations,
+    and value is the comparison value.
+
+    Parameters
+    ----------
+    the_list
+        List to test for conversion to a filter tuple.
+
+    Returns
+    -------
+        True if the list is a valid 3-element filter specification.
+
+    Raises
+    ------
+    ValueError
+        If the list has 3 elements but the operator (second element) is not
+        a legal PyArrow operation.
+
+    Examples
+    --------
+    >>> check_list_as_tuple(['age', '>', 25])
+    True
+    >>> check_list_as_tuple(['category', 'in', ['A', 'B']])
+    True
+    >>> check_list_as_tuple(['age', 'invalid_op', 25])
+    ValueError: Expected three item list of the form ['key', 'operation', value]...
+    >>> check_list_as_tuple(['age', '>'])
+    False
+
+    Notes
+    -----
+    This function returns False for lists that don't have exactly 3 elements
+    or whose first element is not a string. It only raises ValueError when
+    the structure is correct but the operator is invalid.
+    """
+    if len(the_list) != 3:
+        return False
+    if not isinstance(the_list[0], str):
+        return False
+    if the_list[1] not in LEGAL_OPERATIONS:
+        msg = "Expected three item list of the form ['key', 'operation', value].  "
+        msg += f"{the_list[1]} is not in {LEGAL_OPERATIONS}."
+        raise ValueError(msg)
+    return True
+
+
+def parse_item(
+    item: list[Any] | dict[str, Any], top: bool = True
+) -> list[Any] | tuple[Any, ...]:
+    """
+    Parse a filter specification into PyArrow filter format.
+
+    This function recursively processes nested filter specifications and
+    converts them into the format expected by PyArrow's filters_to_expression
+    function. It handles both AND logic (nested lists) and OR logic
+    (via 'OR_GROUP' dictionaries).
+
+    Parameters
+    ----------
+    item
+        Filter specification to parse. Can be:
+
+        - List with 3 elements: ['column', 'op', value] → filter tuple
+        - Nested list: [[filter1], [filter2]] → OR groups
+        - Dict with 'OR_GROUP' key: {'OR_GROUP': [...]} → OR logic
+    top
+        Whether this is a top-level call. Top-level 3-tuples are wrapped
+        in a list for consistency with PyArrow's expected format.
+
+    Returns
+    -------
+        Parsed filter specification:
+
+        - Single filter: [('column', 'op', value)] (if top=True)
+        - Single filter: ('column', 'op', value) (if top=False)
+        - Nested filters: [[tuple, ...], [tuple, ...], ...] for OR groups
+        - AND filters: [tuple, tuple, ...] for conditions in same group
+
+    Raises
+    ------
+    ValueError
+        If a 3-element list has an invalid operator.
+    AssertionError
+        If item is neither a list nor a dict, or if a dict doesn't contain
+        an 'OR_GROUP' key.
+
+    Examples
+    --------
+    Simple filter (top level):
+    >>> parse_item(['age', '>', 25])
+    [('age', '>', 25)]
+
+    Simple filter (nested):
+    >>> parse_item(['age', '>', 25], top=False)
+    ('age', '>', 25)
+
+    AND logic (multiple conditions):
+    >>> parse_item([['age', '>', 25], ['category', '==', 'A']])
+    [('age', '>', 25), ('category', '==', 'A')]
+
+    OR logic using OR_GROUP:
+    >>> parse_item({'OR_GROUP': [['age', '>', 50], ['category', '==', 'VIP']]})
+    [('age', '>', 50), ('category', '==', 'VIP')]
+
+    Nested OR groups:
+    >>> parse_item([[['age', '>', 25]], [['category', '==', 'A']]])
+    [[('age', '>', 25)], [('category', '==', 'A')]]
+
+    Notes
+    -----
+    - AND logic: Multiple filters in the same list → all must match
+    - OR logic: Multiple sublists or 'OR_GROUP' dict → any can match
+    - The function is recursive and handles arbitrary nesting depth
+    - Top-level single filters are wrapped in a list for PyArrow compatibility
+    """
+    if isinstance(item, list):
+        # it is a list, test if is a 3-tuple
+        if check_list_as_tuple(item):
+            # it is a 3-tuple, convert it
+            tt = tuple(item)
+            if top:
+                # at the top-level, we wrap it in a list
+                return [tt]
+            # return it as a 3-tuple
+            return tt
+        # recursively process items on list as a tuple
+        return [parse_item(sub_item, False) for sub_item in item]
+    if isinstance(item, dict):
+        # it is a dict, make sure it just consists of 'OR_GROUP' item
+        assert (
+            "OR_GROUP" in item
+        ), f"Dict must contain 'OR_GROUP' key, got {item.keys()}"
+        sub_list = item["OR_GROUP"]
+        return parse_item(sub_list, False)
+    raise AssertionError(f"Item {item} is neither a list nor a dict")
+
+
 def filter_dataset(
     dataset: ds.Dataset,
     filter_conditions: list[tuple[str, str, Any]] | list[list[tuple[str, str, Any]]],
@@ -224,7 +370,6 @@ def inner_join_datasets(
     ...     'id': [2, 3, 4],
     ...     'total': [100, 200, 150]
     ... }))
-    >>>
     >>> result = inner_join_datasets(
     ...     {'users': users_ds, 'orders': orders_ds},
     ...     'id'
