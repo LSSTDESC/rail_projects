@@ -102,7 +102,11 @@ def resolve_dict(source: dict, interpolants: dict) -> dict:
     dict:
         Dictionary of resolved templates
     """
-    env_interpolants = {key: val for key, val in os.environ.items() if (key.find('PZ') == 0 or key.find('RAIL') == 0)}
+    env_interpolants = {
+        key: val
+        for key, val in os.environ.items()
+        if (key.find("PZ") == 0 or key.find("RAIL") == 0)
+    }
     interpolants.update(**env_interpolants)
     if source:
         sink = copy.deepcopy(source)
