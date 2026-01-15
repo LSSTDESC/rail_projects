@@ -145,31 +145,31 @@ PROJECTIONS = [
 
 PROJECTIONS_FLAGSHIP = [
     {
-        "mag_u_lsst": pc.pc.subtract(
+        "mag_u_lsst": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("lsst_u"))), pc.scalar(48.6)
         ),
-        "mag_g_lsst": pc.pc.subtract(
+        "mag_g_lsst": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("lsst_g"))), pc.scalar(48.6)
         ),
-        "mag_r_lsst": pc.pc.subtract(
+        "mag_r_lsst": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("lsst_r"))), pc.scalar(48.6)
         ),
-       "mag_i_lsst": pc.pc.subtract(
+       "mag_i_lsst": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("lsst_i"))), pc.scalar(48.6)
         ),
-        "mag_z_lsst": pc.pc.subtract(
+        "mag_z_lsst": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("lsst_z"))), pc.scalar(48.6)
         ),
-       "mag_y_lsst": pc.pc.subtract(
+       "mag_y_lsst": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("lsst_y"))), pc.scalar(48.6)
         ),
-       "euclid_nisp_h": pc.pc.subtract(
+       "euclid_nisp_h": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("euclid_nisp_h"))), pc.scalar(48.6)
         ),
-       "euclid_nisp_j": pc.pc.subtract(
+       "euclid_nisp_j": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("euclid_nisp_j"))), pc.scalar(48.6)
         ),
-       "euclid_nisp_y": pc.pc.subtract(
+       "euclid_nisp_y": pc.subtract(
             pc.multiply(-2.5, pc.log10(pc.field("euclid_nisp_y"))), pc.scalar(48.6)
         ),
        "totalHalfLightRadiusArcsec": pc.add(
