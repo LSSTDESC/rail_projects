@@ -146,33 +146,33 @@ PROJECTIONS = [
 PROJECTIONS_FLAGSHIP = [
     {
         "mag_u_lsst": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("lsst_u"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u"))), pc.scalar(48.6)
         ),
         "mag_g_lsst": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("lsst_g"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_g"))), pc.scalar(48.6)
         ),
         "mag_r_lsst": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("lsst_r"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_r"))), pc.scalar(48.6)
         ),
-       "mag_i_lsst": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("lsst_i"))), pc.scalar(48.6)
+        "mag_i_lsst": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_i"))), pc.scalar(48.6)
         ),
         "mag_z_lsst": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("lsst_z"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_z"))), pc.scalar(48.6)
         ),
-       "mag_y_lsst": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("lsst_y"))), pc.scalar(48.6)
+        "mag_y_lsst": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_y"))), pc.scalar(48.6)
         ),
-       "euclid_nisp_h": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("euclid_nisp_h"))), pc.scalar(48.6)
+        "euclid_nisp_h": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_h"))), pc.scalar(48.6)
         ),
-       "euclid_nisp_j": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("euclid_nisp_j"))), pc.scalar(48.6)
+        "euclid_nisp_j": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_j"))), pc.scalar(48.6)
         ),
-       "euclid_nisp_y": pc.subtract(
-            pc.multiply(-2.5, pc.log10(pc.field("euclid_nisp_y"))), pc.scalar(48.6)
+        "euclid_nisp_y": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_y"))), pc.scalar(48.6)
         ),
-       "totalHalfLightRadiusArcsec": pc.add(
+        "totalHalfLightRadiusArcsec": pc.add(
             pc.multiply(
                 pc.field("disk_r50"),
                 pc.subtract(pc.scalar(1), pc.field("bulge_fraction")),
