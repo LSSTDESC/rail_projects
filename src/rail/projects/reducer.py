@@ -115,6 +115,9 @@ PROJECTIONS = [
                 pc.field("bulge_frac"),
             ),
         ),
+        "_orientationAngle": pc.atan2(
+            pc.field("totalEllipticity2"), pc.field("totalEllipticity1")
+        ),
     },
     {
         "major": pc.divide(
