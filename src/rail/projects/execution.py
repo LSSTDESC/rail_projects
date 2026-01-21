@@ -32,8 +32,13 @@ PERLMUTTER_SLURM_OPTIONS: list[str] = [
     "regular",
     "--parsable",
 ]
+TEST_SLURM_OPTIONS: list[str] = [
+    "--dummy",
+    "test",
+]
 
 SLURM_OPTIONS = {
+    "test": TEST_SLURM_OPTIONS,
     "s3df": S3DF_SLURM_OPTIONS,
     "perlmutter": PERLMUTTER_SLURM_OPTIONS,
 }
@@ -139,11 +144,18 @@ def handle_commands(
             fout.write(f"{com_line}\n")
 
     script_out = script_path.replace(".sh", ".out")
+    script_err = script_path.replace(".sh", ".err")
+
+    if site in ['test']:
+        exec_command = ["echo", "0" "|"]
+    else:
+        exec_command = ["srun"]
 
     command_line = (
-        ["srun"] + slurm_options + ["--output", script_out, "--error", script_path]
+        exec_command + slurm_options + ["--output", script_out, "--error", script_err, script_path]
     )
     try:
+        print(command_line)
         with subprocess.Popen(
             command_line,
             stdout=subprocess.PIPE,
@@ -184,10 +196,16 @@ def sbatch_wrap(
         raise KeyError(
             f"{site} is not a recognized site, options are {SLURM_OPTIONS.keys()}"
         ) from msg
+
+    if site in ['test']:
+        exec_command = ["echo", "0" "| " "sbatch"]
+    else:
+        exec_command = ["sbatch"]
+
     command_line = (
-        ["sbatch"]
+        exec_command
         + slurm_options
-        + ["rail-project", "--run_mode", "slurm"]
+        + ["rail-project", "--run_mode", "bash", "--site", site]
         + list(args)
     )
     return handle_command(run_mode, command_line)

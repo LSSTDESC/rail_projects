@@ -767,6 +767,14 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         kwcopy = kwargs.copy()
         flavor = kwcopy.pop("flavor")
+
+        if run_mode in [execution.RunMode.slurm]:
+            if kwargs.get('site') is None:
+                raise ValueError(
+                    "Running with --run-mode slurm requires setting the --site.  "
+                    f"Possible values are {list(execution.SLURM_OPTIONS.keys())}"
+                )
+
         all_commands = self.make_pipeline_catalog_commands(
             pipeline_name, flavor, **kwcopy
         )
