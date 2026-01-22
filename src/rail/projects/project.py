@@ -84,6 +84,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
     config_options: dict[str, StageParameter] = dict(
         Name=StageParameter(str, None, fmt="%s", required=True, msg="Project name"),
+        SiteConfig=StageParameter(dict, {}, fmt="%s", msg="Site configuration options"),
         Includes=StageParameter(list, [], fmt="%s", msg="Files to include"),
         Baseline=StageParameter(
             dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
@@ -729,11 +730,12 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         commands = self.make_pipeline_single_input_command(
             pipeline_name, flavor, **kwcopy
         )
+        site_config = self.get_site_config(kwcopy.get("site"))
         return execution.handle_all_commands(
             run_mode,
             [([commands], script_path)],
             top_script_path,
-            site=kwcopy.get("site"),
+            site_config=site_config,
         )
 
     def run_pipeline_catalog(
@@ -771,18 +773,19 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
             if kwargs.get("site") is None:
                 raise ValueError(
                     "Running with --run-mode slurm requires setting the --site.  "
-                    f"Possible values are {list(execution.SLURM_OPTIONS.keys())}"
+                    f"Possible values are {list(execution.DEFAULT_SITE_CONFIGS.keys())}"
                 )
+
+        site_config = self.get_site_config(kwcopy.get("site"))
 
         all_commands = self.make_pipeline_catalog_commands(
             pipeline_name, flavor, **kwcopy
         )
-
         return execution.handle_all_commands(
             run_mode,
             all_commands,
             submit_script_path,
-            site=kwcopy.get("site"),
+            site_config=site_config,
         )
 
     def add_flavor(self, name: str, **kwargs: Any) -> RailFlavor:
@@ -798,6 +801,16 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         self.config["Flavors"].append(new_flavor.config.to_dict())
         self._flavors[new_flavor.config.name] = new_flavor
         return new_flavor
+
+    def get_site_config(self, site: str | None) -> dict:
+        """Get the site configuration for a particular site"""
+        if site is None:
+            return {}
+        if site in self.config.SiteConfig:
+            return self.config.SiteConfig[site]
+        if site in execution.DEFAULT_SITE_CONFIGS:
+            return execution.DEFAULT_SITE_CONFIGS[site]
+        raise KeyError(f"Could not get configuration for site: {site}")
 
     def write_yaml(self, yaml_file: str) -> None:
         """Write this project to a yaml file"""

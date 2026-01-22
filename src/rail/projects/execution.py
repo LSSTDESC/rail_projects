@@ -5,6 +5,7 @@ import os
 import subprocess
 from pathlib import Path
 import time
+from typing import Any
 
 
 class RunMode(enum.Enum):
@@ -15,38 +16,44 @@ class RunMode(enum.Enum):
     slurm = 2
 
 
-# FIXME: we probably want to get this from the config file
+S3DF_SITE_CONFIG: dict[str, Any] = dict(
+    slurm_batch_size=8,
+    slurm_options=[
+        "-p=milano",
+        "--account=rubin:commissioning@milano",
+        "--mem=16G",
+        "--parsable",
+    ],
+    srun_command="srun",
+    sbatch_commands=["sbatch"],
+)
+PERLMUTTER_SITE_CONFIG: dict[str, Any] = dict(
+    slurm_batch_size=32,
+    slurm_options=[
+        "--account=m1727",
+        "--constraint=cpu",
+        "--qos=regular",
+        "--parsable",
+    ],
+    srun_command="srun",
+    sbatch_commands=["sbatch"],
+)
+TEST_SITE_CONFIG: dict[str, Any] = dict(
+    slurm_batch_size=4,
+    slurm_options=[
+        "--dummy=test",
+    ],
+    srun_command="echo 0 srun",
+    sbatch_commands=["echo", "0", "sbatch"],
+)
 
-S3DF_SLURM_OPTIONS: list[str] = [
-    "-p=milano",
-    "--account=rubin:commissioning@milano",
-    "--mem=16G",
-    "--parsable",
-]
-PERLMUTTER_SLURM_OPTIONS: list[str] = [
-    "--account=m1727",
-    "--constraint=cpu",
-    "--qos=regular",
-    "--parsable",
-]
-TEST_SLURM_OPTIONS: list[str] = [
-    "--dummy=test",
-]
-
-SLURM_OPTIONS = {
-    "test": TEST_SLURM_OPTIONS,
-    "s3df": S3DF_SLURM_OPTIONS,
-    "perlmutter": PERLMUTTER_SLURM_OPTIONS,
-}
-
-BATCH_SIZES = {
-    "test": 8,
-    "s3df": 8,
-    "perlmutter": 32,
-}
+DEFAULT_SITE_CONFIGS: dict[str, dict[str, Any]] = dict(
+    test=TEST_SITE_CONFIG,
+    perlmutter=PERLMUTTER_SITE_CONFIG,
+    s3df=S3DF_SITE_CONFIG,
+)
 
 BASH_LINE = "#!/usr/bin/bash"
-
 
 
 def handle_command(
@@ -214,7 +221,7 @@ def handle_all_commands(
     run_mode: RunMode,
     all_commands: list[tuple[list[list[str]], str]],
     script_path: str | None = None,
-    site: str | None = None,
+    site_config: dict[str, Any] | None = None,
 ) -> int:  # pragma: no cover
     """Run all the commands in the mode requested
 
@@ -229,8 +236,8 @@ def handle_all_commands(
     script_path:
         Path to write the slurm submit script to
 
-    site:
-        Which site we are running at
+    site_config:
+        Config for site we are running at
 
     Returns
     -------
@@ -257,18 +264,14 @@ def handle_all_commands(
             "handle_all_commands with run_mode == RunMode.slurm requires a path to a script to write",
         )
 
-    if site is None:
-        raise ValueError(
-            "handle_all_commands with run_mode == RunMode.slurm requires a site",
-        )
-
-    return run_batches(all_commands, Path(script_path), site)
+    assert site_config is not None
+    return run_batches(all_commands, Path(script_path), site_config)
 
 
 def run_batches(
     all_commands: list[tuple[list[list[str]], str]],
     script_path: Path,
-    site: str,
+    site_config: dict[str, Any],
 ) -> int:  # pragma: no cover
     """Run all the commands in the mode requested
 
@@ -280,7 +283,7 @@ def run_batches(
     script_path:
         Path to write the slurm submit script to
 
-    site:
+    site_config:
         Which site we are running at
 
     Returns
@@ -288,15 +291,10 @@ def run_batches(
     int:
         Status returned by the commands.  0 for success, exit code otherwise
     """
-    slurm_options = SLURM_OPTIONS[site]
-    batch_size = BATCH_SIZES[site]
-
-    if site in ["test"]:
-        srun_command = "echo 0 srun"
-        sbatch_commands = ["echo", "0", "sbatch"]
-    else:
-        srun_command = "srun"
-        sbatch_commands = ["sbatch"]
+    slurm_options = site_config.get("slurm_options", [])
+    batch_size = site_config.get("slurm_batch_size", 4)
+    srun_command = site_config.get("srun_command", "srun")
+    sbatch_commands = site_config.get("sbatch_commands", ["sbatch"])
 
     job_idx = 0
     start = 0
@@ -307,6 +305,8 @@ def run_batches(
         command_batch = all_commands[start : start + batch_size]
 
         batch_submit_script = Path(str(script_path).replace(".sh", f"_{job_idx}.sh"))
+        batch_log = Path(str(script_path).replace(".sh", f"_{job_idx}.log"))
+        batch_err_log = Path(str(script_path).replace(".sh", f"_{job_idx}.err"))
         scripts_in_batch: list[str] = []
 
         for commands_, script_path_ in command_batch:
@@ -321,6 +321,12 @@ def run_batches(
                 status |= 1
 
         try:
+            slurm_options.update(
+                output=f"{batch_log}",
+                error=f"{batch_err_log}",
+                ntasks=batch_size,
+            )
+
             write_submit_script(
                 scripts_in_batch,
                 batch_submit_script,
