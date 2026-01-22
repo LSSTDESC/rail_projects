@@ -724,21 +724,17 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         kwcopy = kwargs.copy()
         flavor = kwcopy.pop("flavor")
         sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
-        script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
+        script_path = os.path.join(sink_dir, f"run_{pipeline_name}.sh")
+        top_script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
         commands = self.make_pipeline_single_input_command(
             pipeline_name, flavor, **kwcopy
         )
-        try:
-            statuscode = execution.handle_commands(
-                run_mode,
-                [commands],
-                script_path,
-                site=kwargs.get("site", None),
-            )
-        except Exception as msg:  # pragma: no cover
-            print(msg)
-            statuscode = 1
-        return statuscode
+        return execution.handle_all_commands(
+            run_mode,
+            [([commands], script_path)],
+            top_script_path,
+            site=kwcopy.get('site'),            
+        )
 
     def run_pipeline_catalog(
         self,
@@ -768,8 +764,11 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         kwcopy = kwargs.copy()
         flavor = kwcopy.pop("flavor")
 
+        sink_dir = self.get_path("ceci_output_dir", flavor=flavor, **kwcopy)
+        submit_script_path = os.path.join(sink_dir, f"submit_{pipeline_name}.sh")
+
         if run_mode in [execution.RunMode.slurm]:
-            if kwargs.get('site') is None:
+            if kwargs.get("site") is None:
                 raise ValueError(
                     "Running with --run-mode slurm requires setting the --site.  "
                     f"Possible values are {list(execution.SLURM_OPTIONS.keys())}"
@@ -779,20 +778,12 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
             pipeline_name, flavor, **kwcopy
         )
 
-        ok = 0
-        for commands, script_path in all_commands:
-            try:
-                execution.handle_commands(
-                    run_mode,
-                    commands,
-                    script_path,
-                    site=kwargs.get("site", None),
-                )
-            except Exception as msg:  # pragma: no cover
-                print(msg)
-                ok |= 1
-
-        return ok
+        return execution.handle_all_commands(
+            run_mode,
+            all_commands,
+            submit_script_path,
+            site=kwcopy.get('site'),
+        )
 
     def add_flavor(self, name: str, **kwargs: Any) -> RailFlavor:
         """Add a new flavor to the Project"""
