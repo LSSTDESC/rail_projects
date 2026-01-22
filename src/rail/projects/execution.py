@@ -45,6 +45,9 @@ BATCH_SIZES = {
     "perlmutter": 32,
 }
 
+BASH_LINE = "#!/usr/bin/bash"
+
+
 
 def handle_command(
     run_mode: RunMode,
@@ -140,7 +143,7 @@ def write_run_script(
     except FileExistsError:
         pass
 
-    contents = "#!/usr/bin/bash\n\n"
+    contents = f"{BASH_LINE}\n\n"
     for command_ in command_lines:
         com_line = " ".join(command_)
         contents += f"{com_line}\n"
@@ -176,22 +179,25 @@ def write_submit_script(
     except FileExistsError:
         pass
 
-    contents = "#!/usr/bin/bash\n\n"
+    contents = f"{BASH_LINE}\n\n"
     for opt_ in slurm_options:
         contents += f"#SBATCH {opt_}\n"
 
     for script_ in scripts_in_batch:
         contents += f"{exec_command} {script_}\n"
 
-    contents += "echo Done!"
+    contents += "echo Done!\n"
     batch_submit_script.write_text(contents)
     batch_submit_script.chmod(0o755)
 
 
-def submit_slurm_job(script_path: Path | str) -> str:
+def submit_slurm_job(
+    script_path: Path | str,
+    sbatch_command: str,
+) -> str:
     """Submit a SLURM job and return the job ID."""
     result = subprocess.run(
-        ["sbatch", str(script_path)],
+        [sbatch_command, str(script_path)],
         capture_output=True,
         text=True,
         check=False,
@@ -286,9 +292,11 @@ def run_batches(
     batch_size = BATCH_SIZES[site]
 
     if site in ["test"]:
-        exec_command = "echo 0 | sbatch"
+        srun_command = "echo 0 srun"
+        sbatch_command = "echo 0 sbatch"
     else:
-        exec_command = "sbatch"
+        srun_command = "srun"
+        sbatch_command = "sbatch"
 
     job_idx = 0
     start = 0
@@ -317,9 +325,9 @@ def run_batches(
                 scripts_in_batch,
                 batch_submit_script,
                 slurm_options,
-                exec_command,
+                srun_command,
             )
-            submit_slurm_job(batch_submit_script)
+            submit_slurm_job(batch_submit_script, sbatch_command)
         except Exception as msg:  # pragma: no cover
             print(msg)
             status |= 1
