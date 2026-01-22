@@ -123,7 +123,7 @@ def handle_commands(
 
 def write_run_script(
     command_lines: list[list[str]],
-    script_path: str | Path,
+    script_path: Path,
 ) -> None:  # pragma: no cover
     """Write a script to run multiple commands
 
@@ -140,17 +140,18 @@ def write_run_script(
     except FileExistsError:
         pass
 
-    with open(script_path, "w", encoding="utf-8") as fout:
-        fout.write("#!/usr/bin/bash\n\n")
-        for command_ in command_lines:
-            com_line = " ".join(command_)
-            fout.write(f"{com_line}\n")
-        fout.write("echo Done!\n")
+    contents = "#!/usr/bin/bash\n\n"
+    for command_ in command_lines:
+        com_line = " ".join(command_)
+        contents += f"{com_line}\n"
+    contents += "echo Done!\n"
+    script_path.write_text(contents)
+    script_path.chmod(0o755)
 
 
 def write_submit_script(
     scripts_in_batch: list[str],
-    batch_submit_script: str | Path,
+    batch_submit_script: Path,
     slurm_options: list[str],
     exec_command: str = "srun",
 ) -> None:  # pragma: no cover
@@ -170,21 +171,30 @@ def write_submit_script(
     exec_commands:
         Command used to execute commands
     """
-    with open(batch_submit_script, "w", encoding="utf-8") as fout:
-        fout.write("#!/usr/bin/bash\n\n")
-        for opt_ in slurm_options:
-            fout.write(f"#SBATCH {opt_}\n")
+    try:
+        os.makedirs(os.path.dirname(batch_submit_script))
+    except FileExistsError:
+        pass
 
-        for script_ in scripts_in_batch:
-            fout.write(f"{exec_command} {script_}\n")
+    contents = "#!/usr/bin/bash\n\n"
+    for opt_ in slurm_options:
+        contents += f"#SBATCH {opt_}\n"
 
-        fout.write("echo Done!")
+    for script_ in scripts_in_batch:
+        contents += f"{exec_command} {script_}\n"
+
+    contents += "echo Done!"
+    batch_submit_script.write_text(contents)
+    batch_submit_script.chmod(0o755)
 
 
 def submit_slurm_job(script_path: Path | str) -> str:
     """Submit a SLURM job and return the job ID."""
     result = subprocess.run(
-        ["sbatch", str(script_path)], capture_output=True, text=True, check=False,
+        ["sbatch", str(script_path)],
+        capture_output=True,
+        text=True,
+        check=False,
     )
 
     if result.returncode == 0:
@@ -246,12 +256,12 @@ def handle_all_commands(
             "handle_all_commands with run_mode == RunMode.slurm requires a site",
         )
 
-    return run_batches(all_commands, script_path, site)
+    return run_batches(all_commands, Path(script_path), site)
 
 
 def run_batches(
     all_commands: list[tuple[list[list[str]], str]],
-    script_path: str,
+    script_path: Path,
     site: str,
 ) -> int:  # pragma: no cover
     """Run all the commands in the mode requested
@@ -288,14 +298,14 @@ def run_batches(
     while start < stop:
         command_batch = all_commands[start : start + batch_size]
 
-        batch_submit_script = script_path.replace(".sh", f"_{job_idx}.sh")
+        batch_submit_script = Path(str(script_path).replace(".sh", f"_{job_idx}.sh"))
         scripts_in_batch: list[str] = []
 
         for commands_, script_path_ in command_batch:
             try:
                 write_run_script(
                     commands_,
-                    script_path_,
+                    Path(script_path_),
                 )
                 scripts_in_batch.append(script_path_)
             except Exception as msg:  # pragma: no cover

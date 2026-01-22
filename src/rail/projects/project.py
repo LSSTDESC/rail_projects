@@ -733,7 +733,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
             run_mode,
             [([commands], script_path)],
             top_script_path,
-            site=kwcopy.get('site'),            
+            site=kwcopy.get("site"),
         )
 
     def run_pipeline_catalog(
@@ -782,7 +782,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
             run_mode,
             all_commands,
             submit_script_path,
-            site=kwcopy.get('site'),
+            site=kwcopy.get("site"),
         )
 
     def add_flavor(self, name: str, **kwargs: Any) -> RailFlavor:
