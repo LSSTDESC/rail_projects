@@ -193,11 +193,11 @@ def write_submit_script(
 
 def submit_slurm_job(
     script_path: Path | str,
-    sbatch_command: str,
+    sbatch_commands: list[str],
 ) -> str:
     """Submit a SLURM job and return the job ID."""
     result = subprocess.run(
-        [sbatch_command, str(script_path)],
+        sbatch_commands + [str(script_path)],
         capture_output=True,
         text=True,
         check=False,
@@ -293,10 +293,10 @@ def run_batches(
 
     if site in ["test"]:
         srun_command = "echo 0 srun"
-        sbatch_command = "echo 0 sbatch"
+        sbatch_commands = ["echo", "0", "sbatch"]
     else:
         srun_command = "srun"
-        sbatch_command = "sbatch"
+        sbatch_commands = ["sbatch"]
 
     job_idx = 0
     start = 0
@@ -327,7 +327,7 @@ def run_batches(
                 slurm_options,
                 srun_command,
             )
-            submit_slurm_job(batch_submit_script, sbatch_command)
+            submit_slurm_job(batch_submit_script, sbatch_commands)
         except Exception as msg:  # pragma: no cover
             print(msg)
             status |= 1
