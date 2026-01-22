@@ -965,7 +965,7 @@ class RailPipelineInstance(Configurable):
             sink_dir = os.path.dirname(sink_catalog)
             script_path = os.path.join(
                 sink_dir,
-                f"submit_{pipeline_name}_{selection}_{flavor}.sh",
+                f"run_{pipeline_name}_{selection}_{flavor}.sh",
             )
             ceci_commands = project.generate_ceci_command(
                 pipeline_path=pipeline_path,
