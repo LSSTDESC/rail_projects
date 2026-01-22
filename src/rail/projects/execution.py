@@ -325,7 +325,7 @@ def run_batches(
                 f"--output={batch_log}",
                 f"--error={batch_err_log}",
                 f"--ntasks={batch_size}",
-            )
+            ]
 
             write_submit_script(
                 scripts_in_batch,
