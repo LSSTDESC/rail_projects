@@ -291,7 +291,7 @@ def run_batches(
     int:
         Status returned by the commands.  0 for success, exit code otherwise
     """
-    slurm_options = site_config.get("slurm_options", [])
+    slurm_options = site_config.get("slurm_options", []).copy()
     batch_size = site_config.get("slurm_batch_size", 4)
     srun_command = site_config.get("srun_command", "srun")
     sbatch_commands = site_config.get("sbatch_commands", ["sbatch"])
@@ -321,10 +321,10 @@ def run_batches(
                 status |= 1
 
         try:
-            slurm_options.update(
-                output=f"{batch_log}",
-                error=f"{batch_err_log}",
-                ntasks=batch_size,
+            slurm_options += [
+                f"--output={batch_log}",
+                f"--error={batch_err_log}",
+                f"--ntasks={batch_size}",
             )
 
             write_submit_script(
