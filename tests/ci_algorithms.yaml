@@ -115,3 +115,8 @@ Reducers:
       name: roman_rubin
       Reduce: RomanRubinReducer
       Module: rail.projects.reducer
+
+  - Reducer:
+      name: flagship
+      Reduce: FlagshipReducer
+      Module: rail.projects.reducer
