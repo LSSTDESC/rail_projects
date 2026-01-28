@@ -65,25 +65,51 @@ COLUMNS_COM_CAM = [
 
 COLUMNS_FLAGSHIP = [
     "galaxy_id",
-    "ra_mag_gal", # observed galaxy ra/dec with lensing displacement field applied [degrees]
+    "ra_mag_gal",  # observed galaxy ra/dec with lensing displacement field applied [degrees]
     "dec_mag_gal",
-    "lsst_u_el_model3_ext", # observed flux from the continuum + emission including internal attenuation in LSST bands
+    "lsst_u_el_model3_ext",  # observed flux from the continuum + emission including internal attenuation in LSST bands
     "lsst_g_el_model3_ext",
     "lsst_r_el_model3_ext",
     "lsst_i_el_model3_ext",
     "lsst_z_el_model3_ext",
     "lsst_y_el_model3_ext",
-    "euclid_nisp_h_el_model3_ext", # euclid bands (noiseless)
+    "euclid_nisp_h_el_model3_ext",  # euclid bands (noiseless)
     "euclid_nisp_j_el_model3_ext",
     "euclid_nisp_y_el_model3_ext",
     "euclid_vis_el_model3_ext",
-    "bulge_r50", # half light radius of the bulge [arcsec]
-    "disk_r50", # half light radius of the disk for an exponential profile (or Sersic profile with index n=1); disk_r50 = disk_scalelength * 1.678 [arcsec]
-    "bulge_fraction", # ratio of the flux in the bulge component to the total flux (often written B/T)
-    "gamma1", # shape contribution from lensing, not large but added for consistency
+    "bulge_r50",  # half light radius of the bulge [arcsec]
+    "disk_r50",  # half light radius of the disk for an exponential profile (or Sersic profile with index n=1); disk_r50 = disk_scalelength * 1.678 [arcsec]
+    "bulge_fraction",  # ratio of the flux in the bulge component to the total flux (often written B/T)
+    "gamma1",  # shape contribution from lensing, not large but added for consistency
     "gamma2",
-    "eps1_gal", # intrinsic galaxy ellipticity component
+    "eps1_gal",  # intrinsic galaxy ellipticity component
     "eps2_gal",
+]
+
+COLUMNS_CARDINAL = [
+    "galaxy_id",
+    "ra",
+    "dec",
+    "sedid",
+    "size",
+    "Ellipticity_1",
+    "Ellipticity_2",
+    "mag_u_lsst",
+    "mag_g_lsst",
+    "mag_r_lsst",
+    "mag_i_lsst",
+    "mag_z_lsst",
+    "mag_y_lsst",
+    "Roman_Y106",
+    "Roman_J129",
+    "Roman_H158",
+    "Roman_F184",
+    "Roman_K213",
+    "redshift",
+    "Euclid_Y",
+    "Euclid_J",
+    "Euclid_H",
+    "Euclid_redshift"
 ]
 
 PROJECTIONS_COM_CAM = [
@@ -98,6 +124,16 @@ PROJECTIONS_DP1 = [
         "ref_flux": pc.field("i_psfFlux"),
     }
 ]
+
+PROJECTIONS_CARDINAL = [
+    {
+        #  "Roman_K213": pc.field("k213"),
+        "Ellipticity1": pc.field("Ellipticity_1"),
+        "Ellipticity2": pc.field("Ellipticity_2"),
+        #  "galaxy_id": pc.field("id")
+    }
+]
+
 
 PROJECTIONS = [
     {
@@ -188,7 +224,7 @@ PROJECTIONS_FLAGSHIP = [
             ),
         ),
         "_orientationAngle": pc.atan2(
-            pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 
+            pc.add(pc.field("eps2_gal"), pc.field("gamma2")),
             pc.add(pc.field("eps1_gal"), pc.field("gamma1"))
         ),
     },
@@ -196,16 +232,16 @@ PROJECTIONS_FLAGSHIP = [
         "major": pc.divide(
             pc.field("totalHalfLightRadiusArcsec"),
             pc.sqrt(
-                pc.sqrt(pc.add(pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2), 
+                pc.sqrt(pc.add(pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2),
                                pc.power(pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 2)))
-                   ),
+            ),
         ),
         "minor": pc.multiply(
             pc.field("totalHalfLightRadiusArcsec"),
             pc.sqrt(
-                pc.sqrt(pc.add(pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2), 
+                pc.sqrt(pc.add(pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2),
                                pc.power(pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 2)))
-                   ),
+            ),
         ),
         "orientationAngle": pc.multiply(
             pc.scalar(0.5),
@@ -350,6 +386,93 @@ class RomanRubinReducer(RailReducer):
         pq.write_table(table, output_catalog)
 
 
+class CardinalReducer(RailReducer):
+    """Class to reduce the 'Cardinal' simulation input files for pz analysis
+       Note that cardinal native files are fits files split into triplets, a
+       preprocessing stage was performed to put them into pyarrow parquet
+    """
+
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+        cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    )
+
+    def run(
+        self,
+        input_catalog: str,
+        output_catalog: str,
+    ) -> None:
+        # Try to do this right
+        try:
+            parsed_filter = parse_item(self.config.cuts)
+            predicate = pq.filters_to_expression(parsed_filter)
+        except Exception as msg:
+            # Fallback to old way.  FIXME, deprecate this
+            if self.config.cuts:
+                if "maglim_i" in self.config.cuts:
+                    predicate = pc.field("mag_i_lsst") < self.config.cuts["maglim_i"][1]
+                elif "maglim_Y" in self.config.cuts:
+                    predicate = (
+                        pc.field("Roman_Y106") < self.config.cuts["maglim_Y"][1]
+                    )
+                else:
+                    raise ValueError("No valid cut") from msg
+            else:  # pragma: no cover
+                predicate = None
+
+        dataset = ds.dataset(
+            input_catalog,
+            format="parquet",
+        )
+
+        scan_node = acero.Declaration(
+            "scan",
+            acero.ScanNodeOptions(
+                dataset,
+                columns=COLUMNS_CARDINAL,
+                filter=predicate,
+            ),
+        )
+
+        filter_node = acero.Declaration(
+            "filter",
+            acero.FilterNodeOptions(
+                predicate,
+            ),
+        )
+
+        column_projection = {k: pc.field(k) for k in COLUMNS_CARDINAL}
+        projection = column_projection
+        project_nodes = []
+        for _projection in PROJECTIONS_CARDINAL:
+            for k, v in _projection.items():
+                projection[k] = v
+            project_node = acero.Declaration(
+                "project",
+                acero.ProjectNodeOptions(
+                    [v for k, v in projection.items()],
+                    names=[k for k, v in projection.items()],
+                ),
+            )
+            project_nodes.append(project_node)
+
+        seq = [
+            scan_node,
+            filter_node,
+            *project_nodes,
+        ]
+        plan = acero.Declaration.from_sequence(seq)
+
+        # batches = plan.to_reader(use_threads=True)
+        table = plan.to_table(use_threads=True)
+        print(f"writing dataset to {output_catalog}")
+
+        output_dir = os.path.dirname(output_catalog)
+
+        os.makedirs(output_dir, exist_ok=True)
+        pq.write_table(table, output_catalog)
+
+
 class FlagshipReducer(RailReducer):
     """Class to reduce the 'flagship' simulation input files for pz analysis"""
 
@@ -368,7 +491,7 @@ class FlagshipReducer(RailReducer):
             parsed_filter = parse_item(self.config.cuts)
             predicate = pq.filters_to_expression(parsed_filter)
         except Exception as msg:
-        # Fallback to old way.  FIXME, deprecate this
+            # Fallback to old way.  FIXME, deprecate this
             if self.config.cuts:
                 if "maglim_i" in self.config.cuts:
                     predicate = pc.subtract(pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_i_el_model3_ext"))), pc.scalar(48.6)) < self.config.cuts["maglim_i"][1]

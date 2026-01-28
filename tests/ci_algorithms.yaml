@@ -120,3 +120,8 @@ Reducers:
       name: flagship
       Reduce: FlagshipReducer
       Module: rail.projects.reducer
+
+  - Reducer:
+      name: cardinal
+      Reduce: CardinalReducer
+      Module: rail.projects.reducer
