@@ -1,0 +1,467 @@
+# This is the "library" of common defintions shared between similar projects
+
+# Templates we use to define catalogs
+#
+# A CatalogTemplate can be given several interpolants to resolve to a specific Catalog
+#
+# Some of the interpolants [{catalogs_dir}, {project}, {sim_version}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
+#
+# Possible values of {flavor} are defined the the Project "Flavors" block
+Catalogs:
+  # The input "Truth" catalog
+  - CatalogTemplate:
+      name: truth
+      path_template: "{catalogs_dir}/Chinchilla-3-triofile.{healpix}.1pct.parquet"
+      iteration_vars: ['healpix']
+  # Catalogs that have been reduced using a particular selection
+  - CatalogTemplate:
+      name: reduced
+      path_template: "{catalogs_dir}/{project}_{selection}/{healpix}/Chinchilla-3-triofile.1pct.pq"
+      iteration_vars: ['healpix']
+  # Data output from running some degraders on the original catalog
+  # Note that the {basename} can be used to select which degraded output we want
+  - CatalogTemplate:
+      name: degraded
+      path_template: "{catalogs_dir}/{project}_{selection}_{flavor}/{healpix}/{basename}"
+      iteration_vars: ['healpix']
+
+
+# This file describes the templates we use to define files and specfic instances
+# of files
+#
+# A FileTemplate can be given several interpolants to resolve to a specific FileInstance
+#
+# Some of the interpolants [{catalogs_dir}, {project}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
+Files:
+  # Testing data file
+  - FileTemplate:
+      name: test_file_100k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  # Generic training data file
+  - FileTemplate:
+      name: train_file_100k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
+  # Training file with a non-representative sample from the zCOSMOS selection
+  - FileTemplate:
+      name: train_file_zCOSMOS_100k
+      path_template: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
+  # Small trainng file
+  - FileTemplate:
+      name: train_file_10
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_10.hdf5"
+  - FileTemplate:
+      name: test_split_file
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_split_test_10.hdf5"
+  - FileTemplate:
+      name: train_split_file
+      path_template: "{catalogs_dir}/train/{project}_{selection}_baseline_split_train_10.hdf5"      
+  - FileTemplate:
+      name: deep_file_full
+      path_template: "{catalogs_dir}/som/{project}_deep_data_full.hdf5"
+  - FileTemplate:
+      name: deep_file_small
+      path_template: "{catalogs_dir}/som/{project}_deep_data_small.hdf5"
+  - FileTemplate:
+      name: wide_file_full
+      path_template: "{catalogs_dir}/som/{project}_wide_data_full.hdf5"
+  - FileTemplate:
+      name: wide_file_small
+      path_template: "{catalogs_dir}/som/{project}_wide_data_small.hdf5"
+  - FileTemplate:
+      name: spec_file_full
+      path_template: "{catalogs_dir}/som/{project}_spec_data_full.hdf5"
+  - FileTemplate:
+      name: spec_file_small
+      path_template: "{catalogs_dir}/som/{project}_spec_data_small.hdf5"
+
+
+# The next plots list all available algorithms of various types and assigns short names each of then
+#
+
+# These	describe all the algorithms that emulate spectroscopic selections
+SpecSelections:
+  #  - SpecSelection:
+  #        name: GAMA:
+  #        Select: SpecSelection_GAMA
+  #        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: BOSS
+  #        Select: SpecSelection_BOSS
+  #        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #        name: VVDSf02
+  #        Select: SpecSelection_VVDSf02
+  #        Module: rail.creation.degraders.spectroscopic_selections
+  #  - SpecSelection:
+  #      name: HSC
+  #      Select: SpecSelection_HSC
+  #      Module: rail.creation.degraders.spectroscopic_selections
+  - SpecSelection:
+      name: zCOSMOS
+      Select: SpecSelection_zCOSMOS
+      Module: rail.creation.degraders.spectroscopic_selections
+
+
+# These describe all the algorithms that estimate PZ
+PZAlgorithms:
+  - PZAlgorithm:
+      name: trainz
+      Estimate: TrainZEstimator
+      Inform: TrainZInformer
+      Module: rail.estimation.algos.train_z
+  - PZAlgorithm:
+      name: simplenn
+      Estimate: SklNeurNetEstimator
+      Inform: SklNeurNetInformer
+      Module: rail.estimation.algos.sklearn_neurnet
+  - PZAlgorithm:
+      name: fzboost
+      Estimate: FlexZBoostEstimator
+      Inform: FlexZBoostInformer
+      Module: rail.estimation.algos.flexzboost
+  - PZAlgorithm:
+      name: knn
+      Estimate: KNearNeighEstimator
+      Inform: KNearNeighInformer
+      Module: rail.estimation.algos.k_nearneigh
+  - PZAlgorithm:
+      name: gpz
+      Estimate: GPzEstimator
+      Inform: GPzInformer
+      Module: rail.estimation.algos.gpz
+
+
+# These describe all the algorithms that classify objects into tomographic bins
+Classifiers:
+  - Classifier:
+      name: equal_count
+      Classify: EqualCountClassifier
+      Module: rail.estimation.algos.equal_count
+  - Classifier:
+      name: uniform_binning
+      Classify: UniformBinningClassifier
+      Module: rail.estimation.algos.uniform_binning
+
+
+# These describe all the algorithms that summarize PZ information into NZ distributions
+Summarizers:
+  - Summarizer:
+      name: naive_stack
+      Summarize: NaiveStackMaskedSummarizer
+      Module: rail.estimation.algos.naive_stack
+  - Summarizer:
+      name: point_est_hist
+      Summarize: PointEstHistMaskedSummarizer
+      Module: rail.estimation.algos.point_est_hist
+
+
+# These describe the error models we use in the truth_to_observed pipeline
+ErrorModels:
+  - ErrorModel:
+      name: lsst
+      ErrorModel: LSSTErrorModel
+      Module: rail.creation.degraders.photometric_errors
+  - ErrorModel:
+      name: roman
+      ErrorModel: RomanErrorModel
+      Module: rail.creation.degraders.photometric_errors
+
+
+# These describe the ways we can sub-sample the data
+Subsamplers:
+  - Subsampler:
+      name: random_subsampler
+      Subsample: RandomSubsampler
+      Module: rail.projects.subsampler
+  - Subsampler:
+      name: multi_catalog_subsampler
+      Subsample: MultiCatalogSubsample
+      Module: rail.projects.subsampler
+
+
+# These describe the ways we can reduce the data
+Reducers:
+  - Reducer:
+      name: roman_rubin
+      Reduce: RomanRubinReducer
+      Module: rail.projects.reducer
+
+  - Reducer:
+      name: flagship
+      Reduce: FlagshipReducer
+      Module: rail.projects.reducer
+
+  - Reducer:
+      name: cardinal
+      Reduce: CardinalReducer
+      Module: rail.projects.reducer
+
+
+# These describe the various data analysis pipelines
+Pipelines:
+  - PipelineTemplate:
+      name: truth_to_observed
+      pipeline_class: rail.pipelines.degradation.truth_to_observed.TruthToObservedPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+      kwargs:
+        error_models: ['all']
+        selectors: ['all']
+        blending: true
+  - PipelineTemplate:
+      name: prepare
+      pipeline_class: rail.pipelines.utils.prepare_observed.PrepareObservedPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+  - PipelineTemplate:
+      name: photometric_errors
+      pipeline_class: rail.pipelines.degradation.apply_phot_errors.ApplyPhotErrorsPipeline
+      input_catalog_template: reduced
+      output_catalog_template: degraded
+      kwargs:
+        error_models: ['all']
+  - PipelineTemplate:
+      name: blending
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      pipeline_class: rail.pipelines.degradation.blending.BlendingPipeline
+      kwargs: {}
+  - PipelineTemplate:
+      name: spec_selection
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_catalog_basename: output_dereddener_errors.pq
+      pipeline_class: rail.pipelines.degradation.spectroscopic_selection_pipeline.SpectroscopicSelectionPipeline
+      kwargs:
+        selectors: ['all']
+  - PipelineTemplate:
+      name: inform
+      pipeline_class: rail.pipelines.estimation.inform_all.InformPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: train
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: estimate
+      pipeline_class: rail.pipelines.estimation.estimate_all.EstimatePipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: evaluate
+      pipeline_class: rail.pipelines.evaluation.evaluate_all.EvaluationPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: pz
+      pipeline_class: rail.pipelines.estimation.pz_all.PzPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        input_train:
+          flavor: baseline
+          tag: train
+        input_test:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+  - PipelineTemplate:
+      name: inform_sompz
+      pipeline_class: rail.pipelines.estimation.inform_sompz.InformSomPZPipeline
+      input_file_templates:
+        input_deep_data:
+          flavor: baseline
+          tag: deep
+        input_wide_data:
+          flavor: baseline
+          tag: wide
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+        catalog_module: rail.sompz.utils
+  - PipelineTemplate:
+      name: estimate_sompz
+      pipeline_class: rail.pipelines.estimation.estimate_sompz.EstimateSomPZPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
+        input_spec:
+          flavor: baseline
+          tag: spec
+      kwargs:
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        catalog_module: rail.sompz.utils
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+  - PipelineTemplate:
+      name: inform_somlike
+      pipeline_class: rail.pipelines.calib.inform_somlike.InformSomlikePipeline
+      input_file_templates:
+        input_spec_data:
+          flavor: baseline
+          tag: spec
+      kwargs:
+        algorithms: ['all']
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+        catalog_module: rail.sompz.utils
+  - PipelineTemplate:
+      name: somlike_recalib
+      pipeline_class: rail.pipelines.calib.somlike_recalib.SomlikeRecalibPipeline
+      input_file_templates:
+        input_deep:
+          flavor: baseline
+          tag: deep
+        input_wide:
+          flavor: baseline
+          tag: wide
+        input_spec:
+          flavor: baseline
+          tag: spec
+      kwargs:
+        algorithms: ['all']
+        assign_algos: null
+        wide_catalog_tag: SompzWideTestCatalogConfig
+        catalog_module: rail.sompz.utils
+        deep_catalog_tag: SompzDeepTestCatalogConfig
+  - PipelineTemplate:
+      name: inform_recalib
+      pipeline_class: rail.pipelines.calib.inform_recalib.InformRecalibPipeline
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+        recalib_algos: null
+  - PipelineTemplate:
+      name: estimate_recalib
+      pipeline_class: rail.pipelines.calib.estimate_recalib.EstimateRecalibPipeline
+      input_file_templates:
+        input:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+        recalib_algos: null
+  - PipelineTemplate:
+      name: tomography
+      pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
+      input_catalog_template: degraded
+      output_catalog_template: degraded
+      input_file_templates:
+        truth:
+          flavor: baseline
+          tag: test
+      kwargs:
+        algorithms: ['all']
+        classifiers: ['all']
+        summarizers: ['all']
+        n_tomo_bins: 5
+
+
+# These describe the selections going from "truth" to "reduced" catalog
+
+# These just all use different limiting i-band magnitudes
+Selections:
+  - Selection:
+      name: maglim_25.5
+      cuts:
+        maglim_i: [null, 25.5]
+  - Selection:
+      name: gold
+      cuts:
+        maglim_i: [null, 25.5]
+  - Selection:
+      name: blend
+      cuts:
+        maglim_i: [null, 26.0]
+  - Selection:
+      name: crap
+      cuts:
+        maglim_i: [null, 30.0]
+  - Selection:
+      name: all
+      cuts:
+        maglim_i: [null, null]
+
+# These describe the subsampling used to make test and training datasets
+Subsamples:
+  # Testing subsample with 100k events
+  - Subsample:
+      name: test_100k
+      seed: 1234
+      num_objects: 100000
+  # Training subsample with 100k events, and a different seed to select the events
+  - Subsample:
+      name: train_100k
+      seed: 4321
+      num_objects: 100000
+  # Training subsample with 100k events, and a different seed to select the events
+  - Subsample:
+      name: train_10
+      seed: 5555
+      num_objects: 100000
+  - Subsample:
+      name: multi_catalog
+      seed: 5555
+      num_objects: 1000
+      weight_map: "tests/dummy_weight_map.fits"
+      cuts:                          # data selection cuts
+        - ['ra', '>', 45]
+        - ['ra', '<', 47]
+        - ['dec', '>', 101]
+        - ['dec', '<', 102]
+      inputs:                        # All the inputs
+        rubin:                            # rubin input config
+          basename: output_lsst_wfd_1yr.pq     # file to look for
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']              # bands to consider
+          mag_band_name_template: "{band}_cModelMag"         # template for columns
+          mag_err_band_name_template: "{band}_cModelMagErr"  # template for columns
+          extra_cols: []                                     # extra columns to copy
+          cuts:
+            - ['i_cModelMag', '<', 25]
+        roman:
+          basename: output_roman_medium.pq
+          bands: ['Y106', 'J129', 'H158']
+          mag_band_name_template: "ROMAN_obs_{band}"
+          mag_err_band_name_template: "ROMAN_obs_{band}_err"
+          extra_cols: []
+        euclid:
+          basename: output_euclid_3band.pq
+          bands: ['Y', 'J', 'H']
+          mag_band_name_template: "euclid_{band}_unifMag"
+          mag_err_band_name_template: "euclid_{band}_unifMagErr"
+          extra_cols: []
+
+# These describe the ways we can split the data
+Splitters:
+  - Splitter:
+      name: random_splitter
+      Split: RandomSplitter
+      Module: rail.projects.splitter
