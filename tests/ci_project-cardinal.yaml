@@ -9,9 +9,9 @@ Project:
   PathTemplates: {}
 
   CommonPaths:
-    root: /Users/sam/TMP/arrowtmp/rail_projects/examples/DATA/
+    root: /global/cfs/cdirs/lsst/groups/PZ/Cardinal
     scratch_root: "{root}"
-    catalogs_dir: "{root}/CARDINAL"
+    catalogs_dir: "{root}/parquet_files"
     project: ci_test_cardinal
     sim_version: v1
 
@@ -30,17 +30,17 @@ Project:
   # These define the variant configurations for the various parts of the analysis
   Flavors:
     - Flavor:
-        name: train_cosmos
+        name: train_cosmo
         pipelines: ['pz', 'tomography']
         file_aliases:  # Set the training and test files
           test: test_file_100k
           train: train_file_zCOSMOS_100k
-    - Flavor:
+    - Flavor
         name: gpz_gl
         pipelines: ['pz']  # only run the pz pipeline
-        pipeline_overrides:  # Override specifics for particular pipelines
+        pipeline_overrids:  # Override specifics for particular pipelines
           default:
-            kwargs:
+            kwargs
               algorithms: ['gpz']  # Only run gpz
           inform:
             inform_gpz:
@@ -52,3 +52,4 @@ Project:
       - 430
       - 73
       - 122
+      - 99

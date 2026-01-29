@@ -9,9 +9,9 @@ Project:
   PathTemplates: {}
 
   CommonPaths:
-    root: /Users/sam/TMP/arrowtmp/rail_projects/examples/DATA
+    root: /global/cfs/cdirs/lsst/groups/PZ/Cardinal
     scratch_root: "{root}"
-    catalogs_dir: "{root}/CARDINAL"
+    catalogs_dir: "{root}/parquet_files"
     project: ci_test_cardinal
     sim_version: v1
 

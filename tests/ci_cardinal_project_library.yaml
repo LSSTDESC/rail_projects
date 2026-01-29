@@ -14,12 +14,12 @@ Catalogs:
   # The input "Truth" catalog
   - CatalogTemplate:
       name: truth
-      path_template: "{catalogs_dir}/Chinchilla-3-triofile.{healpix}.1pct.parquet"
+      path_template: "{catalogs_dir}/Chinchilla-3-triofile.{healpix}.parquet"
       iteration_vars: ['healpix']
   # Catalogs that have been reduced using a particular selection
   - CatalogTemplate:
       name: reduced
-      path_template: "{catalogs_dir}/{project}_{selection}/{healpix}/Chinchilla-3-triofile.1pct.pq"
+      path_template: "{catalogs_dir}/{project}_{selection}/{healpix}/Chinchilla-3-triofile.pq"
       iteration_vars: ['healpix']
   # Data output from running some degraders on the original catalog
   # Note that the {basename} can be used to select which degraded output we want
