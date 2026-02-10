@@ -236,7 +236,8 @@ def setup_project_area() -> int:  # pragma: no cover
 
     if not os.path.exists("tests/ci_test.tgz"):
         urllib.request.urlretrieve(
-            "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
+            "https://portal.nersc.gov/cfs/lsst/PZ/test_data/ci_test.tgz",
+            # "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
             "tests/ci_test.tgz",
         )
         if not os.path.exists("tests/ci_test.tgz"):

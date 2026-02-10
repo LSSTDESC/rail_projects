@@ -1,10 +1,10 @@
 Project:
 
-  Name: ci_test_cardinal
+  Name: test_cardinal
 
   # Include other configuration files
   Includes:
-    - examples/ci_cardinal_project_library.yaml
+    - examples/cardinal_project_library.yaml
 
   PathTemplates: {}
 
@@ -12,7 +12,7 @@ Project:
     root: /global/cfs/cdirs/lsst/groups/PZ/Cardinal
     scratch_root: "{root}"
     catalogs_dir: "{root}/parquet_files"
-    project: ci_test_cardinal
+    project: test_cardinal
     sim_version: v1
 
   # Baseline configuraiton, included in others by default

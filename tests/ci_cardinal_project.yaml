@@ -1,31 +1,27 @@
 Project:
 
-  Name: ci_test_cardinal
+  Name: ci_test
 
   # Include other configuration files
   Includes:
-    - examples/ci_cardinal_project_library.yaml
+    - tests/ci_cardinal_project_library.yaml
 
   PathTemplates: {}
 
   CommonPaths:
-    root: /global/cfs/cdirs/lsst/groups/PZ/Cardinal
+    root: tests/temp_data
     scratch_root: "{root}"
-    catalogs_dir: "{root}/parquet_files"
-    project: ci_test_cardinal
-    sim_version: v1
+    catalogs_dir: "{root}/data/ci_test_v1.1.3"
+    project: ci_test
+    sim_version: v1.1.3
 
   # Baseline configuraiton, included in others by default
   Baseline:
-    catalog_tag: cardinal
+    catalog_tag: roman_rubin
     pipelines: ['all']
     file_aliases:  # Set the training and test files
-      test: test_file_100k
-      train: train_file_100k
-      train_zCOSMOS: train_file_zCOSMOS_100k
-      wide: wide_file_full
-      deep: deep_file_full
-      spec: spec_file_full
+      test: test_100
+      train: train_100
 
   # These define the variant configurations for the various parts of the analysis
   Flavors:
@@ -33,8 +29,8 @@ Project:
         name: train_cosmos
         pipelines: ['pz', 'tomography']
         file_aliases:  # Set the training and test files
-          test: test_file_100k
-          train: train_file_zCOSMOS_100k
+          test: test_100
+          train: train_100
     - Flavor:
         name: gpz_gl
         pipelines: ['pz']  # only run the pz pipeline
@@ -49,11 +45,5 @@ Project:
   # These are variables that we iterate over when running over entire catalogs
   IterationVars:
     healpix:
-      - 430
-      - 73
       - 122
-      - 99
-      - 16
       - 58
-      - 277
-      - 346
