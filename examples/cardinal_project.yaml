@@ -49,7 +49,12 @@ Project:
   # These are variables that we iterate over when running over entire catalogs
   IterationVars:
     healpix:
+      - 427
+      - 428
+      - 429
       - 430
+      - 431
+      - 432
       - 73
       - 122
       - 99
