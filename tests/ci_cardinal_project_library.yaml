@@ -14,18 +14,18 @@ Catalogs:
   # The input "Truth" catalog
   - CatalogTemplate:
       name: truth
-      path_template: "{catalogs_dir}/{project}_{sim_version}/{healpix}/part-0.parquet"
+      path_template: "{catalogs_dir}/{healpix}/cardinal_test-0.parquet"
       iteration_vars: ['healpix']
   # Catalogs that have been reduced using a particular selection
   - CatalogTemplate:
       name: reduced
-      path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}/{healpix}/part-0.pq"
+      path_template: "{catalogs_dir}/{project}_{selection}/{healpix}/cardinal_test_file-0.pq"
       iteration_vars: ['healpix']
   # Data output from running some degraders on the original catalog
   # Note that the {basename} can be used to select which degraded output we want
   - CatalogTemplate:
       name: degraded
-      path_template: "{catalogs_dir}/{project}_{sim_version}_{selection}_{flavor}/{healpix}/{basename}"
+      path_template: "{catalogs_dir}/{project}_{selection}_{flavor}/{healpix}/{basename}"
       iteration_vars: ['healpix']
 
 
@@ -41,15 +41,18 @@ Catalogs:
 Files:
   # Testing data file
   - FileTemplate:
-      name: test_file_100k
+      name: test_100
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
   # Generic training data file
   - FileTemplate:
-      name: train_file_100k
+      name: train_100
       path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_100k.hdf5"
-  # Training file with a non-representative sample from the zCOSMOS selection
   - FileTemplate:
-      name: train_file_zCOSMOS_100k
+      name: train_file_02k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_baseline_200k.hdf5"
+# Training file with a non-representative sample from the zCOSMOS selection
+  - FileTemplate:
+      name: train_file_zCOSMOS_01k
       path_template: "{catalogs_dir}/train/{project}_{selection}_zCOSMOS_100k.hdf5"
   # Small trainng file
   - FileTemplate:
@@ -86,22 +89,6 @@ Files:
 
 # These	describe all the algorithms that emulate spectroscopic selections
 SpecSelections:
-  #  - SpecSelection:
-  #        name: GAMA:
-  #        Select: SpecSelection_GAMA
-  #        Module: rail.creation.degraders.spectroscopic_selections
-  #  - SpecSelection:
-  #        name: BOSS
-  #        Select: SpecSelection_BOSS
-  #        Module: rail.creation.degraders.spectroscopic_selections
-  #  - SpecSelection:
-  #        name: VVDSf02
-  #        Select: SpecSelection_VVDSf02
-  #        Module: rail.creation.degraders.spectroscopic_selections
-  #  - SpecSelection:
-  #      name: HSC
-  #      Select: SpecSelection_HSC
-  #      Module: rail.creation.degraders.spectroscopic_selections
   - SpecSelection:
       name: zCOSMOS
       Select: SpecSelection_zCOSMOS
@@ -149,18 +136,6 @@ Classifiers:
       Module: rail.estimation.algos.uniform_binning
 
 
-# These describe all the algorithms that summarize PZ information into NZ distributions
-Summarizers:
-  - Summarizer:
-      name: naive_stack
-      Summarize: NaiveStackMaskedSummarizer
-      Module: rail.estimation.algos.naive_stack
-  - Summarizer:
-      name: point_est_hist
-      Summarize: PointEstHistMaskedSummarizer
-      Module: rail.estimation.algos.point_est_hist
-
-
 # These describe the error models we use in the truth_to_observed pipeline
 ErrorModels:
   - ErrorModel:
@@ -187,16 +162,6 @@ Subsamplers:
 
 # These describe the ways we can reduce the data
 Reducers:
-  - Reducer:
-      name: roman_rubin
-      Reduce: RomanRubinReducer
-      Module: rail.projects.reducer
-
-  - Reducer:
-      name: flagship
-      Reduce: FlagshipReducer
-      Module: rail.projects.reducer
-
   - Reducer:
       name: cardinal
       Reduce: CardinalReducer
@@ -226,12 +191,6 @@ Pipelines:
       output_catalog_template: degraded
       kwargs:
         error_models: ['all']
-  - PipelineTemplate:
-      name: blending
-      input_catalog_template: degraded
-      output_catalog_template: degraded
-      pipeline_class: rail.pipelines.degradation.blending.BlendingPipeline
-      kwargs: {}
   - PipelineTemplate:
       name: spec_selection
       input_catalog_template: degraded
@@ -287,104 +246,6 @@ Pipelines:
           tag: test
       kwargs:
         algorithms: ['all']
-  - PipelineTemplate:
-      name: inform_sompz
-      pipeline_class: rail.pipelines.estimation.inform_sompz.InformSomPZPipeline
-      input_file_templates:
-        input_deep_data:
-          flavor: baseline
-          tag: deep
-        input_wide_data:
-          flavor: baseline
-          tag: wide
-      kwargs:
-        wide_catalog_tag: SompzWideTestCatalogConfig
-        deep_catalog_tag: SompzDeepTestCatalogConfig
-        catalog_module: rail.sompz.utils
-  - PipelineTemplate:
-      name: estimate_sompz
-      pipeline_class: rail.pipelines.estimation.estimate_sompz.EstimateSomPZPipeline
-      input_file_templates:
-        input_deep:
-          flavor: baseline
-          tag: deep
-        input_wide:
-          flavor: baseline
-          tag: wide
-        input_spec:
-          flavor: baseline
-          tag: spec
-      kwargs:
-        wide_catalog_tag: SompzWideTestCatalogConfig
-        catalog_module: rail.sompz.utils
-        deep_catalog_tag: SompzDeepTestCatalogConfig
-  - PipelineTemplate:
-      name: inform_somlike
-      pipeline_class: rail.pipelines.calib.inform_somlike.InformSomlikePipeline
-      input_file_templates:
-        input_spec_data:
-          flavor: baseline
-          tag: spec
-      kwargs:
-        algorithms: ['all']
-        wide_catalog_tag: SompzWideTestCatalogConfig
-        deep_catalog_tag: SompzDeepTestCatalogConfig
-        catalog_module: rail.sompz.utils
-  - PipelineTemplate:
-      name: somlike_recalib
-      pipeline_class: rail.pipelines.calib.somlike_recalib.SomlikeRecalibPipeline
-      input_file_templates:
-        input_deep:
-          flavor: baseline
-          tag: deep
-        input_wide:
-          flavor: baseline
-          tag: wide
-        input_spec:
-          flavor: baseline
-          tag: spec
-      kwargs:
-        algorithms: ['all']
-        assign_algos: null
-        wide_catalog_tag: SompzWideTestCatalogConfig
-        catalog_module: rail.sompz.utils
-        deep_catalog_tag: SompzDeepTestCatalogConfig
-  - PipelineTemplate:
-      name: inform_recalib
-      pipeline_class: rail.pipelines.calib.inform_recalib.InformRecalibPipeline
-      input_file_templates:
-        truth:
-          flavor: baseline
-          tag: test
-      kwargs:
-        algorithms: ['all']
-        recalib_algos: null
-  - PipelineTemplate:
-      name: estimate_recalib
-      pipeline_class: rail.pipelines.calib.estimate_recalib.EstimateRecalibPipeline
-      input_file_templates:
-        input:
-          flavor: baseline
-          tag: test
-      kwargs:
-        algorithms: ['all']
-        recalib_algos: null
-  - PipelineTemplate:
-      name: tomography
-      pipeline_class: rail.pipelines.estimation.tomography.TomographyPipeline
-      input_catalog_template: degraded
-      output_catalog_template: degraded
-      input_file_templates:
-        truth:
-          flavor: baseline
-          tag: test
-      kwargs:
-        algorithms: ['all']
-        classifiers: ['all']
-        summarizers: ['all']
-        n_tomo_bins: 5
-
-
 # These describe the selections going from "truth" to "reduced" catalog
 
 # These just all use different limiting i-band magnitudes
@@ -412,52 +273,21 @@ Selections:
 
 # These describe the subsampling used to make test and training datasets
 Subsamples:
-  # Testing subsample with 100k events
+  # Testing subsample with 100 events
   - Subsample:
-      name: test_100k
+      name: test_100
       seed: 1234
-      num_objects: 100000
+      num_objects: 100
   # Training subsample with 100k events, and a different seed to select the events
   - Subsample:
-      name: train_100k
+      name: train_100
       seed: 4321
-      num_objects: 100000
+      num_objects: 100
   # Training subsample with 100k events, and a different seed to select the events
   - Subsample:
-      name: train_10
+      name: train_101
       seed: 5555
-      num_objects: 100000
-  - Subsample:
-      name: multi_catalog
-      seed: 5555
-      num_objects: 1000
-      weight_map: "tests/dummy_weight_map.fits"
-      cuts:                          # data selection cuts
-        - ['ra', '>', 45]
-        - ['ra', '<', 47]
-        - ['dec', '>', 101]
-        - ['dec', '<', 102]
-      inputs:                        # All the inputs
-        rubin:                            # rubin input config
-          basename: output_lsst_wfd_1yr.pq     # file to look for
-          bands: ['u', 'g', 'r', 'i', 'z', 'y']              # bands to consider
-          mag_band_name_template: "{band}_cModelMag"         # template for columns
-          mag_err_band_name_template: "{band}_cModelMagErr"  # template for columns
-          extra_cols: []                                     # extra columns to copy
-          cuts:
-            - ['i_cModelMag', '<', 25]
-        roman:
-          basename: output_roman_medium.pq
-          bands: ['Y106', 'J129', 'H158']
-          mag_band_name_template: "ROMAN_obs_{band}"
-          mag_err_band_name_template: "ROMAN_obs_{band}_err"
-          extra_cols: []
-        euclid:
-          basename: output_euclid_3band.pq
-          bands: ['Y', 'J', 'H']
-          mag_band_name_template: "euclid_{band}_unifMag"
-          mag_err_band_name_template: "euclid_{band}_unifMagErr"
-          extra_cols: []
+      num_objects: 101
 
 # These describe the ways we can split the data
 Splitters:
