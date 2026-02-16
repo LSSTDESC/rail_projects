@@ -65,6 +65,7 @@ COLUMNS_COM_CAM = [
 
 COLUMNS_FLAGSHIP = [
     "galaxy_id",
+    "observed_redshift_gal", # observed redshift incl. velocity
     "ra_mag_gal",  # observed galaxy ra/dec with lensing displacement field applied [degrees]
     "dec_mag_gal",
     "lsst_u_el_model3_ext",  # observed flux from the continuum + emission including internal attenuation in LSST bands
