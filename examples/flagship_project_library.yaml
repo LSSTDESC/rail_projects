@@ -14,19 +14,19 @@ Catalogs:
   # The input "Truth" catalog
   - CatalogTemplate:
       name: truth
-      path_template: "{catalogs_dir}/euclid_fs2_mock_dr_v1_1_phz.{healpix}-256.pq"
-      iteration_vars: ['healpix']
+      path_template: "{catalogs_dir}/euclid_fs2_mock_dr_v1_1_phz.pix{tract}.pq"
+      iteration_vars: ['tract']
   # Catalogs that have been reduced using a particular selection
   - CatalogTemplate:
       name: reduced
-      path_template: "{catalogs_dir}/{project}_{selection}/{healpix}/euclid_fs2_mock_dr_v1_1_phz.pq"
-      iteration_vars: ['healpix']
+      path_template: "{catalogs_dir}/{project}_{selection}/{tract}/euclid_fs2_mock_dr_v1_1_phz.pq"
+      iteration_vars: ['tract']
   # Data output from running some degraders on the original catalog
   # Note that the {basename} can be used to select which degraded output we want
   - CatalogTemplate:
       name: degraded
-      path_template: "{catalogs_dir}/{project}_{selection}_{flavor}/{healpix}/{basename}"
-      iteration_vars: ['healpix']
+      path_template: "{catalogs_dir}/{project}_{selection}_{flavor}/{tract}/{basename}"
+      iteration_vars: ['tract']
 
 
 # This file describes the templates we use to define files and specfic instances

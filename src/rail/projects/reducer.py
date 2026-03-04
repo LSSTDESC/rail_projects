@@ -64,6 +64,7 @@ COLUMNS_COM_CAM = [
 ]
 
 COLUMNS_FLAGSHIP = [
+    "halo_id",
     "galaxy_id",
     "observed_redshift_gal", # observed redshift incl. velocity
     "ra_mag_gal",  # observed galaxy ra/dec with lensing displacement field applied [degrees]
