@@ -136,6 +136,24 @@ PROJECTIONS_CARDINAL = [
         #  "Roman_K213": pc.field("k213"),
         "Ellipticity1": pc.field("Ellipticity_1"),
         "Ellipticity2": pc.field("Ellipticity_2"),
+        "mag_y_euclid_nisp": pc.field("Euclid_Y"),
+        "mag_j_euclid_nisp": pc.field("Euclid_J"),
+        "mag_h_euclid_nisp": pc.field("Euclid_H"),
+        "Roman_obs_Y106": pc.field("Roman_Y106"),
+        "Roman_obs_J129": pc.field("Roman_J129"),
+        "Roman_obs_H158": pc.field("Roman_H158"),
+        "Roman_obs_F184": pc.field("Roman_F184"),
+        "Roman_obs_K213": pc.field("Roman_K213"),
+        "totalHalfLightRadiusArcsec": pc.field("size"),
+        "TotalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
+                                           pc.power(pc.field("Ellipticity_2"), 2))),
+        },
+    {
+        "major": pc.divide(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
+                                           pc.power(pc.field("Ellipticity_2"), 2))))),
+
+        "minor": pc.multiply(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
+                                           pc.power(pc.field("Ellipticity_2"), 2))))),
         #  "galaxy_id": pc.field("id")
     }
 ]
