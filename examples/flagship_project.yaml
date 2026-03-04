@@ -1,18 +1,18 @@
 Project:
 
-  Name: ci_test_flagship
+  Name: test_flagship
 
   # Include other configuration files
   Includes:
-    - tests/ci_project_library.yaml
+    - examples/flagship_project_library.yaml
 
   PathTemplates: {}
 
   CommonPaths:
-    root: /pscratch/sd/q/qhang/
+    root: /global/cfs/cdirs/lsst/groups/PZ/Flagship
     scratch_root: "{root}"
-    catalogs_dir: "{root}/Flagship"
-    project: ci_test_flagship
+    catalogs_dir: "{root}"
+    project: test_flagship
     sim_version: v1
 
   # Baseline configuraiton, included in others by default
@@ -48,5 +48,15 @@ Project:
 
   # These are variables that we iterate over when running over entire catalogs
   IterationVars:
-    healpix:
-      - 1
+    tract:
+      - 5
+      - 10
+      - 20
+      - 21
+      - 22
+      - 25
+      - 28
+      - 29
+      - 30
+      - 32
+      - 47
