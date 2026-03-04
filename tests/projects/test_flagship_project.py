@@ -102,7 +102,7 @@ def test_project_class(setup_project_area: int) -> None:
     project.build_pipelines(flavor="baseline")
 
     catalog_files_truth = project.get_catalog_files("truth")
-    check_path = "tests/temp_data/data/ci_test_v1.1.3/5/flagship_test-0.parquet"
+    check_path = "tests/temp_data/data/ci_test_v1.1.3/5/flagship_test-0.pq"
     assert check_path in catalog_files_truth
 
     catalog_files_reduced = project.get_catalog_files("reduced", selection="gold")
