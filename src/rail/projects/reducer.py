@@ -86,6 +86,9 @@ COLUMNS_FLAGSHIP = [
     "gamma2",
     "eps1_gal",  # intrinsic galaxy ellipticity component
     "eps2_gal",
+    "log_sfr",
+    "log_stellar_mass",
+    "lm_halo",
 ]
 
 COLUMNS_CARDINAL = [
