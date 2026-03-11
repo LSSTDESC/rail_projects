@@ -64,7 +64,9 @@ COLUMNS_COM_CAM = [
 ]
 
 COLUMNS_FLAGSHIP = [
+    "halo_id",
     "galaxy_id",
+    "observed_redshift_gal", # observed redshift incl. velocity
     "ra_mag_gal",  # observed galaxy ra/dec with lensing displacement field applied [degrees]
     "dec_mag_gal",
     "lsst_u_el_model3_ext",  # observed flux from the continuum + emission including internal attenuation in LSST bands
@@ -206,7 +208,6 @@ PROJECTIONS = [
 
 PROJECTIONS_FLAGSHIP = [
     {
-        "redshift": pc.field("observed_redshift_gal"),
         "mag_u_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u_el_model3_ext"))), pc.scalar(48.6)
         ),
