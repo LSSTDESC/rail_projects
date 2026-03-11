@@ -64,9 +64,7 @@ COLUMNS_COM_CAM = [
 ]
 
 COLUMNS_FLAGSHIP = [
-    "halo_id",
     "galaxy_id",
-    "observed_redshift_gal", # observed redshift incl. velocity
     "ra_mag_gal",  # observed galaxy ra/dec with lensing displacement field applied [degrees]
     "dec_mag_gal",
     "lsst_u_el_model3_ext",  # observed flux from the continuum + emission including internal attenuation in LSST bands
@@ -134,6 +132,8 @@ PROJECTIONS_DP1 = [
 PROJECTIONS_CARDINAL = [
     {
         #  "Roman_K213": pc.field("k213"),
+        "shift_ra": pc.add(pc.field("ra"), 90.),
+        "shift_dec": pc.multiply(pc.field("dec"), -1.),
         "Ellipticity1": pc.field("Ellipticity_1"),
         "Ellipticity2": pc.field("Ellipticity_2"),
         "mag_y_euclid_nisp": pc.field("Euclid_Y"),
@@ -147,14 +147,13 @@ PROJECTIONS_CARDINAL = [
         "totalHalfLightRadiusArcsec": pc.field("size"),
         "TotalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
                                            pc.power(pc.field("Ellipticity_2"), 2))),
-        },
+    },
     {
         "major": pc.divide(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
-                                           pc.power(pc.field("Ellipticity_2"), 2))))),
+                                                                    pc.power(pc.field("Ellipticity_2"), 2))))),
 
         "minor": pc.multiply(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
-                                           pc.power(pc.field("Ellipticity_2"), 2))))),
-        #  "galaxy_id": pc.field("id")
+                                                                      pc.power(pc.field("Ellipticity_2"), 2))))),
     }
 ]
 
@@ -207,6 +206,7 @@ PROJECTIONS = [
 
 PROJECTIONS_FLAGSHIP = [
     {
+        "redshift": pc.field("observed_redshift_gal"),
         "mag_u_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u_el_model3_ext"))), pc.scalar(48.6)
         ),
