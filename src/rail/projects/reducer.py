@@ -41,6 +41,9 @@ COLUMNS = [
     "diskHalfLightRadiusArcsec",
     "spheroidHalfLightRadiusArcsec",
     "bulge_frac",
+    "sod_halo_mass",
+    "logsm_obs",
+    "sfr"
     # "healpix",
 ]
 
