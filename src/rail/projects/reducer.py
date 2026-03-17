@@ -89,6 +89,9 @@ COLUMNS_FLAGSHIP = [
     "gamma2",
     "eps1_gal",  # intrinsic galaxy ellipticity component
     "eps2_gal",
+    "log_sfr",
+    "log_stellar_mass",
+    "lm_halo",
 ]
 
 COLUMNS_CARDINAL = [
@@ -211,6 +214,13 @@ PROJECTIONS = [
 
 PROJECTIONS_FLAGSHIP = [
     {
+        "ra": pc.if_else(
+                pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
+                pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
+                pc.add(pc.field("ra_mag_gal"), pc.scalar(180))
+                ),
+        "dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
+        "redshift": pc.field("observed_redshift_gal"),
         "mag_u_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u_el_model3_ext"))), pc.scalar(48.6)
         ),
