@@ -8,6 +8,7 @@ from ceci.config import StageParameter
 from rail.core.configurable import Configurable
 from rail.core.stage import RailPipeline
 from rail.utils import catalog_utils
+from rail.utils.catalog_tag import CatalogTag
 
 if TYPE_CHECKING:
     from .project import RailProject
@@ -820,10 +821,12 @@ class RailPipelineInstance(Configurable):
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
             try:
-                catalog_utils.apply_defaults(catalog_tag)
-            except KeyError:  # pragma: no cover
+                CatalogTag.apply(catalog_tag)
+            except KeyError as msg:  # pragma: no cover
                 tokens = catalog_tag.split(".")
                 module_name = ".".join(tokens[:-1])
+                if not module_name:
+                    raise ValueError(f"Could not find {catalog_tag}")
                 class_name = tokens[-1]
                 __import__(module_name)
                 catalog_utils.CatalogConfigBase.apply_class(class_name)

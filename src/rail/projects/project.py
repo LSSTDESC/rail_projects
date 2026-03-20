@@ -8,6 +8,7 @@ import yaml
 from ceci.config import StageParameter
 from rail.core.configurable import Configurable
 from rail.core.model import Model
+from rail.utils import catalog_utils
 
 from . import execution, library, name_utils
 from .algorithm_factory import RailAlgorithmFactory
@@ -85,6 +86,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
     config_options: dict[str, StageParameter] = dict(
         Name=StageParameter(str, None, fmt="%s", required=True, msg="Project name"),
         SiteConfig=StageParameter(dict, {}, fmt="%s", msg="Site configuration options"),
+        CatalogLib=StageParameter(list, [], fmt="%s", msg="Libraries of catalog tags"),
         Includes=StageParameter(list, [], fmt="%s", msg="Files to include"),
         Baseline=StageParameter(
             dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
@@ -614,6 +616,13 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         int:
             0 if ok, error code otherwise
         """
+        catalog_utils.clear()
+        if self.config.CatalogLib:
+            for catalog_lib in self.config.CatalogLib:
+                catalog_utils.load_yaml(catalog_lib)
+        else:            
+            catalog_utils.load_yaml(catalog_utils.DEFAULT_CATAlOG_TAG_FILE)
+        
         flavor_dict = self.get_flavor(flavor)
         pipelines_to_build = flavor_dict["pipelines"]
         all_flavor_overrides = flavor_dict.get("pipeline_overrides", {}).copy()

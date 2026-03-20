@@ -2,6 +2,10 @@ Project:
 
   Name: ci_test
 
+  # Catalog Library
+  CatalogLib: 
+    - tests/default_catalogs.yaml
+
   # Include other configuration files
   Includes:
     - tests/ci_project_library.yaml
