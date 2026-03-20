@@ -543,15 +543,33 @@ def tomography_input_callback(
 def truth_to_observed_convert_commands(
     sink_dir: str, **_kwargs: Any
 ) -> list[list[str]]:
-    convert_command = [
-        "tables-io",
-        "convert",
-        "--input",
-        f"{sink_dir}/output_dereddener_errors.pq",
-        "--output",
-        f"{sink_dir}/output.hdf5",
-    ]
-    convert_commands = [convert_command]
+    phot_errors = kwargs.get("phot_errors")
+    assert isinstance(phot_errors, list)
+    spec_selections = kwargs.get("spec_selections")
+    assert isinstance(spec_selections, list)
+    convert_commands = []
+
+    for phot_error_ in phot_errors:
+        convert_command = [
+            "tables-io",
+            "convert",
+            "--input",
+            f"{sink_dir}/output_error_model_{phot_error_}.pq",
+            "--output",
+            f"{sink_dir}/output_error_model_{phot_error_}.hdf5",
+        ]
+        convert_commands += [convert_command]
+        
+        for spec_selection_ in spec_selections:        
+            convert_command = [
+                "tables-io",
+                "convert",
+                "--input",
+                f"{sink_dir}/output_select_{phot_error_}_{spec_selection_}.pq",
+                "--output",
+                f"{sink_dir}/output_select_{phot_error_}_{spec_selection_}.hdf5",
+            ]
+            convert_commands += [convert_command]
     return convert_commands
 
 
@@ -570,7 +588,7 @@ def prepare_convert_commands(sink_dir: str, **_kwargs: Any) -> list[list[str]]:
 
 def photometric_errors_convert_commands(
     sink_dir: str, **_kwargs: Any
-) -> list[list[str]]:
+) -> list[list[str]]:    
     convert_command = [
         "tables-io",
         "convert",
