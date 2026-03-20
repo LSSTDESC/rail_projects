@@ -982,9 +982,9 @@ class RailPipelineInstance(Configurable):
         for key, val in pipeline_config_kwargs.items():
             if 'all' in val:
                 if key == 'error_models':
-                    pipeline_config_kwargs[key] == list[project.get_error_models.keys()]
+                    pipeline_config_kwargs[key] == list[project.get_error_models().keys()]
                 if key == 'selectors':
-                    pipeline_config_kwargs[key] == list[project.get_spec_selections.keys()]
+                    pipeline_config_kwargs[key] == list[project.get_spec_selections().keys()]
         
         selection = kwargs["selection"]
 
