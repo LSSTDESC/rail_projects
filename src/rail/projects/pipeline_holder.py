@@ -541,7 +541,7 @@ def tomography_input_callback(
 
 
 def truth_to_observed_convert_commands(
-    sink_dir: str, **_kwargs: Any
+    sink_dir: str, **kwargs: Any
 ) -> list[list[str]]:
     phot_errors = kwargs.get("phot_errors")
     assert isinstance(phot_errors, list)
