@@ -978,6 +978,14 @@ class RailPipelineInstance(Configurable):
 
         all_commands: list[tuple[list[list[str]], str]] = []
 
+        pipeline_config_kwargs = pipeline_info.config.kwargs.copy()
+        for key, val in pipeline_config_kwargs.items():
+            if 'all' in val:
+                if key == 'error_models':
+                    pipeline_config_kwargs[key] == list[project.get_error_models.keys()]
+                if key == 'selectors':
+                    pipeline_config_kwargs[key] == list[project.get_spec_selections.keys()]
+        
         selection = kwargs["selection"]
 
         for source_catalog, sink_catalog in zip(
@@ -998,7 +1006,7 @@ class RailPipelineInstance(Configurable):
             convert_commands = catalog_convert_commands_function(
                 sink_dir,
                 **kwargs,
-                **pipeline_info.config.kwargs,
+                **pipeline_config_kwargs,
             )
             iter_commands = [
                 ["mkdir", "-p", f"{sink_dir}"],
