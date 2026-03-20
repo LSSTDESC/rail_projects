@@ -980,6 +980,8 @@ class RailPipelineInstance(Configurable):
 
         pipeline_config_kwargs = pipeline_info.config.kwargs.copy()
         for key, val in pipeline_config_kwargs.items():
+            if not isinstance(val, list):
+                continue
             if 'all' in val:
                 if key == 'error_models':
                     pipeline_config_kwargs[key] == list[project.get_error_models().keys()]
