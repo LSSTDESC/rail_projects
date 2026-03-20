@@ -543,9 +543,9 @@ def tomography_input_callback(
 def truth_to_observed_convert_commands(
     sink_dir: str, **kwargs: Any
 ) -> list[list[str]]:
-    phot_errors = kwargs.get("phot_errors")
+    phot_errors = kwargs.get("error_models")
     assert isinstance(phot_errors, list)
-    spec_selections = kwargs.get("spec_selections")
+    spec_selections = kwargs.get("selectors")
     assert isinstance(spec_selections, list)
     convert_commands = []
 
@@ -998,6 +998,7 @@ class RailPipelineInstance(Configurable):
             convert_commands = catalog_convert_commands_function(
                 sink_dir,
                 **kwargs,
+                **pipeline_info.config.kwargs,
             )
             iter_commands = [
                 ["mkdir", "-p", f"{sink_dir}"],
