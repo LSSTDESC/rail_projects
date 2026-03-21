@@ -543,10 +543,12 @@ def tomography_input_callback(
 def truth_to_observed_convert_commands(
     sink_dir: str, **kwargs: Any
 ) -> list[list[str]]:
-    phot_errors = kwargs.get("error_models")
-    assert isinstance(phot_errors, list)
-    spec_selections = kwargs.get("selectors")
-    assert isinstance(spec_selections, list)
+    phot_errors = kwargs.get("error_models", [])
+    if phot_errors is not None:
+        assert isinstance(phot_errors, dict)
+    spec_selections = kwargs.get("selectors", [])
+    if spec_selections is not None:
+        assert isinstance(spec_selections, dict)
     convert_commands = []
 
     for phot_error_ in phot_errors:
@@ -560,7 +562,7 @@ def truth_to_observed_convert_commands(
         ]
         convert_commands += [convert_command]
         
-        for spec_selection_ in spec_selections:        
+        for spec_selection_ in spec_selections:
             convert_command = [
                 "tables-io",
                 "convert",
@@ -785,6 +787,30 @@ class RailPipelineInstance(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.pipeline_template} {self.config.path}"
 
+    def _parse_pipeline_kwargs(self, project: RailProject, **kwargs: Any) -> dict[str, Any]:
+        """Parse the set of kwargs to expand out 'all'"""
+        overrides: dict[str, Any] = {}
+        for key, val in kwargs.items():
+            if key == "selectors":
+                temp_dict = project.get_spec_selections()
+            elif key == "algorithms":
+                temp_dict = project.get_pzalgorithms()
+            elif key == "classifiers":
+                temp_dict = project.get_classifiers()
+            elif key == "summarizers":
+                temp_dict = project.get_summarizers()
+            elif key == "error_models":
+                temp_dict = project.get_error_models()
+            else:
+                continue
+            if "all" in val:
+                overrides[key] = temp_dict
+            else:
+                overrides[key] = {
+                    algo_name_: temp_dict[algo_name_] for algo_name_ in val
+                }
+        return overrides
+            
     def build(
         self,
         project: RailProject,
@@ -816,25 +842,8 @@ class RailPipelineInstance(Configurable):
         else:
             stages_config = None
 
-        for key, val in pipeline_kwargs.items():
-            if key == "selectors":
-                temp_dict = project.get_spec_selections()
-            elif key == "algorithms":
-                temp_dict = project.get_pzalgorithms()
-            elif key == "classifiers":
-                temp_dict = project.get_classifiers()
-            elif key == "summarizers":
-                temp_dict = project.get_summarizers()
-            elif key == "error_models":
-                temp_dict = project.get_error_models()
-            else:
-                continue
-            if "all" in val:
-                pipeline_kwargs[key] = temp_dict
-            else:
-                pipeline_kwargs[key] = {
-                    algo_name_: temp_dict[algo_name_] for algo_name_ in val
-                }
+        parsed_overrides = self._parse_pipeline_kwargs(project, **pipeline_kwargs)
+        pipeline_kwargs.update(**parsed_overrides)            
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
@@ -979,15 +988,9 @@ class RailPipelineInstance(Configurable):
         all_commands: list[tuple[list[list[str]], str]] = []
 
         pipeline_config_kwargs = pipeline_info.config.kwargs.copy()
-        for key, val in pipeline_config_kwargs.items():
-            if not isinstance(val, list):
-                continue
-            if 'all' in val:
-                if key == 'error_models':
-                    pipeline_config_kwargs[key] = list(project.get_error_models().keys())
-                if key == 'selectors':
-                    pipeline_config_kwargs[key] = list(project.get_spec_selections().keys())
-        
+        parsed_overrides = self._parse_pipeline_kwargs(project, **pipeline_config_kwargs)
+        pipeline_config_kwargs.update(**parsed_overrides)            
+                
         selection = kwargs["selection"]
 
         for source_catalog, sink_catalog in zip(
