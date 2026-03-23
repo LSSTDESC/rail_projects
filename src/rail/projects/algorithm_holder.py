@@ -154,6 +154,13 @@ class RailSpecSelectionAlgorithmHolder(RailAlgorithmHolder):
     config_options = RailAlgorithmHolder.config_options.copy()
     config_options.update(
         Select=StageParameter(str, None, fmt="%s", required=True, msg="Selector Class"),
+        Overrides=StageParameter(
+            dict,
+            {},
+            fmt="%s",
+            required=False,
+            msg="Parameter overrides",
+        )
     )
     yaml_tag = "SpecSelection"
 
