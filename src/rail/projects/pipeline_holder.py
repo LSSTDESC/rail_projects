@@ -541,17 +541,37 @@ def tomography_input_callback(
 
 
 def truth_to_observed_convert_commands(
-    sink_dir: str, **_kwargs: Any
+    sink_dir: str, **kwargs: Any
 ) -> list[list[str]]:
-    convert_command = [
-        "tables-io",
-        "convert",
-        "--input",
-        f"{sink_dir}/output_dereddener_errors.pq",
-        "--output",
-        f"{sink_dir}/output.hdf5",
-    ]
-    convert_commands = [convert_command]
+    phot_errors = kwargs.get("error_models", [])
+    if phot_errors is not None:
+        assert isinstance(phot_errors, dict)
+    spec_selections = kwargs.get("selectors", [])
+    if spec_selections is not None:
+        assert isinstance(spec_selections, dict)
+    convert_commands = []
+
+    for phot_error_ in phot_errors:
+        convert_command = [
+            "tables-io",
+            "convert",
+            "--input",
+            f"{sink_dir}/output_error_model_{phot_error_}.pq",
+            "--output",
+            f"{sink_dir}/output_error_model_{phot_error_}.hdf5",
+        ]
+        convert_commands += [convert_command]
+        
+        for spec_selection_ in spec_selections:
+            convert_command = [
+                "tables-io",
+                "convert",
+                "--input",
+                f"{sink_dir}/output_select_{phot_error_}_{spec_selection_}.pq",
+                "--output",
+                f"{sink_dir}/output_select_{phot_error_}_{spec_selection_}.hdf5",
+            ]
+            convert_commands += [convert_command]
     return convert_commands
 
 
@@ -570,7 +590,7 @@ def prepare_convert_commands(sink_dir: str, **_kwargs: Any) -> list[list[str]]:
 
 def photometric_errors_convert_commands(
     sink_dir: str, **_kwargs: Any
-) -> list[list[str]]:
+) -> list[list[str]]:    
     convert_command = [
         "tables-io",
         "convert",
@@ -767,6 +787,30 @@ class RailPipelineInstance(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.pipeline_template} {self.config.path}"
 
+    def _parse_pipeline_kwargs(self, project: RailProject, **kwargs: Any) -> dict[str, Any]:
+        """Parse the set of kwargs to expand out 'all'"""
+        overrides: dict[str, Any] = {}
+        for key, val in kwargs.items():
+            if key == "selectors":
+                temp_dict = project.get_spec_selections()
+            elif key == "algorithms":
+                temp_dict = project.get_pzalgorithms()
+            elif key == "classifiers":
+                temp_dict = project.get_classifiers()
+            elif key == "summarizers":
+                temp_dict = project.get_summarizers()
+            elif key == "error_models":
+                temp_dict = project.get_error_models()
+            else:
+                continue
+            if "all" in val:
+                overrides[key] = temp_dict
+            else:
+                overrides[key] = {
+                    algo_name_: temp_dict[algo_name_] for algo_name_ in val
+                }
+        return overrides
+            
     def build(
         self,
         project: RailProject,
@@ -798,25 +842,8 @@ class RailPipelineInstance(Configurable):
         else:
             stages_config = None
 
-        for key, val in pipeline_kwargs.items():
-            if key == "selectors":
-                temp_dict = project.get_spec_selections()
-            elif key == "algorithms":
-                temp_dict = project.get_pzalgorithms()
-            elif key == "classifiers":
-                temp_dict = project.get_classifiers()
-            elif key == "summarizers":
-                temp_dict = project.get_summarizers()
-            elif key == "error_models":
-                temp_dict = project.get_error_models()
-            else:
-                continue
-            if "all" in val:
-                pipeline_kwargs[key] = temp_dict
-            else:
-                pipeline_kwargs[key] = {
-                    algo_name_: temp_dict[algo_name_] for algo_name_ in val
-                }
+        parsed_overrides = self._parse_pipeline_kwargs(project, **pipeline_kwargs)
+        pipeline_kwargs.update(**parsed_overrides)            
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
@@ -960,6 +987,10 @@ class RailPipelineInstance(Configurable):
 
         all_commands: list[tuple[list[list[str]], str]] = []
 
+        pipeline_config_kwargs = pipeline_info.config.kwargs.copy()
+        parsed_overrides = self._parse_pipeline_kwargs(project, **pipeline_config_kwargs)
+        pipeline_config_kwargs.update(**parsed_overrides)            
+                
         selection = kwargs["selection"]
 
         for source_catalog, sink_catalog in zip(
@@ -980,6 +1011,7 @@ class RailPipelineInstance(Configurable):
             convert_commands = catalog_convert_commands_function(
                 sink_dir,
                 **kwargs,
+                **pipeline_config_kwargs,
             )
             iter_commands = [
                 ["mkdir", "-p", f"{sink_dir}"],
