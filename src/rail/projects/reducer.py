@@ -140,6 +140,7 @@ PROJECTIONS_DP1 = [
 PROJECTIONS_CARDINAL = [
     {
         #  "Roman_K213": pc.field("k213"),
+        "object_id": pc.field("galaxy_id"),
         "shift_ra": pc.add(pc.field("ra"), 90.),
         "shift_dec": pc.multiply(pc.field("dec"), -1.),
         "totalEllipticity1": pc.field("Ellipticity_1"),
@@ -185,6 +186,7 @@ PROJECTIONS_CARDINAL = [
 
 PROJECTIONS = [
     {
+        "object_id": pc.field("galaxy_id"),
         "mag_u_lsst": pc.field("LSST_obs_u"),
         "mag_g_lsst": pc.field("LSST_obs_g"),
         "mag_r_lsst": pc.field("LSST_obs_r"),
@@ -239,6 +241,10 @@ PROJECTIONS = [
 
 PROJECTIONS_FLAGSHIP = [
     {
+        "object_id": pc.add(
+            pc.multiply(pc.scalar(16384), pc.field("halo_id")),
+            pc.field("galaxy_id")
+        ),  # this will push the halo_id 14 bits over and then tack on the galaxy id.  
         "ra": pc.if_else(
                 pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
                 pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
@@ -344,6 +350,7 @@ DROP_COLS: list[str] = [
     "spheroidHalfLightRadiusArcsec",
     "diskHalfLightRadiusArcsec",
     "_orientationAngle",
+    "galaxy_id",
 ]
 
 DROP_COLS_FLAGSHIP: list[str] = [
@@ -370,6 +377,8 @@ DROP_COLS_FLAGSHIP: list[str] = [
     "gamma1",
     "gamma2",
     "_orientationAngle",
+    "galaxy_id",
+    "halo_id",    
 ]
 
 DROP_COLS_CARDINAL: list[str] = [
@@ -393,6 +402,7 @@ DROP_COLS_CARDINAL: list[str] = [
     "Roman_K213",
     "Roman_Y106",
     "_orientationAngle",
+    "galaxy_id",    
 ]
 
 
