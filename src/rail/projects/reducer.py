@@ -412,13 +412,11 @@ DROP_COLS_FLAGSHIP: list[str] = [
     "euclid_nisp_j_el_model3_ext",
     "euclid_nisp_y_el_model3_ext",
     "euclid_vis_el_model3_ext",
-    "_orientationAngle",
     "bulge_fraction",
     "dec_mag_gal",
     "ra_mag_gal",
     "bulge_r50",
     "disk_r50",
-    "halo_id",
     "observed_redshift_gal",
     "eps1_gal",
     "eps2_gal",
@@ -755,10 +753,8 @@ class FlagshipReducer(RailReducer):
 
         # batches = plan.to_reader(use_threadsx=True)
         table = plan.to_table(use_threads=True)
-
         if DROP_COLS_FLAGSHIP:
             table = table.drop_columns(DROP_COLS_FLAGSHIP)
-
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
