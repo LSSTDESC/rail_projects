@@ -245,6 +245,9 @@ PROJECTIONS_CARDINAL = [
         "totalHalfLightRadiusArcsec": pc.field("size"),
         "totalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
                                            pc.power(pc.field("Ellipticity_2"), 2))),
+        "_orientationAngle": pc.atan2(
+            pc.field("Ellipticity_1"), pc.field("Ellipticity_2")
+        ),
     },
     {
         "major": pc.divide(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
@@ -252,6 +255,18 @@ PROJECTIONS_CARDINAL = [
 
         "minor": pc.multiply(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
                                                                       pc.power(pc.field("Ellipticity_2"), 2))))),
+        "orientationAngle": pc.multiply(
+            pc.scalar(0.5),
+            pc.subtract(
+                pc.field("_orientationAngle"),
+                pc.multiply(
+                    pc.floor(
+                        pc.divide(pc.field("_orientationAngle"), pc.scalar(2 * math.pi))
+                    ),
+                    pc.scalar(2 * math.pi),
+                ),
+            ),
+        ),                                                                      
     }
 ]
 
@@ -281,7 +296,7 @@ PROJECTIONS = [
                 pc.field("spheroidHalfLightRadiusArcsec"),
                 pc.field("bulge_frac"),
             ),
-        ),
+        ),        
         "_orientationAngle": pc.atan2(
             pc.field("totalEllipticity2"), pc.field("totalEllipticity1")
         ),
@@ -319,6 +334,10 @@ PROJECTIONS_FLAGSHIP = [
         #        ),
         #"dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
         "redshift": pc.field("observed_redshift_gal"),
+        "totalEllipticity1": pc.field("eps1_gal"),
+        "totalEllipticity2": pc.field("eps2_gal"),
+        "totalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("eps1_gal"), 2),
+                                           pc.power(pc.field("eps2_gal"), 2))),
         "mag_u_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u_el_model3_ext"))), pc.scalar(48.6)
         ),
@@ -432,6 +451,13 @@ DROP_COLS_FLAGSHIP: list[str] = [
     "ra_mag_gal",
     "bulge_r50",
     "disk_r50",
+    "halo_id",
+    "observed_redshift_gal",
+    "eps1_gal",
+    "eps2_gal",
+    "gamma1",
+    "gamma2",
+    "_orientationAngle",    
 ]
 
 DROP_COLS_CARDINAL: list[str] = [
@@ -448,6 +474,13 @@ DROP_COLS_CARDINAL: list[str] = [
     "size",
     "t_true_redshift",
     "Euclid_redshift",
+    "sedid",
+    "Roman_F184",
+    "Roman_H158",
+    "Roman_J129",
+    "Roman_K213",
+    "Roman_Y106",
+    
 ]
 
 
