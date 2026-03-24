@@ -195,6 +195,7 @@ def subsample_command(
 @project_options.reducer_class_name()
 @project_options.input_selection()
 @project_options.selection()
+@project_options.sim_version()
 def reduce_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
