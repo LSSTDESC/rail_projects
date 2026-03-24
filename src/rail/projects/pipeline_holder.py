@@ -543,12 +543,14 @@ def tomography_input_callback(
 def truth_to_observed_convert_commands(
     sink_dir: str, **kwargs: Any
 ) -> list[list[str]]:
-    phot_errors = kwargs.get("error_models", [])
+    phot_errors = kwargs.get("error_models", {})
     if phot_errors is not None:
         assert isinstance(phot_errors, dict)
-    spec_selections = kwargs.get("selectors", [])
+    spec_selections = kwargs.get("selectors", {})
     if spec_selections is not None:
         assert isinstance(spec_selections, dict)
+    models_to_run_select = kwargs.get("models_to_run_select", [])
+    
     convert_commands = []
 
     for phot_error_ in phot_errors:
@@ -561,8 +563,9 @@ def truth_to_observed_convert_commands(
             f"{sink_dir}/output_error_model_{phot_error_}.hdf5",
         ]
         convert_commands += [convert_command]
-        
         for spec_selection_ in spec_selections:
+            if spec_selection_ not in models_to_run_select:
+                continue
             convert_command = [
                 "tables-io",
                 "convert",
