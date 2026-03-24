@@ -240,7 +240,7 @@ run_mode = PartialOption(
 )
 
 sim_version = PartialOption(
-    "--sim_version",
+    "--sim-version",
     type=str,
     help="Optional override to simulation version",
 )
