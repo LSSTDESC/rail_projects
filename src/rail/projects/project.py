@@ -688,7 +688,8 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
         flavor_dict = self.get_flavor(flavor)
-        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs, **flavor_dict.path_overrides)
+        path_overrides = flavor_dict.config.path_overrides        
+        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs, **path_overrides)
 
     def make_pipeline_catalog_commands(
         self,
@@ -717,7 +718,8 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
         flavor_dict = self.get_flavor(flavor)
-        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs, **flavor_dict.path_overrides)
+        path_overrides = flavor_dict.config.path_overrides
+        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs, **path_overrides)
 
     def run_pipeline_single(
         self,
