@@ -418,7 +418,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         output_catalog_template: str,
         reducer_class_name: str,
         input_selection: str,
-        selection: str,
+        selection: str,        
         dry_run: bool = False,
         **kwargs: Any,
     ) -> list[str]:
