@@ -27,6 +27,7 @@ __all__: list[str] = [
     "reducer_class_name",
     "run_mode",
     "selection",
+    "sim_version",
     "site",
     "splitter_class_name",
     "subsampler_class_name",
@@ -238,12 +239,21 @@ run_mode = PartialOption(
     help="Mode to run script",
 )
 
+sim_version = PartialOption(
+    "--sim_version",
+    type=str,
+    help="Optional override to simulation version",
+)
+
+
 size = PartialOption(
     "--size",
     type=int,
     default=100_000,
     help="Number of objects in file",
 )
+
+
 
 test_file_template = PartialOption(
     "--test-file-template",
