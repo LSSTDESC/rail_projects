@@ -266,7 +266,7 @@ PROJECTIONS_CARDINAL = [
                     pc.scalar(2 * math.pi),
                 ),
             ),
-        ),                                                                      
+        ),
     }
 ]
 
@@ -296,7 +296,7 @@ PROJECTIONS = [
                 pc.field("spheroidHalfLightRadiusArcsec"),
                 pc.field("bulge_frac"),
             ),
-        ),        
+        ),
         "_orientationAngle": pc.atan2(
             pc.field("totalEllipticity2"), pc.field("totalEllipticity1")
         ),
@@ -457,7 +457,7 @@ DROP_COLS_FLAGSHIP: list[str] = [
     "eps2_gal",
     "gamma1",
     "gamma2",
-    "_orientationAngle",    
+    "_orientationAngle",
 ]
 
 DROP_COLS_CARDINAL: list[str] = [
@@ -480,7 +480,7 @@ DROP_COLS_CARDINAL: list[str] = [
     "Roman_J129",
     "Roman_K213",
     "Roman_Y106",
-    
+    "_orientationAngle",
 ]
 
 
