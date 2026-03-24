@@ -142,18 +142,20 @@ PROJECTIONS_CARDINAL = [
         #  "Roman_K213": pc.field("k213"),
         "shift_ra": pc.add(pc.field("ra"), -60.),
         "shift_dec": pc.multiply(pc.field("dec"), -1.),
-        "Ellipticity1": pc.field("Ellipticity_1"),
-        "Ellipticity2": pc.field("Ellipticity_2"),
-        "mag_y_euclid_nisp": pc.field("Euclid_Y"),
-        "mag_j_euclid_nisp": pc.field("Euclid_J"),
-        "mag_h_euclid_nisp": pc.field("Euclid_H"),
-        "Roman_obs_Y106": pc.field("Roman_Y106"),
-        "Roman_obs_J129": pc.field("Roman_J129"),
-        "Roman_obs_H158": pc.field("Roman_H158"),
-        "Roman_obs_F184": pc.field("Roman_F184"),
-        "Roman_obs_K213": pc.field("Roman_K213"),
+        "totalEllipticity1": pc.field("Ellipticity_1"),
+        "totalEllipticity2": pc.field("Ellipticity_2"),
+        "mag_y_euclid": pc.field("Euclid_Y"),
+        "mag_j_euclid": pc.field("Euclid_J"),
+        "mag_h_euclid": pc.field("Euclid_H"),
+        "mag_w1_wise": pc.field("WISE_W1"),
+        "mag_w2_wise": pc.field("WISE_W2"),
+        "mag_Y106_roman": pc.field("Roman_Y106"),
+        "mag_J129_roman": pc.field("Roman_J129"),
+        "mag_H158_roman": pc.field("Roman_H158"),
+        "mag_F184_roman": pc.field("Roman_F184"),
+        "mag_K213_roman": pc.field("Roman_K213"),
         "totalHalfLightRadiusArcsec": pc.field("size"),
-        "TotalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
+        "totalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
                                            pc.power(pc.field("Ellipticity_2"), 2))),
     },
     {
@@ -174,6 +176,14 @@ PROJECTIONS = [
         "mag_i_lsst": pc.field("LSST_obs_i"),
         "mag_z_lsst": pc.field("LSST_obs_z"),
         "mag_y_lsst": pc.field("LSST_obs_y"),
+        "mag_R062_roman": pc.field("ROMAN_obs_R062"),
+        "mag_Z087_roman": pc.field("ROMAN_obs_Z087"),
+        "mag_Y106_roman": pc.field("ROMAN_obs_Y106"),
+        "mag_J129_roman": pc.field("ROMAN_obs_J129"),
+        "mag_W146_roman": pc.field("ROMAN_obs_W146"),
+        "mag_H158_roman": pc.field("ROMAN_obs_H158"),
+        "mag_F184_roman": pc.field("ROMAN_obs_F184"),
+        "mag_K213_roman": pc.field("ROMAN_obs_K213"),
         "totalHalfLightRadiusArcsec": pc.add(
             pc.multiply(
                 pc.field("diskHalfLightRadiusArcsec"),
@@ -239,13 +249,13 @@ PROJECTIONS_FLAGSHIP = [
         "mag_y_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_y_el_model3_ext"))), pc.scalar(48.6)
         ),
-        "mag_h_euclid_nisp": pc.subtract(
+        "mag_h_euclid": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_h_el_model3_ext"))), pc.scalar(48.6)
         ),
-        "mag_j_euclid_nisp": pc.subtract(
+        "mag_j_euclid": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_j_el_model3_ext"))), pc.scalar(48.6)
         ),
-        "mag_y_euclid_nisp": pc.subtract(
+        "mag_y_euclid": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_y_el_model3_ext"))), pc.scalar(48.6)
         ),
         "mag_vis_euclid": pc.subtract(
@@ -294,6 +304,61 @@ PROJECTIONS_FLAGSHIP = [
             ),
         ),
     },
+]
+
+DROP_COLS: list[str] = [
+    "LSST_obs_u",
+    "LSST_obs_g",
+    "LSST_obs_r",
+    "LSST_obs_i",
+    "LSST_obs_z",
+    "LSST_obs_y",
+    "ROMAN_obs_R062",
+    "ROMAN_obs_Z087",
+    "ROMAN_obs_Y106",
+    "ROMAN_obs_J129",
+    "ROMAN_obs_W146",
+    "ROMAN_obs_H158",
+    "ROMAN_obs_F184",
+    "ROMAN_obs_K213",
+    "bulge_frac",
+    "spheroidHalfLightRadiusArcsec",
+    "diskHalfLightRadiusArcsec",
+]
+
+DROP_COLS_FLAGSHIP: list[str] = [
+    "lsst_u_el_model3_ext",
+    "lsst_g_el_model3_ext",
+    "lsst_r_el_model3_ext",
+    "lsst_i_el_model3_ext",
+    "lsst_z_el_model3_ext",
+    "lsst_y_el_model3_ext",
+    "euclid_nisp_h_el_model3_ext",
+    "euclid_nisp_j_el_model3_ext",
+    "euclid_nisp_y_el_model3_ext",
+    "euclid_vis_el_model3_ext",
+    "_orientationAngle",
+    "bulge_fraction",
+    "dec_mag_gal",
+    "ra_mag_gal",
+    "bulge_r50",
+    "disk_r50",
+]
+
+DROP_COLS_CARDINAL: list[str] = [
+    "shift_dec",
+    "shift_ra",
+    "Euclid_H",
+    "Euclid_J",
+    "Euclid_Y",
+    "WISE_W1",
+    "WISE_W2",
+    "Ellipticity_1",
+    "Ellipticity_2",
+    "true_redshift",
+    "size",
+    "t_true_redshift",
+    "Euclid_redshift",
 ]
 
 
@@ -416,6 +481,10 @@ class RomanRubinReducer(RailReducer):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
+
+        if DROP_COLS:
+            table = table.drop_columns(DROP_COLS)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
@@ -503,6 +572,10 @@ class CardinalReducer(RailReducer):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
+
+        if DROP_COLS_CARDINAL:
+            table = table.drop_columns(DROP_COLS_CARDINAL)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
@@ -581,8 +654,12 @@ class FlagshipReducer(RailReducer):
         ]
         plan = acero.Declaration.from_sequence(seq)
 
-        # batches = plan.to_reader(use_threads=True)
+        # batches = plan.to_reader(use_threadsx=True)
         table = plan.to_table(use_threads=True)
+
+        if DROP_COLS_FLAGSHIP:
+            table = table.drop_columns(DROP_COLS_FLAGSHIP)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
@@ -763,6 +840,7 @@ class DP1Reducer(RailReducer):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
