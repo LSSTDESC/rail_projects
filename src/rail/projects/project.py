@@ -49,6 +49,9 @@ class RailFlavor(Configurable):
         pipelines=StageParameter(list, ["all"], fmt="%s", msg="pipelines being used"),
         file_aliases=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
         pipeline_overrides=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
+        path_overrides=StageParameter(
+            dict, {}, fmt="%s", required=False, msg="Overrieds to common paths"
+        ),
     )
 
     def __init__(self, **kwargs: Any) -> None:
@@ -677,7 +680,8 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         """
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
-        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs)
+        flavor_dict = self.get_flavor(flavor)
+        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs, **flavor_dict.path_overrides)
 
     def make_pipeline_catalog_commands(
         self,
@@ -705,7 +709,8 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         """
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
-        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)
+        flavor_dict = self.get_flavor(flavor)
+        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs, **flavor_dict.path_overrides)
 
     def run_pipeline_single(
         self,
