@@ -324,6 +324,7 @@ DROP_COLS: list[str] = [
     "bulge_frac",
     "spheroidHalfLightRadiusArcsec",
     "diskHalfLightRadiusArcsec",
+    "_orientationAngle",
 ]
 
 DROP_COLS_FLAGSHIP: list[str] = [
