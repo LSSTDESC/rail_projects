@@ -316,3 +316,42 @@ class RailSplitterAlgorithmHolder(RailAlgorithmHolder):
         return RailSplitter.get_sub_class(
             class_name, f"{self.config.Module}.{class_name}"
         )
+
+
+class RailMergedAlgorithmHolder(RailAlgorithmHolder):
+    """Wrapper for algorithms that merge files.
+    to provide testing and training data sets.
+
+    This wraps the Merger class, which is typically a `RailMerger` object.
+
+    Typically a RailMerger is used to adjust the outputs of ceci pipelines
+    """
+
+    config_options = RailAlgorithmHolder.config_options.copy()
+    config_options.update(
+        Merge=StageParameter(
+            str,
+            None,
+            fmt="%s",
+            required=True,
+            msg="Data Merger Class",
+        ),
+    )
+    yaml_tag = "Splitter"
+
+    def __init__(self, **kwargs: Any):
+        RailAlgorithmHolder.__init__(self, **kwargs)
+
+    def resolve(self, key: str) -> type:
+        """Get the associated class one of the parts of the algorithm"""
+        try:
+            class_name = self.config[key]
+        except KeyError as missing_key:
+            raise KeyError(
+                f"RailMergedAlgorithmHolder does not have {key} in {self.config.to_dict().keys}"
+            ) from missing_key
+        return RailMerger.get_sub_class(
+            class_name, f"{self.config.Module}.{class_name}"
+        )
+
+    

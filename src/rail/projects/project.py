@@ -474,6 +474,68 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         return sinks
 
+    def merge_data(
+        self,
+        catalog_template: str,
+        output_catalog_template: str,
+        
+        input_selection: str,
+        selection: str,        
+        dry_run: bool = False,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Reduce some data
+
+        Parameters
+        ----------
+        catalog_template: str
+            Tag for the input catalog
+
+        output_catalog_template: str
+            Which label to apply to output dataset
+
+        reducer_class_name: str,
+            Name of the class to use for subsampling
+
+        input_selection: str,
+            Selection to use for the input
+
+        selection: str,
+            Selection to apply
+
+        dry_run: bool
+            If true, do not actually run
+
+        **kwargs:
+            Used to provide values for additional interpolants.
+
+        Returns
+        -------
+        list[str]:
+            Paths to output files
+
+        """
+        sources = self.get_catalog_files(
+            catalog_template, selection=input_selection, **kwargs
+        )
+        sinks = self.get_catalog_files(
+            output_catalog_template, selection=selection, **kwargs
+        )
+
+        reducer_class = library.get_algorithm_class(
+            "Reducer", reducer_class_name, "Reduce"
+        )
+        assert issubclass(reducer_class, RailReducer)
+
+        reducer_args = library.get_selection(selection)
+        reducer = reducer_class(**reducer_args.config.to_dict())
+
+        if not dry_run:  # pragma: no cover
+            for source_, sink_ in zip(sources, sinks):
+                reducer.run(source_, sink_)
+
+        return sinks
+    
     def subsample_data(
         self,
         catalog_template: str,
