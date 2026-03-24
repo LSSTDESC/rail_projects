@@ -8,6 +8,7 @@ __all__: list[str] = [
     "args",
     "basename",
     "config_path",
+    "convert_output",
     "catalog_template",
     "file_template",
     "force",
@@ -68,6 +69,11 @@ config_path = PartialOption(
     type=click.Path(),
 )
 
+convert_output = PartialOption(
+    "--convert-output/--no-convert-output",
+    help="Convert outputfiles",
+    default=True,
+)
 
 catalog_template = PartialOption(
     "--catalog-template",

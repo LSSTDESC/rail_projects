@@ -970,7 +970,9 @@ class RailPipelineInstance(Configurable):
         """
         pipeline_name = self.config.pipeline_template
         pipeline_info = project.get_pipeline(pipeline_name)
-        flavor = self.config.flavor
+        convert_output = kwargs.pop('convert_output', False)
+
+        flavor = self.config.flavor        
         pipeline_path = project.get_path(
             "pipeline_path", pipeline=pipeline_name, flavor=flavor, **kwargs
         )
@@ -1013,11 +1015,14 @@ class RailPipelineInstance(Configurable):
                 output_dir=sink_dir,
                 log_dir=sink_dir,
             )
-            convert_commands = catalog_convert_commands_function(
-                sink_dir,
-                **kwargs,
-                **pipeline_config_kwargs,
-            )
+            if convert_output:
+                convert_commands = catalog_convert_commands_function(
+                    sink_dir,
+                    **kwargs,
+                    **pipeline_config_kwargs,
+                )
+            else:
+                convert_commands = []
             iter_commands = [
                 ["mkdir", "-p", f"{sink_dir}"],
                 ceci_commands,
