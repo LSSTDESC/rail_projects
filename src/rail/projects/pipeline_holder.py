@@ -806,6 +806,7 @@ class RailPipelineInstance(Configurable):
                 temp_dict = project.get_error_models()
             elif key == "models_to_run_select":
                 overrides[key] = val
+                continue
             else:
                 continue
             if "all" in val:
