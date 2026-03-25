@@ -83,6 +83,6 @@ class SpecSelectionMerger(RailMerger):
             input_dataframes.append(input_dataframe)
 
         merged = union_dataframes_deduplicated(input_dataframes, self.config.merge_col)
-        output_file = os.path.join(output_catalog, output_basename)
+        output_file = os.path.join(output_catalog, self.config.output_basename)
 
         tables_io.write(merged, output_file)
