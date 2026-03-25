@@ -136,6 +136,7 @@ def split_command(
 @project_options.run_mode()
 @project_options.catalog_template()
 @project_options.output_catalog_template()
+@project_options.merge_name()
 @project_options.merger_class_name()
 @project_options.selection()
 @project_options.flavor()
