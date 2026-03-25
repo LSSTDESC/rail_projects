@@ -71,19 +71,21 @@ class SpecSelectionMerger(RailMerger):
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Merger Name"),
         merge_col=StageParameter(str, "object_id", fmt="%s", required=True, msg="Merge column name")
+        inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
     )
 
     def run(
         self,
         input_catalog: str,
         output_catalog: str,
-        input_basenames: list[str]
-        output_basename: str,        
     ) -> None:
 
-        input_files = [os.path.join(input_catalog, basenane_) for basename_ in input_basenames]
-        input_dataframes = [tables_io.read(input_file_) for input_file_ in input_files]
-        
+        for input_key, input_basename in self.config.inputs.items():
+            input_fullname = os.path.join(input_catalog, input_basename)
+            input_dataframe = tables_io.read(input_fullname)
+            input_dataframe[input_key] = True
+
         merged = union_dataframes_deduplicated(input_dataframes, self.config.merge_col)
         output_file = os.path.join(output_catalog, output_basename)
 

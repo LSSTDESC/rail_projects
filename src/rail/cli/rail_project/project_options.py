@@ -19,6 +19,7 @@ __all__: list[str] = [
     "input_tag",
     "label",
     "maglim",
+    "merger_class_name",
     "model_dir",
     "model_name",
     "model_path",
@@ -193,6 +194,13 @@ maglim = PartialOption(
     help="Magnitude limit",
     type=float,
     default=25.5,
+)
+
+
+merger_class_name = PartialOption(
+    "--merger-class-name",
+    help="Class for the merger",
+    type=str,
 )
 
 

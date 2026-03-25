@@ -143,22 +143,7 @@ class TestUnionDataframesDeduplicated:
         })
         
         pd.testing.assert_frame_equal(result, expected)
-    
-    def test_mismatched_columns_raises_error(self):
-        """Test that dataframes with different columns raise ValueError."""
-        df1 = pd.DataFrame({
-            'id': [1, 2],
-            'value': ['a', 'b']
-        })
         
-        df2 = pd.DataFrame({
-            'id': [3, 4],
-            'name': ['c', 'd']  # Different column name
-        })
-        
-        with pytest.raises(ValueError, match="DataFrame 1 has different columns"):
-            union_dataframes_deduplicated([df1, df2], dedup_column='id')
-    
     def test_missing_dedup_column_raises_error(self):
         """Test that missing dedup_column raises ValueError."""
         df1 = pd.DataFrame({

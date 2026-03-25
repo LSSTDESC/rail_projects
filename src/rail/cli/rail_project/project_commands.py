@@ -131,6 +131,45 @@ def split_command(
     return ok
 
 
+@project_cli.command(name="merge")
+@project_options.config_file()
+@project_options.run_mode()
+@project_options.catalog_template()
+@project_options.output_catalog_template()
+@project_options.merger_class_name()
+@project_options.selection()
+@project_options.flavor()
+def merge_command(
+    config_file: str, run_mode: project_options.RunMode, **kwargs: Any
+) -> int:
+    """Merged files from a particular catalog
+
+    This will:
+    create a catalog of input files from the catalog_template,
+    flavor, selection and basename parameters,
+    be merging varous input files
+    """
+
+    if run_mode == project_options.RunMode.slurm:
+        raise NotImplementedError("subsample_command not set up to run under slurm")
+
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+
+    dry_run = run_mode == project_options.RunMode.dry_run
+
+    ok = 0
+    for kw in iter_kwargs:
+        output_path = project.merge_data(
+            dry_run=dry_run,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
 @project_cli.command(name="subsample")
 @project_options.config_file()
 @project_options.run_mode()
