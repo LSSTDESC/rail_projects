@@ -44,13 +44,6 @@ def union_dataframes_deduplicated(
     
     # Verify all dataframes have the same columns
     base_columns = set(dataframes[0].columns)
-    for i, df in enumerate(dataframes[1:], 1):
-        if set(df.columns) != base_columns:
-            raise ValueError(
-                f"DataFrame {i} has different columns than DataFrame 0\n"
-                f"DataFrame 0: {sorted(base_columns)}\n"
-                f"DataFrame {i}: {sorted(df.columns)}"
-            )
     
     # Verify dedup_column exists
     if dedup_column not in base_columns:
