@@ -478,8 +478,8 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         self,
         catalog_template: str,
         output_catalog_template: str,
-        
-        input_selection: str,
+        merger_class_name: str,
+        flavor: str,
         selection: str,        
         dry_run: bool = False,
         **kwargs: Any,
@@ -488,22 +488,28 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         Parameters
         ----------
-        catalog_template: str
+        catalog_template:
             Tag for the input catalog
 
-        output_catalog_template: str
+        output_catalog_template:
             Which label to apply to output dataset
 
-        reducer_class_name: str,
-            Name of the class to use for subsampling
+        merger_class_name:
+            Name of the class to use for merging
 
-        input_selection: str,
+        flavor:
+            Flavor to apply
+
+        selection:
+            Selection to use
+
+        input_selection:
             Selection to use for the input
 
-        selection: str,
+        selection:
             Selection to apply
 
-        dry_run: bool
+        dry_run:
             If true, do not actually run
 
         **kwargs:
@@ -516,23 +522,23 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         """
         sources = self.get_catalog_files(
-            catalog_template, selection=input_selection, **kwargs
+            catalog_template, selection=input_selection, flavor=flavor, **kwargs
         )
         sinks = self.get_catalog_files(
-            output_catalog_template, selection=selection, **kwargs
+            output_catalog_template, selection=selection, flavor=flavor, **kwargs
         )
 
-        reducer_class = library.get_algorithm_class(
-            "Reducer", reducer_class_name, "Reduce"
+        merger_class = library.get_algorithm_class(
+            "Merger", merger_class_name, "Merge"
         )
-        assert issubclass(reducer_class, RailReducer)
+        assert issubclass(merger_class, RailMerger)
 
-        reducer_args = library.get_selection(selection)
-        reducer = reducer_class(**reducer_args.config.to_dict())
+        merger_args = library.get_selection(selection)
+        merger = merger_class(**merger_args.config.to_dict())
 
         if not dry_run:  # pragma: no cover
             for source_, sink_ in zip(sources, sinks):
-                reducer.run(source_, sink_)
+                merger.run(source_, sink_)
 
         return sinks
     
