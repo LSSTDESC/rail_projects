@@ -13,7 +13,7 @@ from .panda_utils import union_dataframes_deduplicated
 from .dynamic_class import DynamicClass
 
 
-class RailMerger(Configurable, DynamicClass):
+class RailMergerAlgo(Configurable, DynamicClass):
     """Base class for merging output files
 
     The main function in this class is:
@@ -65,7 +65,7 @@ class RailMerger(Configurable, DynamicClass):
         raise NotImplementedError()
 
 
-class SpecSelectionMerger(RailMerger):
+class SpecSelectionMergerAlgo(RailMergerAlgo):
     """Class to merge different spec selections"""
 
     config_options: dict[str, StageParameter] = dict(
