@@ -72,7 +72,7 @@ class SpecSelectionMergerAlgo(RailMergerAlgo):
         name=StageParameter(str, None, fmt="%s", required=True, msg="Merger Name"),
         merge_col=StageParameter(str, "object_id", fmt="%s", required=True, msg="Merge column name")
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
-        output_basename=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(str, None, fmt="%s", msg="Input catalog detatils"),
     )
 
     def run(
