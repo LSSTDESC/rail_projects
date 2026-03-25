@@ -42,8 +42,6 @@ class RailMerger(Configurable, DynamicClass):
         self,
         input_catalog: str,
         output_catalog: str,
-        input_basenames: list[str]
-        output_basename: str,
     ) -> None:
         """Subsample the data
 
@@ -55,12 +53,6 @@ class RailMerger(Configurable, DynamicClass):
         output_catalog:
             Path to the output file
             
-        input_basenames:
-            Basenames for input files that will be merged
-
-        output_basename:
-            Basename for output file
-
         """
         raise NotImplementedError()
 
