@@ -75,10 +75,12 @@ class SpecSelectionMerger(RailMerger):
         output_catalog: str,
     ) -> None:
 
+        input_dataframes = []
         for input_key, input_basename in self.config.inputs.items():
             input_fullname = os.path.join(input_catalog, input_basename)
             input_dataframe = tables_io.read(input_fullname)
             input_dataframe[input_key] = True
+            input_dataframes.append(input_dataframe)
 
         merged = union_dataframes_deduplicated(input_dataframes, self.config.merge_col)
         output_file = os.path.join(output_catalog, output_basename)
