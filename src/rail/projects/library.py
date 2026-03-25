@@ -11,7 +11,7 @@ from rail.core.factory_mixin import RailFactoryMixin
 
 from .algorithm_factory import ALGORITHM_TYPES, RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
-from .merger_factory import RailMergerFactory
+from .merge_factory import RailMergeFactory
 from .pipeline_factory import RailPipelineFactory
 from .project_file_factory import RailProjectFileFactory
 from .selection_factory import RailSelectionFactory
@@ -20,7 +20,7 @@ from .subsample_factory import RailSubsampleFactory
 THE_FACTORIES: list[type[RailFactoryMixin]] = [
     RailAlgorithmFactory,
     RailCatalogFactory,
-    RailMergerFactory,    
+    RailMergeFactory,    
     RailPipelineFactory,
     RailProjectFileFactory,
     RailSelectionFactory,
@@ -146,17 +146,17 @@ get_subsample_names = RailSubsampleFactory.get_subsample_names
 get_subsample = RailSubsampleFactory.get_subsample
 
 
-# Lift the RailMergerFactory class methods
+# Lift the RailMergeFactory class methods
 
-load_merger_yaml = RailMergerFactory.load_yaml
+load_merges_yaml = RailMergeFactory.load_yaml
 
-load_merger_yaml_tag = RailMergerFactory.load_yaml_tag
+load_merges_yaml_tag = RailMergeFactory.load_yaml_tag
 
-get_mergers = RailMergerFactory.get_mergers
+get_merges = RailMergeFactory.get_merges
 
-get_merger_names = RailMergerFactory.get_merger_names
+get_merge_names = RailMergeFactory.get_merge_names
 
-get_merger = RailMergerFactory.get_merger
+get_merge = RailMergeFactory.get_merge
 
 
 
@@ -196,8 +196,8 @@ def load_yaml(yaml_file: str) -> None:
             load_selection_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailSubsampleFactory.yaml_tag:
             load_subsample_yaml_tag(yaml_item, yaml_file)
-        elif yaml_key == RailMergerFactory.yaml_tag:
-            load_merger_yaml_tag(yaml_item, yaml_file)            
+        elif yaml_key == RailMergeFactory.yaml_tag:
+            load_merges_yaml_tag(yaml_item, yaml_file)            
         elif yaml_key == RailProjectFileFactory.yaml_tag:
             load_project_file_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailCatalogFactory.yaml_tag:
@@ -210,7 +210,7 @@ def load_yaml(yaml_file: str) -> None:
             good_tags = ALGORITHM_TYPES + [
                 RailSelectionFactory.yaml_tag,
                 RailSubsampleFactory.yaml_tag,
-                RailMergerFactory.yaml_tag,                
+                RailMergeFactory.yaml_tag,                
                 RailProjectFileFactory.yaml_tag,
                 RailCatalogFactory.yaml_tag,
                 RailPipelineFactory.yaml_tag,
