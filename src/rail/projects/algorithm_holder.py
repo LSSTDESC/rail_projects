@@ -350,7 +350,7 @@ class RailMergerAlgorithmHolder(RailAlgorithmHolder):
             raise KeyError(
                 f"RailMergedAlgorithmHolder does not have {key} in {self.config.to_dict().keys}"
             ) from missing_key
-        return RailMergerAlgo.get_sub_class(
+        return RailMerger.get_sub_class(
             class_name, f"{self.config.Module}.{class_name}"
         )
 

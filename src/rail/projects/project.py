@@ -15,6 +15,7 @@ from .algorithm_factory import RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
 from .catalog_template import RailProjectCatalogTemplate
 from .file_template import RailProjectFileTemplate
+from .merger import RailMerger
 from .pipeline_factory import RailPipelineFactory
 from .pipeline_holder import RailPipelineTemplate
 from .project_file_factory import RailProjectFileFactory
@@ -529,7 +530,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         merger_class = library.get_algorithm_class(
             "Merger", merger_class_name, "Merge"
         )
-        assert issubclass(merger_class, RailMergerAlgo)
+        assert issubclass(merger_class, RailMerger)
 
         merger_args = library.get_merger(merge_name)
         merger = merger_class(**merger_args.config.to_dict())
