@@ -7,6 +7,7 @@ from ceci.stage import PipelineStage
 from rail.core.configurable import Configurable
 
 from .dynamic_class import DynamicClass
+from .merger import RailMerger
 from .reducer import RailReducer
 from .splitter import RailSplitter
 from .subsampler import RailSubsampler
