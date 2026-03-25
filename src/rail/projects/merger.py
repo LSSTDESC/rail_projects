@@ -6,6 +6,8 @@ from typing import Any
 
 import numpy as np
 import yaml
+import tables_io
+
 from ceci.config import StageParameter
 from rail.core.configurable import Configurable
 
