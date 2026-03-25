@@ -15,7 +15,7 @@ class RailMerge(Configurable):
     config_options: dict[str, StageParameter] = dict(
         merge_col=StageParameter(str, "object_id", fmt="%s", required=True, msg="Merge column name"),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
-        output_basename=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(str, None, fmt="%s", msg="Input catalog detatils"),
     )
     
     yaml_tag = "Merge"
