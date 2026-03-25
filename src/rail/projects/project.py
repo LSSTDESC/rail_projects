@@ -522,10 +522,10 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         """
         sources = self.get_catalog_files(
-            catalog_template, selection=selection, flavor=flavor, **kwargs
+            catalog_template, selection=selection, flavor=flavor, basename="", **kwargs
         )
         sinks = self.get_catalog_files(
-            output_catalog_template, selection=selection, flavor=flavor, **kwargs
+            output_catalog_template, selection=selection, flavor=flavor, basename="", **kwargs
         )
 
         merger_class = library.get_algorithm_class(
