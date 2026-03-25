@@ -47,7 +47,9 @@ class RailMergeFactory(RailFactoryMixin):
       Merges:
         - Merge:
             name: select_lsst_all
-            inputs: ['output_select_lsst_HSC.pq', 'output_select_lsst_zCOSMOS.pq']
+            inputs:
+              hsc: output_select_lsst_obs_cond_4yr_HSC.pq
+              cosmos: output_select_lsst_obs_cond_4yr_zCOSMOS.pq
             output_basename: output_select_lsst_all.pq
     """
 
