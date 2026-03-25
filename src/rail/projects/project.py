@@ -532,7 +532,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         )
         assert issubclass(merger_class, RailMerger)
 
-        merger_args = library.get_merger(merge_name)
+        merger_args = library.get_merge(merge_name)
         merger = merger_class(**merger_args.config.to_dict())
 
         if not dry_run:  # pragma: no cover
