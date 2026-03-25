@@ -479,6 +479,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         catalog_template: str,
         output_catalog_template: str,
         merger_class_name: str,
+        merge_name: str,
         flavor: str,
         selection: str,        
         dry_run: bool = False,
@@ -497,8 +498,8 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         merger_class_name:
             Name of the class to use for merging
 
-        merger_name:
-            Name of the merging inputs
+        merge_name:
+            Name of the config to merge input inputs
 
         flavor:
             Flavor to apply
@@ -530,7 +531,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         )
         assert issubclass(merger_class, RailMergerAlgo)
 
-        merger_args = library.get_merger(merger_name)
+        merger_args = library.get_merger(merge_name)
         merger = merger_class(**merger_args.config.to_dict())
 
         if not dry_run:  # pragma: no cover
