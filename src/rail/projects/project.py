@@ -522,7 +522,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         """
         sources = self.get_catalog_files(
-            catalog_template, selection=input_selection, flavor=flavor, **kwargs
+            catalog_template, selection=selection, flavor=flavor, **kwargs
         )
         sinks = self.get_catalog_files(
             output_catalog_template, selection=selection, flavor=flavor, **kwargs
