@@ -318,7 +318,7 @@ class RailSplitterAlgorithmHolder(RailAlgorithmHolder):
         )
 
 
-class RailMergedAlgorithmHolder(RailAlgorithmHolder):
+class RailMergerAlgorithmHolder(RailAlgorithmHolder):
     """Wrapper for algorithms that merge files.
     to provide testing and training data sets.
 
@@ -337,7 +337,7 @@ class RailMergedAlgorithmHolder(RailAlgorithmHolder):
             msg="Data Merger Class",
         ),
     )
-    yaml_tag = "Splitter"
+    yaml_tag = "Merger"
 
     def __init__(self, **kwargs: Any):
         RailAlgorithmHolder.__init__(self, **kwargs)
