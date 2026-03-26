@@ -8,6 +8,7 @@ __all__: list[str] = [
     "args",
     "basename",
     "config_path",
+    "convert_output",
     "catalog_template",
     "file_template",
     "force",
@@ -27,6 +28,7 @@ __all__: list[str] = [
     "reducer_class_name",
     "run_mode",
     "selection",
+    "sim_version",
     "site",
     "splitter_class_name",
     "subsampler_class_name",
@@ -67,6 +69,11 @@ config_path = PartialOption(
     type=click.Path(),
 )
 
+convert_output = PartialOption(
+    "--convert-output/--no-convert-output",
+    help="Convert outputfiles",
+    default=True,
+)
 
 catalog_template = PartialOption(
     "--catalog-template",
@@ -238,12 +245,20 @@ run_mode = PartialOption(
     help="Mode to run script",
 )
 
+sim_version = PartialOption(
+    "--sim-version",
+    type=str,
+    help="Optional override to simulation version",
+)
+
+
 size = PartialOption(
     "--size",
     type=int,
     default=100_000,
     help="Number of objects in file",
 )
+
 
 test_file_template = PartialOption(
     "--test-file-template",

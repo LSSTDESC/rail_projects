@@ -195,6 +195,7 @@ def subsample_command(
 @project_options.reducer_class_name()
 @project_options.input_selection()
 @project_options.selection()
+@project_options.sim_version()
 def reduce_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
@@ -233,6 +234,7 @@ def run_group() -> None:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the photometric errors analysis pipeline"""
@@ -257,6 +259,7 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the truth-to-observed data pipeline"""
@@ -281,6 +284,7 @@ def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the truth-to-observed data pipeline"""
@@ -305,6 +309,7 @@ def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def blending_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the blending analysis pipeline"""
@@ -329,6 +334,7 @@ def blending_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the spectroscopic selection data pipeline"""

@@ -43,7 +43,7 @@ COLUMNS = [
     "bulge_frac",
     "sod_halo_mass",
     "logsm_obs",
-    "sfr"
+    "sfr",
     # "healpix",
 ]
 
@@ -69,7 +69,7 @@ COLUMNS_COM_CAM = [
 COLUMNS_FLAGSHIP = [
     "halo_id",
     "galaxy_id",
-    "observed_redshift_gal", # observed redshift incl. velocity
+    "observed_redshift_gal",  # observed redshift incl. velocity
     "ra_mag_gal",  # observed galaxy ra/dec with lensing displacement field applied [degrees]
     "dec_mag_gal",
     "lsst_u_el_model3_ext",  # observed flux from the continuum + emission including internal attenuation in LSST bands
@@ -121,7 +121,7 @@ COLUMNS_CARDINAL = [
     "Euclid_Y",
     "Euclid_J",
     "Euclid_H",
-    "Euclid_redshift"
+    "Euclid_redshift",
 ]
 
 PROJECTIONS_COM_CAM = [
@@ -140,40 +140,88 @@ PROJECTIONS_DP1 = [
 PROJECTIONS_CARDINAL = [
     {
         #  "Roman_K213": pc.field("k213"),
-        "shift_ra": pc.add(pc.field("ra"), 90.),
-        "shift_dec": pc.multiply(pc.field("dec"), -1.),
-        "Ellipticity1": pc.field("Ellipticity_1"),
-        "Ellipticity2": pc.field("Ellipticity_2"),
-        "mag_y_euclid_nisp": pc.field("Euclid_Y"),
-        "mag_j_euclid_nisp": pc.field("Euclid_J"),
-        "mag_h_euclid_nisp": pc.field("Euclid_H"),
-        "Roman_obs_Y106": pc.field("Roman_Y106"),
-        "Roman_obs_J129": pc.field("Roman_J129"),
-        "Roman_obs_H158": pc.field("Roman_H158"),
-        "Roman_obs_F184": pc.field("Roman_F184"),
-        "Roman_obs_K213": pc.field("Roman_K213"),
+        "object_id": pc.field("galaxy_id"),
+        "shift_ra": pc.add(pc.field("ra"), 90.0),
+        "shift_dec": pc.multiply(pc.field("dec"), -1.0),
+        "totalEllipticity1": pc.field("Ellipticity_1"),
+        "totalEllipticity2": pc.field("Ellipticity_2"),
+        "mag_y_euclid": pc.field("Euclid_Y"),
+        "mag_j_euclid": pc.field("Euclid_J"),
+        "mag_h_euclid": pc.field("Euclid_H"),
+        "mag_w1_wise": pc.field("WISE_W1"),
+        "mag_w2_wise": pc.field("WISE_W2"),
+        "mag_Y_roman": pc.field("Roman_Y106"),
+        "mag_J_roman": pc.field("Roman_J129"),
+        "mag_H_roman": pc.field("Roman_H158"),
+        "mag_F_roman": pc.field("Roman_F184"),
+        "mag_K_roman": pc.field("Roman_K213"),
         "totalHalfLightRadiusArcsec": pc.field("size"),
-        "TotalEllipticity": pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
-                                           pc.power(pc.field("Ellipticity_2"), 2))),
+        "totalEllipticity": pc.sqrt(
+            pc.add(
+                pc.power(pc.field("Ellipticity_1"), 2),
+                pc.power(pc.field("Ellipticity_2"), 2),
+            )
+        ),
+        "_orientationAngle": pc.atan2(
+            pc.field("Ellipticity_1"), pc.field("Ellipticity_2")
+        ),
     },
     {
-        "major": pc.divide(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
-                                                                    pc.power(pc.field("Ellipticity_2"), 2))))),
-
-        "minor": pc.multiply(pc.field("size"), pc.sqrt(pc.sqrt(pc.add(pc.power(pc.field("Ellipticity_1"), 2),
-                                                                      pc.power(pc.field("Ellipticity_2"), 2))))),
-    }
+        "major": pc.divide(
+            pc.field("size"),
+            pc.sqrt(
+                pc.sqrt(
+                    pc.add(
+                        pc.power(pc.field("Ellipticity_1"), 2),
+                        pc.power(pc.field("Ellipticity_2"), 2),
+                    )
+                )
+            ),
+        ),
+        "minor": pc.multiply(
+            pc.field("size"),
+            pc.sqrt(
+                pc.sqrt(
+                    pc.add(
+                        pc.power(pc.field("Ellipticity_1"), 2),
+                        pc.power(pc.field("Ellipticity_2"), 2),
+                    )
+                )
+            ),
+        ),
+        "orientationAngle": pc.multiply(
+            pc.scalar(0.5),
+            pc.subtract(
+                pc.field("_orientationAngle"),
+                pc.multiply(
+                    pc.floor(
+                        pc.divide(pc.field("_orientationAngle"), pc.scalar(2 * math.pi))
+                    ),
+                    pc.scalar(2 * math.pi),
+                ),
+            ),
+        ),
+    },
 ]
 
 
 PROJECTIONS = [
     {
+        "object_id": pc.field("galaxy_id"),
         "mag_u_lsst": pc.field("LSST_obs_u"),
         "mag_g_lsst": pc.field("LSST_obs_g"),
         "mag_r_lsst": pc.field("LSST_obs_r"),
         "mag_i_lsst": pc.field("LSST_obs_i"),
         "mag_z_lsst": pc.field("LSST_obs_z"),
         "mag_y_lsst": pc.field("LSST_obs_y"),
+        "mag_R_roman": pc.field("ROMAN_obs_R062"),
+        "mag_Z_roman": pc.field("ROMAN_obs_Z087"),
+        "mag_Y_roman": pc.field("ROMAN_obs_Y106"),
+        "mag_J_roman": pc.field("ROMAN_obs_J129"),
+        "mag_W_roman": pc.field("ROMAN_obs_W146"),
+        "mag_H_roman": pc.field("ROMAN_obs_H158"),
+        "mag_F_roman": pc.field("ROMAN_obs_F184"),
+        "mag_K_roman": pc.field("ROMAN_obs_K213"),
         "totalHalfLightRadiusArcsec": pc.add(
             pc.multiply(
                 pc.field("diskHalfLightRadiusArcsec"),
@@ -214,42 +262,68 @@ PROJECTIONS = [
 
 PROJECTIONS_FLAGSHIP = [
     {
+        "object_id": pc.add(
+            pc.multiply(pc.scalar(16384), pc.field("halo_id")), pc.field("galaxy_id")
+        ),  # this will push the halo_id 14 bits over and then tack on the galaxy id.
         "ra": pc.if_else(
-                pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
-                pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
-                pc.add(pc.field("ra_mag_gal"), pc.scalar(180))
-                ),
+            pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
+            pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
+            pc.add(pc.field("ra_mag_gal"), pc.scalar(180)),
+        ),
         "dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
         "redshift": pc.field("observed_redshift_gal"),
+        "totalEllipticity1": pc.field("eps1_gal"),
+        "totalEllipticity2": pc.field("eps2_gal"),
+        "totalEllipticity": pc.sqrt(
+            pc.add(pc.power(pc.field("eps1_gal"), 2), pc.power(pc.field("eps2_gal"), 2))
+        ),
         "mag_u_lsst": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_u_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
         "mag_g_lsst": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_g_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_g_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
         "mag_r_lsst": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_r_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_r_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
         "mag_i_lsst": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_i_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_i_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
         "mag_z_lsst": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_z_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_z_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
         "mag_y_lsst": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_y_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_y_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
-        "mag_h_euclid_nisp": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_h_el_model3_ext"))), pc.scalar(48.6)
+        "mag_h_euclid": pc.subtract(
+            pc.multiply(
+                pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_h_el_model3_ext"))
+            ),
+            pc.scalar(48.6),
         ),
-        "mag_j_euclid_nisp": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_j_el_model3_ext"))), pc.scalar(48.6)
+        "mag_j_euclid": pc.subtract(
+            pc.multiply(
+                pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_j_el_model3_ext"))
+            ),
+            pc.scalar(48.6),
         ),
-        "mag_y_euclid_nisp": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_y_el_model3_ext"))), pc.scalar(48.6)
+        "mag_y_euclid": pc.subtract(
+            pc.multiply(
+                pc.scalar(-2.5), pc.log10(pc.field("euclid_nisp_y_el_model3_ext"))
+            ),
+            pc.scalar(48.6),
         ),
         "mag_vis_euclid": pc.subtract(
-            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("euclid_vis_el_model3_ext"))), pc.scalar(48.6)
+            pc.multiply(
+                pc.scalar(-2.5), pc.log10(pc.field("euclid_vis_el_model3_ext"))
+            ),
+            pc.scalar(48.6),
         ),
         "totalHalfLightRadiusArcsec": pc.add(
             pc.multiply(
@@ -263,22 +337,30 @@ PROJECTIONS_FLAGSHIP = [
         ),
         "_orientationAngle": pc.atan2(
             pc.add(pc.field("eps2_gal"), pc.field("gamma2")),
-            pc.add(pc.field("eps1_gal"), pc.field("gamma1"))
+            pc.add(pc.field("eps1_gal"), pc.field("gamma1")),
         ),
     },
     {
         "major": pc.divide(
             pc.field("totalHalfLightRadiusArcsec"),
             pc.sqrt(
-                pc.sqrt(pc.add(pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2),
-                               pc.power(pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 2)))
+                pc.sqrt(
+                    pc.add(
+                        pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2),
+                        pc.power(pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 2),
+                    )
+                )
             ),
         ),
         "minor": pc.multiply(
             pc.field("totalHalfLightRadiusArcsec"),
             pc.sqrt(
-                pc.sqrt(pc.add(pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2),
-                               pc.power(pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 2)))
+                pc.sqrt(
+                    pc.add(
+                        pc.power(pc.add(pc.field("eps1_gal"), pc.field("gamma1")), 2),
+                        pc.power(pc.add(pc.field("eps2_gal"), pc.field("gamma2")), 2),
+                    )
+                )
             ),
         ),
         "orientationAngle": pc.multiply(
@@ -294,6 +376,78 @@ PROJECTIONS_FLAGSHIP = [
             ),
         ),
     },
+]
+
+DROP_COLS: list[str] = [
+    "LSST_obs_u",
+    "LSST_obs_g",
+    "LSST_obs_r",
+    "LSST_obs_i",
+    "LSST_obs_z",
+    "LSST_obs_y",
+    "ROMAN_obs_R062",
+    "ROMAN_obs_Z087",
+    "ROMAN_obs_Y106",
+    "ROMAN_obs_J129",
+    "ROMAN_obs_W146",
+    "ROMAN_obs_H158",
+    "ROMAN_obs_F184",
+    "ROMAN_obs_K213",
+    "bulge_frac",
+    "spheroidHalfLightRadiusArcsec",
+    "diskHalfLightRadiusArcsec",
+    "_orientationAngle",
+    "galaxy_id",
+]
+
+DROP_COLS_FLAGSHIP: list[str] = [
+    "lsst_u_el_model3_ext",
+    "lsst_g_el_model3_ext",
+    "lsst_r_el_model3_ext",
+    "lsst_i_el_model3_ext",
+    "lsst_z_el_model3_ext",
+    "lsst_y_el_model3_ext",
+    "euclid_nisp_h_el_model3_ext",
+    "euclid_nisp_j_el_model3_ext",
+    "euclid_nisp_y_el_model3_ext",
+    "euclid_vis_el_model3_ext",
+    "bulge_fraction",
+    "dec_mag_gal",
+    "ra_mag_gal",
+    "bulge_r50",
+    "disk_r50",
+    "observed_redshift_gal",
+    "eps1_gal",
+    "eps2_gal",
+    "gamma1",
+    "gamma2",
+    "_orientationAngle",
+    "galaxy_id",
+    "halo_id",
+]
+
+DROP_COLS_CARDINAL: list[str] = [
+    "shift_dec",
+    "shift_ra",
+    "Euclid_H",
+    "Euclid_J",
+    "Euclid_Y",
+    "WISE_W1",
+    "WISE_W2",
+    "Ellipticity_1",
+    "Ellipticity_2",
+    "true_redshift",
+    "size",
+    "t_true_redshift",
+    "Euclid_redshift",
+    "sedid",
+    "Roman_F184",
+    "Roman_H158",
+    "Roman_J129",
+    "Roman_K213",
+    "Roman_Y106",
+    "_orientationAngle",
+    "galaxy_id",
 ]
 
 
@@ -416,6 +570,10 @@ class RomanRubinReducer(RailReducer):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
+
+        if DROP_COLS:
+            table = table.drop_columns(DROP_COLS)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
@@ -426,8 +584,8 @@ class RomanRubinReducer(RailReducer):
 
 class CardinalReducer(RailReducer):
     """Class to reduce the 'Cardinal' simulation input files for pz analysis
-       Note that cardinal native files are fits files split into triplets, a
-       preprocessing stage was performed to put them into pyarrow parquet
+    Note that cardinal native files are fits files split into triplets, a
+    preprocessing stage was performed to put them into pyarrow parquet
     """
 
     config_options: dict[str, StageParameter] = dict(
@@ -450,9 +608,7 @@ class CardinalReducer(RailReducer):
                 if "maglim_i" in self.config.cuts:
                     predicate = pc.field("mag_i_lsst") < self.config.cuts["maglim_i"][1]
                 elif "maglim_Y" in self.config.cuts:
-                    predicate = (
-                        pc.field("Roman_Y106") < self.config.cuts["maglim_Y"][1]
-                    )
+                    predicate = pc.field("Roman_Y106") < self.config.cuts["maglim_Y"][1]
                 else:
                     raise ValueError("No valid cut") from msg
             else:  # pragma: no cover
@@ -503,6 +659,10 @@ class CardinalReducer(RailReducer):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
+
+        if DROP_COLS_CARDINAL:
+            table = table.drop_columns(DROP_COLS_CARDINAL)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
@@ -532,7 +692,16 @@ class FlagshipReducer(RailReducer):
             # Fallback to old way.  FIXME, deprecate this
             if self.config.cuts:
                 if "maglim_i" in self.config.cuts:
-                    predicate = pc.subtract(pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_i_el_model3_ext"))), pc.scalar(48.6)) < self.config.cuts["maglim_i"][1]
+                    predicate = (
+                        pc.subtract(
+                            pc.multiply(
+                                pc.scalar(-2.5),
+                                pc.log10(pc.field("lsst_i_el_model3_ext")),
+                            ),
+                            pc.scalar(48.6),
+                        )
+                        < self.config.cuts["maglim_i"][1]
+                    )
                 else:
                     raise ValueError("No valid cut") from msg
             else:  # pragma: no cover
@@ -581,8 +750,10 @@ class FlagshipReducer(RailReducer):
         ]
         plan = acero.Declaration.from_sequence(seq)
 
-        # batches = plan.to_reader(use_threads=True)
+        # batches = plan.to_reader(use_threadsx=True)
         table = plan.to_table(use_threads=True)
+        if DROP_COLS_FLAGSHIP:
+            table = table.drop_columns(DROP_COLS_FLAGSHIP)
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
@@ -763,6 +934,7 @@ class DP1Reducer(RailReducer):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
