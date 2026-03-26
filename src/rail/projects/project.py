@@ -526,10 +526,9 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
             for key, val in subsampler_args.config.to_dict().items()
             if key in subsampler_config_keys
         }
-
         subsampler = subsampler_class(**use_pairs)
 
-        basename_dict: dict[str, str] = subsampler.get_basename_dict()
+        basename_dict: dict[str, str] = subsampler.get_basename_dict(**kwargs)
         sources_dict: dict[str, list[str]] = {}
 
         for key, val in basename_dict.items():
