@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 import qp
 import tables_io
-from rail.utils.catalog_utils import CatalogConfigBase
+from rail.utils import catalog_utils
 
 from rail.projects import RailProject, path_funcs
 
@@ -323,9 +323,9 @@ def get_pz_point_estimate_data(
     z_estimate_data = extract_z_point(z_estimate_path)
     flavor_info = project.get_flavor(flavor)
     catalog_tag = flavor_info["catalog_tag"]
-    CatalogConfigBase.apply(catalog_tag)
-    catalog_class = CatalogConfigBase.active_class()
-    ref_band = catalog_class.band_template.format(band=catalog_class.ref_band)
+    catalog_utils.apply(catalog_tag)
+    active_catalog = catalog_utils.get_active_tag()
+    ref_band = active_catalog.config.mag_column_template.format(band=active_catalog.config.ref_band)
     mag_data = extract_mag(z_true_path, colname=ref_band)
     pz_data = make_z_true_z_point_dict(z_true_data, z_estimate_data, mag_data)
     return pz_data
@@ -361,18 +361,18 @@ def get_ztrue_and_magntidues(
     """
     flavor_info = project.get_flavor(flavor)
     catalog_tag = flavor_info["catalog_tag"]
-    CatalogConfigBase.apply(catalog_tag)
-    catalog_class = CatalogConfigBase.active_class()
+    catalog_utils.apply(catalog_tag)
+    active_catalog = catalog_utils.get_active_tag()
 
     z_true_path = path_funcs.get_z_true_path(project, selection, flavor, tag)
-    z_true_data = extract_z_true(z_true_path, catalog_class.redshift_col)
+    z_true_data = extract_z_true(z_true_path, active_catalog.config.redshift_col)
     mag_data = extract_magnitudes(
-        z_true_path, catalog_class.band_template, catalog_class.bandlist
+        z_true_path, active_catalog.config.band_template, active_catalog.config.bandlist
     )
     out_data = dict(
         truth=z_true_data,
         magnitudes=mag_data,
-        bands=catalog_class.bandlist,
+        bands=active_catalog.config.bandlist,
     )
     return out_data
 
