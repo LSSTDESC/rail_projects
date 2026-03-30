@@ -88,17 +88,17 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
     """
 
     config_options: dict[str, StageParameter] = dict(
-        Name=StageParameter(str, None, fmt="%s", required=True, msg="Project name"),
+        Name=StageParameter(str, None, fmt="%s", required=False, msg="Project name"),
         SiteConfig=StageParameter(dict, {}, fmt="%s", msg="Site configuration options"),
         CatalogLib=StageParameter(list, [], fmt="%s", msg="Libraries of catalog tags"),
         Includes=StageParameter(list, [], fmt="%s", msg="Files to include"),
         Baseline=StageParameter(
-            dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
+            dict, None, fmt="%s", required=False, msg="Baseline analysis configuration"
         ),
         Flavors=StageParameter(list, [], fmt="%s", msg="Analysis variants"),
         PathTemplates=StageParameter(dict, {}, fmt="%s", msg="File path templates"),
         CommonPaths=StageParameter(
-            dict, {}, fmt="%s", required=True, msg="Paths to shared directories"
+            dict, {}, fmt="%s", required=False, msg="Paths to shared directories"
         ),
         IterationVars=StageParameter(
             dict, {}, fmt="%s", msg="Iteration variables to use"
@@ -302,8 +302,19 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         """
         Configurable.__init__(self, **kwargs)
 
+        included_dict: dict[str, Any] = {}
         for include_ in self.config.Includes:
-            library.load_yaml(os.path.expandvars(include_))
+            included_tags = library.load_yaml(os.path.expandvars(include_))
+            included_dict.update(**included_tags)
+
+        for key, val in included_dict.items():
+            if isinstance(val, dict):
+                if self.config[key] is None:
+                    self.config[key] = val.copy()
+                else:
+                    self.config[key].update(**val)
+            else:
+                self.config[key] = val
 
         self.name_factory = name_utils.NameFactory(
             config=self.config,
@@ -482,7 +493,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         merger_class_name: str,
         merge_name: str,
         flavor: str,
-        selection: str,        
+        selection: str,
         dry_run: bool = False,
         **kwargs: Any,
     ) -> list[str]:
@@ -524,12 +535,14 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
             catalog_template, selection=selection, flavor=flavor, basename="", **kwargs
         )
         sinks = self.get_catalog_files(
-            output_catalog_template, selection=selection, flavor=flavor, basename="", **kwargs
+            output_catalog_template,
+            selection=selection,
+            flavor=flavor,
+            basename="",
+            **kwargs,
         )
 
-        merger_class = library.get_algorithm_class(
-            "Merger", merger_class_name, "Merge"
-        )
+        merger_class = library.get_algorithm_class("Merger", merger_class_name, "Merge")
         assert issubclass(merger_class, RailMerger)
 
         merger_args = library.get_merge(merge_name)
@@ -540,7 +553,7 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
                 merger.run(source_, sink_)
 
         return sinks
-    
+
     def subsample_data(
         self,
         catalog_template: str,

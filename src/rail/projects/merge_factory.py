@@ -12,13 +12,18 @@ class RailMerge(Configurable):
 
     This is just defined as a random number seed and a number of objects
     """
+
     config_options: dict[str, StageParameter] = dict(
-        name=StageParameter(str, None, fmt="%s", required=True, msg="Merge Name"),        
-        merge_col=StageParameter(str, "object_id", fmt="%s", required=True, msg="Merge column name"),
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Merge Name"),
+        merge_col=StageParameter(
+            str, "object_id", fmt="%s", required=True, msg="Merge column name"
+        ),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
-        output_basename=StageParameter(str, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(
+            str, None, fmt="%s", msg="Input catalog detatils"
+        ),
     )
-    
+
     yaml_tag = "Merge"
 
     def __init__(self, **kwargs: Any):
@@ -33,7 +38,7 @@ class RailMerge(Configurable):
         Configurable.__init__(self, **kwargs)
 
     def __repr__(self) -> str:
-        return f"N={self.config.num_objects} seed={self.config.seed}"
+        return f"N={self.config.name} merge_col={self.config.merge_col}"
 
 
 class RailMergeFactory(RailFactoryMixin):
