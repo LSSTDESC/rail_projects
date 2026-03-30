@@ -40,7 +40,6 @@ def extract_z_true(
     truth_table = tables_io.read(filepath)
     return truth_table[colname]
 
-
 def extract_z_point(
     filepath: str,
     colname: str = "zmode",
@@ -367,12 +366,12 @@ def get_ztrue_and_magntidues(
     z_true_path = path_funcs.get_z_true_path(project, selection, flavor, tag)
     z_true_data = extract_z_true(z_true_path, active_catalog.config.redshift_col)
     mag_data = extract_magnitudes(
-        z_true_path, active_catalog.config.band_template, active_catalog.config.bandlist
+        z_true_path, active_catalog.config.mag_column_template, active_catalog.config.band_list
     )
     out_data = dict(
         truth=z_true_data,
         magnitudes=mag_data,
-        bands=active_catalog.config.bandlist,
+        bands=active_catalog.config.band_list,
     )
     return out_data
 
