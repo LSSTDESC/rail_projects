@@ -20,7 +20,7 @@ from .subsample_factory import RailSubsampleFactory
 THE_FACTORIES: list[type[RailFactoryMixin]] = [
     RailAlgorithmFactory,
     RailCatalogFactory,
-    RailMergeFactory,    
+    RailMergeFactory,
     RailPipelineFactory,
     RailProjectFileFactory,
     RailSelectionFactory,
@@ -159,7 +159,6 @@ get_merge_names = RailMergeFactory.get_merge_names
 get_merge = RailMergeFactory.get_merge
 
 
-
 # Define a few additional functions
 def clear() -> None:
     """Clean all the factories"""
@@ -175,7 +174,7 @@ def print_contents() -> None:
         print("")
 
 
-def load_yaml(yaml_file: str) -> None:
+def load_yaml(yaml_file: str) -> dict[str, Any]:
     """Read a yaml file and load the factory accordingly
 
     Parameters
@@ -191,13 +190,14 @@ def load_yaml(yaml_file: str) -> None:
     with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
         yaml_data = yaml.safe_load(fin)
 
+    ret_vals: dict[str, Any] = {}
     for yaml_key, yaml_item in yaml_data.items():
         if yaml_key == RailSelectionFactory.yaml_tag:
             load_selection_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailSubsampleFactory.yaml_tag:
             load_subsample_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailMergeFactory.yaml_tag:
-            load_merges_yaml_tag(yaml_item, yaml_file)            
+            load_merges_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailProjectFileFactory.yaml_tag:
             load_project_file_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailCatalogFactory.yaml_tag:
@@ -206,16 +206,19 @@ def load_yaml(yaml_file: str) -> None:
             load_pipeline_yaml_tag(yaml_item, yaml_file)
         elif yaml_key in ALGORITHM_TYPES:
             load_algorithm_yaml_tag(yaml_item, f"{yaml_file}#{yaml_key}")
-        else:  # pragma: no cover
-            good_tags = ALGORITHM_TYPES + [
-                RailSelectionFactory.yaml_tag,
-                RailSubsampleFactory.yaml_tag,
-                RailMergeFactory.yaml_tag,                
-                RailProjectFileFactory.yaml_tag,
-                RailCatalogFactory.yaml_tag,
-                RailPipelineFactory.yaml_tag,
-            ]
-            raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")
+        else:
+            ret_vals[yaml_key] = yaml_item
+        # else:  # pragma: no cover
+        #    good_tags = ALGORITHM_TYPES + [
+        #        RailSelectionFactory.yaml_tag,
+        #        RailSubsampleFactory.yaml_tag,
+        #        RailMergeFactory.yaml_tag,
+        #        RailProjectFileFactory.yaml_tag,
+        #        RailCatalogFactory.yaml_tag,
+        #        RailPipelineFactory.yaml_tag,
+        #    ]
+        #    raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")
+    return ret_vals
 
 
 def write_yaml(yaml_file: str) -> None:
