@@ -140,7 +140,7 @@ PROJECTIONS_DP1 = [
 PROJECTIONS_CARDINAL = [
     {
         #  "Roman_K213": pc.field("k213"),
-        "shift_ra": pc.add(pc.field("ra"), 90.),
+        "shift_ra": pc.add(pc.field("ra"), -60.),
         "shift_dec": pc.multiply(pc.field("dec"), -1.),
         "Ellipticity1": pc.field("Ellipticity_1"),
         "Ellipticity2": pc.field("Ellipticity_2"),
