@@ -21,6 +21,7 @@ class RailSelection(Configurable):
             fmt="%s",
             msg="Cuts associated to selection",
         ),
+        healpix_cuts=StageParameter(dict, {}, fmt="%s", msg="Healpix cuts, empty for no cut"),        
     )
     yaml_tag = "Selection"
 
