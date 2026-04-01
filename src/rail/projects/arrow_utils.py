@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
+import healpy as hp
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
@@ -446,3 +447,98 @@ def inner_join_datasets(
         first_name = f"{first_name}+{name}"
 
     return result
+
+
+def add_healpix_column(
+    table: pa.Table,
+    ra_col: str='ra',
+    dec_col: str='dec',
+    nside: int=256,
+    output_col: str='healpix',
+    nest: bool=True,
+) -> pa.Table:
+
+    """
+    Add a HEALPix pixel column to a PyArrow table.
+
+    Parameters
+    ----------
+    table : pyarrow.Table
+        Input table containing RA and Dec columns
+    ra_col : str, default='ra'
+        Name of the Right Ascension column (in degrees)
+    dec_col : str, default='dec'
+        Name of the Declination column (in degrees)
+    nside : int, default=256
+        HEALPix resolution parameter (must be power of 2)
+    output_col : str, default='healpix'
+        Name for the output HEALPix column
+    nest : bool, default=True
+        If True, use nested ordering; if False, use ring ordering
+    output_col : str, default='healpix'
+        Name for the output HEALPix column
+
+    Returns
+    -------
+    pyarrow.Table
+        Table with added HEALPix column
+    """
+    # Extract RA and Dec columns as numpy arrays
+    ra = table[ra_col].to_numpy()
+    dec = table[dec_col].to_numpy()
+
+    # Compute HEALPix pixel indices
+    pixels = hp.ang2pix(nside, ra, dec, nest=nest, lonlat=True)
+
+    # Create PyArrow array from pixels
+    healpix_array = pa.array(pixels, type=pa.int64())
+
+    # Add the new column to the table
+    table = table.append_column(output_col, healpix_array)
+
+    return table
+
+
+
+def filter_by_healpix_pixels(
+    table: pa.Table,
+    pixels: int | list[int] | set[int] | np.ndarray,
+    healpix_col: str='healpix',
+) -> pa.Table:
+    """
+    Filter a PyArrow table to keep only rows where the HEALPix pixel
+    matches one of the specified pixels.
+
+    Parameters
+    ----------
+    table : pyarrow.Table
+        Input table containing a HEALPix pixel column
+    pixels : int, list, set, or numpy.ndarray
+        Pixel index or collection of pixel indices to keep
+    healpix_col : str, default='healpix'
+        Name of the HEALPix column
+
+    Returns
+    -------
+    pyarrow.Table
+        Filtered table containing only rows with matching pixels
+    """
+    # Convert single pixel to list
+    if isinstance(pixels, (int, np.integer)):
+        pixels = [pixels]
+
+    # Convert to PyArrow array for efficient filtering
+    if isinstance(pixels, (list, tuple, set)):
+        pixel_array = pa.array(list(pixels), type=pa.int64())
+    elif isinstance(pixels, np.ndarray):
+        pixel_array = pa.array(pixels, type=pa.int64())
+    else:
+        pixel_array = pixels  # Assume it's already a PyArrow array
+
+    # Create filter mask using is_in
+    mask = pc.is_in(table[healpix_col], value_set=pixel_array)
+
+    # Filter the table
+    filtered_table = table.filter(mask)
+
+    return filtered_table
