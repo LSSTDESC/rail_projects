@@ -667,7 +667,7 @@ class RomanRubinReducer(RailReducer):
                 nest=self.config.healpix_cuts['nest'],
             )
             table = filter_by_healpix_pixels(
-                tables,
+                table,
                 self.config.healpix_cuts['pixels'],
                 healpix_col='healpix',
             )
