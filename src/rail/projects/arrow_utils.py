@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
+import numpy as np
 import healpy as hp
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -497,7 +498,6 @@ def add_healpix_column(
     table = table.append_column(output_col, healpix_array)
 
     return table
-
 
 
 def filter_by_healpix_pixels(
