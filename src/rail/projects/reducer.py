@@ -262,6 +262,8 @@ PROJECTIONS_CARDINAL = [
 
 PROJECTIONS = [
     {
+        "shift_ra": pc.field("ra"),
+        "shift_dec": pc.field("dec"),
         "object_id": pc.field("galaxy_id"),
         "mag_u_lsst": pc.field("LSST_obs_u"),
         "mag_g_lsst": pc.field("LSST_obs_g"),
@@ -326,6 +328,12 @@ PROJECTIONS_FLAGSHIP = [
             pc.add(pc.field("ra_mag_gal"), pc.scalar(180)),
         ),
         "dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
+        "shift_ra": pc.if_else(
+            pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
+            pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
+            pc.add(pc.field("ra_mag_gal"), pc.scalar(180)),
+        ),
+        "shift_dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
         "redshift": pc.field("observed_redshift_gal"),
         "totalEllipticity1": pc.field("eps1_gal"),
         "totalEllipticity2": pc.field("eps2_gal"),
@@ -434,6 +442,8 @@ PROJECTIONS_FLAGSHIP = [
 ]
 
 DROP_COLS: list[str] = [
+    "shift_dec",
+    "shift_ra",
     "LSST_obs_u",
     "LSST_obs_g",
     "LSST_obs_r",
@@ -456,6 +466,8 @@ DROP_COLS: list[str] = [
 ]
 
 DROP_COLS_FLAGSHIP: list[str] = [
+    "shift_dec",
+    "shift_ra",
     "lsst_u_el_model3_ext",
     "lsst_g_el_model3_ext",
     "lsst_r_el_model3_ext",
@@ -526,7 +538,16 @@ class RailReducer(Configurable, DynamicClass):
             msg="Shortcut to flip sign of Dec. If True, multiply Dec by -1. Excecuted BEFORE the rotator",
         ),
     )
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+        cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+        healpix_cuts=StageParameter(dict, {}, fmt="%s", msg="Healpix cuts, empty for no cut"),
+    )
+
     sub_classes: dict[str, type[DynamicClass]] = {}
+
+    columns: list[str] = []
+    projections: list[dict[str, Any]] = []
+    drop_columns: list[str] = []
 
     def __init__(self, **kwargs: Any):
         """C'tor
@@ -539,6 +560,9 @@ class RailReducer(Configurable, DynamicClass):
         """
         DynamicClass.__init__(self)
         Configurable.__init__(self, **kwargs)
+
+    def _fallback_predicate(self) -> Any:
+        raise NotImplementedError()
 
     def run(
         self,
@@ -555,6 +579,7 @@ class RailReducer(Configurable, DynamicClass):
         output_catalog: str,
             Path to the output file
         """
+<<<<<<< HEAD
         raise NotImplementedError()
 
 
@@ -576,23 +601,15 @@ class RomanRubinReducer(RailReducer):
         input_catalog: str,
         output_catalog: str,
     ) -> None:
+=======
+>>>>>>> 06933ea (simplified reducer)
         # Try to do this right
         try:
             parsed_filter = parse_item(self.config.cuts)
             predicate = pq.filters_to_expression(parsed_filter)
         except Exception as msg:
             # Fallback to old way.  FIXME, deprecate this
-            if self.config.cuts:
-                if "maglim_i" in self.config.cuts:
-                    predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
-                elif "maglim_Y" in self.config.cuts:
-                    predicate = (
-                        pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
-                    )
-                else:
-                    raise ValueError("No valid cut") from msg
-            else:  # pragma: no cover
-                predicate = None
+            predicate = self._fallback_predicate()
 
         dataset = ds.dataset(
             input_catalog,
@@ -603,7 +620,7 @@ class RomanRubinReducer(RailReducer):
             "scan",
             acero.ScanNodeOptions(
                 dataset,
-                columns=COLUMNS,
+                columns=self.columns,
                 filter=predicate,
             ),
         )
@@ -615,10 +632,10 @@ class RomanRubinReducer(RailReducer):
             ),
         )
 
-        column_projection = {k: pc.field(k) for k in COLUMNS}
+        column_projection = {k: pc.field(k) for k in self.columns}
         projection = column_projection
         project_nodes = []
-        for _projection in PROJECTIONS:
+        for _projection in self.projections:
             for k, v in _projection.items():
                 projection[k] = v
             project_node = acero.Declaration(
@@ -640,8 +657,23 @@ class RomanRubinReducer(RailReducer):
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
 
-        if DROP_COLS:
-            table = table.drop_columns(DROP_COLS)
+        if self.config.healpix_cuts:  # pragma: no cover
+            table = arrow_utils.add_healpix_column(
+                table,
+                ra_col=self.config.healpix_cuts['ra_col'],
+                dec_col=self.config.healpix_cuts['dec_col'],
+                nside=self.config.healpix_cuts['nside'],
+                output_col='healpix',
+                nest=self.config.healpix_cuts['nest'],
+            )
+            table = arrow_utils.filter_by_healpix_pixels(
+                tables,
+                self.config.healpix_cuts['pixels'],
+                healpix_col='healpix',
+            )
+
+        if self.drop_columns:
+            table = table.drop_columns(self.drop_columns)
 
         print(f"writing dataset to {output_catalog}")
 
@@ -651,12 +683,36 @@ class RomanRubinReducer(RailReducer):
         pq.write_table(table, output_catalog)
 
 
+
+class RomanRubinReducer(RailReducer):
+    """Class to reduce the 'roman_rubin' simulation input files for pz analysis"""
+
+    columns = COLUMNS
+    projections = PROJECTIONS
+    drop_columns = DROP_COLS
+
+    def _fallback_predicate(self) -> Any:
+        if self.config.cuts:
+            if "maglim_i" in self.config.cuts:
+                predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
+            elif "maglim_Y" in self.config.cuts:
+                predicate = (
+                    pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
+                )
+            else:
+                raise ValueError("No valid cut") from msg
+        else:  # pragma: no cover
+            predicate = None
+        return predicate
+
+
 class CardinalReducer(RailReducer):
     """Class to reduce the 'Cardinal' simulation input files for pz analysis
     Note that cardinal native files are fits files split into triplets, a
     preprocessing stage was performed to put them into pyarrow parquet
     """
 
+<<<<<<< HEAD
     #config_options: dict[str, StageParameter] = dict(
     #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
     #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
@@ -753,11 +809,30 @@ class CardinalReducer(RailReducer):
 
         os.makedirs(output_dir, exist_ok=True)
         pq.write_table(table, output_catalog)
+=======
+    columns = COLUMNS_CARDINAL
+    projections = PROJECTIONS_CARDINAL
+    drop_columns = DROP_COLS_CARDINAL
+
+    def _fallback_predicate(self) -> Any:
+        # Fallback to old way.  FIXME, deprecate this
+        if self.config.cuts:
+            if "maglim_i" in self.config.cuts:
+                predicate = pc.field("mag_i_lsst") < self.config.cuts["maglim_i"][1]
+            elif "maglim_Y" in self.config.cuts:
+                predicate = pc.field("Roman_Y106") < self.config.cuts["maglim_Y"][1]
+            else:
+                raise ValueError("No valid cut") from msg
+        else:  # pragma: no cover
+            predicate = None
+        return predicate
+>>>>>>> 06933ea (simplified reducer)
 
 
 class FlagshipReducer(RailReducer):
     """Class to reduce the 'flagship' simulation input files for pz analysis"""
 
+<<<<<<< HEAD
     #config_options: dict[str, StageParameter] = dict(
     #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
     #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
@@ -767,35 +842,32 @@ class FlagshipReducer(RailReducer):
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
+=======
+    columns = COLUMNS_FLAGSHIP
+    projections = PROJECTIONS_FLAGSHIP
+    drop_columns = DROP_COLS_FLAGSHIP
+>>>>>>> 06933ea (simplified reducer)
 
-    def run(
-        self,
-        input_catalog: str,
-        output_catalog: str,
-    ) -> None:
-        # Try to do this right
-        try:
-            parsed_filter = parse_item(self.config.cuts)
-            predicate = pq.filters_to_expression(parsed_filter)
-        except Exception as msg:
-            # Fallback to old way.  FIXME, deprecate this
-            if self.config.cuts:
-                if "maglim_i" in self.config.cuts:
-                    predicate = (
-                        pc.subtract(
-                            pc.multiply(
-                                pc.scalar(-2.5),
-                                pc.log10(pc.field("lsst_i_el_model3_ext")),
-                            ),
-                            pc.scalar(48.6),
-                        )
-                        < self.config.cuts["maglim_i"][1]
+    def _fallback_predicate(self) -> Any:
+        # Fallback to old way.  FIXME, deprecate this
+        if self.config.cuts:
+            if "maglim_i" in self.config.cuts:
+                predicate = (
+                    pc.subtract(
+                        pc.multiply(
+                            pc.scalar(-2.5),
+                            pc.log10(pc.field("lsst_i_el_model3_ext")),
+                        ),
+                        pc.scalar(48.6),
                     )
-                else:
-                    raise ValueError("No valid cut") from msg
-            else:  # pragma: no cover
-                predicate = None
+                    < self.config.cuts["maglim_i"][1]
+                )
+            else:
+                raise ValueError("No valid cut") from msg
+        else:  # pragma: no cover
+            predicate = None
 
+<<<<<<< HEAD
         dataset = ds.dataset(
             input_catalog,
             format="parquet",
@@ -860,11 +932,15 @@ class FlagshipReducer(RailReducer):
 
         os.makedirs(output_dir, exist_ok=True)
         pq.write_table(table, output_catalog)
+=======
+        return predicate
+>>>>>>> 06933ea (simplified reducer)
 
 
 class ComCamReducer(RailReducer):
     """Class to reduce the 'com_cam' input files for pz analysis"""
 
+<<<<<<< HEAD
     #config_options: dict[str, StageParameter] = dict(
     #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
     #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
@@ -874,87 +950,30 @@ class ComCamReducer(RailReducer):
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
+=======
+    columns = COLUMNS_COM_CAM
+    projections = PROJECTIONS_COM_CAM
+    drop_columns = DROP_COLS
+>>>>>>> 06933ea (simplified reducer)
 
     _mag_offset = 31.4
 
-    def run(
-        self,
-        input_catalog: str,
-        output_catalog: str,
-    ) -> None:  # pragma: no cover
+    def _fallback_predicate(self) -> Any:
+        # Fallback to old way.  FIXME, deprecate this
+        mag_cut = self.config.cuts["maglim_i"][1]
+        flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
 
-        # Try to do this right
-        try:
-            parsed_filter = parse_item(self.config.cuts)
-            predicate = pq.filters_to_expression(parsed_filter)
-        except Exception:
-            # Fallback to old way.  FIXME, deprecate this
-            mag_cut = self.config.cuts["maglim_i"][1]
-            flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
-
-            if self.config.cuts:
-                predicate = pc.field("i_cModelFlux") > flux_cut
-            else:  # pragma: no cover
-                predicate = None
-
-        dataset = ds.dataset(
-            input_catalog,
-            format="parquet",
-        )
-
-        scan_node = acero.Declaration(
-            "scan",
-            acero.ScanNodeOptions(
-                dataset,
-                columns=COLUMNS_COM_CAM,
-                filter=predicate,
-            ),
-        )
-
-        filter_node = acero.Declaration(
-            "filter",
-            acero.FilterNodeOptions(
-                predicate,
-            ),
-        )
-
-        column_projection = {k: pc.field(k) for k in COLUMNS_COM_CAM}
-        projection = column_projection
-        project_nodes = []
-        for _projection in PROJECTIONS_COM_CAM:
-            for k, v in _projection.items():
-                projection[k] = v
-            project_node = acero.Declaration(
-                "project",
-                acero.ProjectNodeOptions(
-                    [v for k, v in projection.items()],
-                    names=[k for k, v in projection.items()],
-                ),
-            )
-            project_nodes.append(project_node)
-
-        seq = [
-            scan_node,
-            filter_node,
-            *project_nodes,
-        ]
-        plan = acero.Declaration.from_sequence(seq)
-
-        # batches = plan.to_reader(use_threads=True)
-        table = plan.to_table(use_threads=True)
-        print(f"writing dataset to {output_catalog}")
-
-        output_dir = os.path.dirname(output_catalog)
-
-        os.makedirs(output_dir, exist_ok=True)
-        pd = table.to_pandas()
-        pd.to_parquet(output_catalog)
-        # pq.write_table(table, output_catalog)
+        if self.config.cuts:
+            predicate = pc.field("i_cModelFlux") > flux_cut
+        else:  # pragma: no cover
+            predicate = None
+        return predicate
 
 
 class DP1Reducer(RailReducer):
     """Class to reduce the 'DP1' input files for pz analysis"""
 
+<<<<<<< HEAD
     #config_options: dict[str, StageParameter] = dict(
     #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
     #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
@@ -964,92 +983,28 @@ class DP1Reducer(RailReducer):
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
+=======
+    columns = COLUMNS
+    projections = PROJECTIONS_DP1
+    drop_columns = DROP_COLS
+>>>>>>> 06933ea (simplified reducer)
 
     _mag_offset = 31.4
 
-    def run(
-        self,
-        input_catalog: str,
-        output_catalog: str,
-    ) -> None:  # pragma: no cover
-
-        topdir = os.path.dirname(os.path.dirname(input_catalog))
-        columns_file = os.path.join(topdir, "columns.yaml")
-        with open(columns_file, "r", encoding="utf-8") as fin:
-            columns = yaml.safe_load(fin)
-
-        # Try to do this right
-        try:
-            parsed_filter = parse_item(self.config.cuts)
-            predicate = pq.filters_to_expression(parsed_filter)
-        except Exception:
-            # Fallback to old way.  FIXME, deprecate this
-            mag_cut = self.config.cuts["maglim_i"][1]
-            flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
-            if self.config.cuts:
-                predicate = (
-                    (pc.field("i_psfFlux") > flux_cut)
-                    & (pc.field("i_psfFlux") / pc.field("i_psfFluxErr") > 5)
-                    & (
-                        (pc.field("g_extendedness") > 0.5)
-                        | (pc.field("r_extendedness") > 0.5)
-                    )
+    def _fallback_predicate(self) -> Any:
+        # Fallback to old way.  FIXME, deprecate this
+        mag_cut = self.config.cuts["maglim_i"][1]
+        flux_cut = np.power(10, (self._mag_offset - mag_cut) / 2.5)
+        if self.config.cuts:
+            predicate = (
+                (pc.field("i_psfFlux") > flux_cut)
+                & (pc.field("i_psfFlux") / pc.field("i_psfFluxErr") > 5)
+                & (
+                    (pc.field("g_extendedness") > 0.5)
+                    | (pc.field("r_extendedness") > 0.5)
                 )
-
-            else:  # pragma: no cover
-                predicate = None
-
-        dataset = ds.dataset(
-            input_catalog,
-            format="parquet",
-        )
-
-        scan_node = acero.Declaration(
-            "scan",
-            acero.ScanNodeOptions(
-                dataset,
-                columns=columns,
-                filter=predicate,
-            ),
-        )
-
-        filter_node = acero.Declaration(
-            "filter",
-            acero.FilterNodeOptions(
-                predicate,
-            ),
-        )
-
-        column_projection = {k: pc.field(k) for k in columns}
-        projection = column_projection
-        project_nodes = []
-        for _projection in PROJECTIONS_DP1:
-            for k, v in _projection.items():
-                projection[k] = v
-            project_node = acero.Declaration(
-                "project",
-                acero.ProjectNodeOptions(
-                    [v for k, v in projection.items()],
-                    names=[k for k, v in projection.items()],
-                ),
             )
-            project_nodes.append(project_node)
 
-        seq = [
-            scan_node,
-            filter_node,
-            *project_nodes,
-        ]
-        plan = acero.Declaration.from_sequence(seq)
-
-        # batches = plan.to_reader(use_threads=True)
-        table = plan.to_table(use_threads=True)
-
-        print(f"writing dataset to {output_catalog}")
-
-        output_dir = os.path.dirname(output_catalog)
-
-        os.makedirs(output_dir, exist_ok=True)
-        pd = table.to_pandas()
-        pd.to_parquet(output_catalog)
-        # pq.write_table(table, output_catalog)
+        else:  # pragma: no cover
+            predicate = None
+        return predicate
