@@ -14,7 +14,7 @@ from ceci.config import StageParameter
 from pyarrow import acero
 from rail.core.configurable import Configurable
 
-from .arrow_utils import parse_item
+from .arrow_utils import add_healpix_column, filter_by_healpix_pixels, parse_item
 from .dynamic_class import DynamicClass
 
 
@@ -658,7 +658,7 @@ class RomanRubinReducer(RailReducer):
         table = plan.to_table(use_threads=True)
 
         if self.config.healpix_cuts:  # pragma: no cover
-            table = arrow_utils.add_healpix_column(
+            table = add_healpix_column(
                 table,
                 ra_col=self.config.healpix_cuts['ra_col'],
                 dec_col=self.config.healpix_cuts['dec_col'],
@@ -666,7 +666,7 @@ class RomanRubinReducer(RailReducer):
                 output_col='healpix',
                 nest=self.config.healpix_cuts['nest'],
             )
-            table = arrow_utils.filter_by_healpix_pixels(
+            table = filter_by_healpix_pixels(
                 tables,
                 self.config.healpix_cuts['pixels'],
                 healpix_col='healpix',
