@@ -148,7 +148,7 @@ PROJECTIONS_CARDINAL = [
         "orig_ra": pc.field("ra"),
         "orig_dec": pc.field("dec"),
         "object_id": pc.field("galaxy_id"),
-        "shift_ra": pc.add(pc.field("ra"), 90.0),
+        "shift_ra": pc.add(pc.field("ra"), -60.0),
         "shift_dec": pc.multiply(pc.field("dec"), -1.0),
         "totalEllipticity1": pc.field("Ellipticity_1"),
         "totalEllipticity2": pc.field("Ellipticity_2"),
@@ -590,7 +590,7 @@ class RailReducer(Configurable, DynamicClass):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
-
+        
         if self.drop_columns:
             table = table.drop_columns(self.drop_columns)        
         
