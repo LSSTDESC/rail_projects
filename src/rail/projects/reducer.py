@@ -646,6 +646,9 @@ class RomanRubinReducer(RailReducer):
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
 
+        if self.drop_columns:
+            table = table.drop_columns(self.drop_columns)        
+        
         rename_dict = {'shift_ra': 'ra', 'shift_dec' : 'dec'}
         renamed_cols = [ rename_dict.get(c, c) for c in table.column_names]
         table = table.rename_columns(renamed_cols)
@@ -665,9 +668,6 @@ class RomanRubinReducer(RailReducer):
                 healpix_col='healpix',
             )
             
-        if self.drop_columns:
-            table = table.drop_columns(self.drop_columns)
-
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
