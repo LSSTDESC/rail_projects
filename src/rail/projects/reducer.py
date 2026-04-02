@@ -661,7 +661,7 @@ class RomanRubinReducer(RailReducer):
                 healpix_col='healpix',
             )
 
-        rename_dict : {'shift_ra': 'ra': 'shift_dec' : 'dec'}
+        rename_dict : {'shift_ra': 'ra', 'shift_dec' : 'dec'}
         renamed_cols = [ rename_dict.get(c, c) for c in table.column_names]
         table = table.rename_columns(renamed_cols)
             
