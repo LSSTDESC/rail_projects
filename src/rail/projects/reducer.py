@@ -431,6 +431,8 @@ DROP_COLS_FLAGSHIP: list[str] = [
 ]
 
 DROP_COLS_CARDINAL: list[str] = [
+    "ra",
+    "dec",
     "Euclid_H",
     "Euclid_J",
     "Euclid_Y",
