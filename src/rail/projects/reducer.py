@@ -140,7 +140,8 @@ PROJECTIONS_DP1 = [
 PROJECTIONS_CARDINAL = [
     {
         #  "Roman_K213": pc.field("k213"),
-        "shift_ra": pc.add(pc.field("ra"), -60.),
+        "orig_ra": pc.field("ra"),
+        "orig_dec": pc.field("dec"),
         "object_id": pc.field("galaxy_id"),
         "shift_ra": pc.add(pc.field("ra"), 90.0),
         "shift_dec": pc.multiply(pc.field("dec"), -1.0),
@@ -208,8 +209,6 @@ PROJECTIONS_CARDINAL = [
 
 PROJECTIONS = [
     {
-        "shift_ra": pc.field("ra"),
-        "shift_dec": pc.field("dec"),
         "object_id": pc.field("galaxy_id"),
         "mag_u_lsst": pc.field("LSST_obs_u"),
         "mag_g_lsst": pc.field("LSST_obs_g"),
@@ -268,18 +267,14 @@ PROJECTIONS_FLAGSHIP = [
         "object_id": pc.add(
             pc.multiply(pc.scalar(16384), pc.field("halo_id")), pc.field("galaxy_id")
         ),  # this will push the halo_id 14 bits over and then tack on the galaxy id.
+        "orig_ra": pc.field("ra_mag_gal"),
+        "orig_dec": pc.field("dec_mag_gal"),
         "ra": pc.if_else(
             pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
             pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
             pc.add(pc.field("ra_mag_gal"), pc.scalar(180)),
         ),
         "dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
-        "shift_ra": pc.if_else(
-            pc.greater(pc.add(pc.field("ra_mag_gal"), pc.scalar(180)), pc.scalar(360)),
-            pc.subtract(pc.field("ra_mag_gal"), pc.scalar(180)),
-            pc.add(pc.field("ra_mag_gal"), pc.scalar(180)),
-        ),
-        "shift_dec": pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal")),
         "redshift": pc.field("observed_redshift_gal"),
         "totalEllipticity1": pc.field("eps1_gal"),
         "totalEllipticity2": pc.field("eps2_gal"),
@@ -388,8 +383,6 @@ PROJECTIONS_FLAGSHIP = [
 ]
 
 DROP_COLS: list[str] = [
-    "shift_dec",
-    "shift_ra",
     "LSST_obs_u",
     "LSST_obs_g",
     "LSST_obs_r",
@@ -412,8 +405,6 @@ DROP_COLS: list[str] = [
 ]
 
 DROP_COLS_FLAGSHIP: list[str] = [
-    "shift_dec",
-    "shift_ra",
     "lsst_u_el_model3_ext",
     "lsst_g_el_model3_ext",
     "lsst_r_el_model3_ext",
@@ -440,8 +431,6 @@ DROP_COLS_FLAGSHIP: list[str] = [
 ]
 
 DROP_COLS_CARDINAL: list[str] = [
-    "shift_dec",
-    "shift_ra",
     "Euclid_H",
     "Euclid_J",
     "Euclid_Y",
@@ -585,6 +574,10 @@ class RailReducer(Configurable, DynamicClass):
                 healpix_col='healpix',
             )
 
+        rename_dict : {'shift_ra': 'ra': 'shift_dec' : 'dec'}
+        renamed_cols = [ rename_dict.get(c, c) for c in table.column_names]
+        table = table.rename_columns(renamed_cols)
+            
         if self.drop_columns:
             table = table.drop_columns(self.drop_columns)
 
