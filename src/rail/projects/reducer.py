@@ -646,6 +646,10 @@ class RomanRubinReducer(RailReducer):
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
 
+        rename_dict = {'shift_ra': 'ra', 'shift_dec' : 'dec'}
+        renamed_cols = [ rename_dict.get(c, c) for c in table.column_names]
+        table = table.rename_columns(renamed_cols)
+        
         if self.config.healpix_cuts:  # pragma: no cover
             table = add_healpix_column(
                 table,
@@ -660,10 +664,6 @@ class RomanRubinReducer(RailReducer):
                 self.config.healpix_cuts['pixels'],
                 healpix_col='healpix',
             )
-
-        rename_dict = {'shift_ra': 'ra', 'shift_dec' : 'dec'}
-        renamed_cols = [ rename_dict.get(c, c) for c in table.column_names]
-        table = table.rename_columns(renamed_cols)
             
         if self.drop_columns:
             table = table.drop_columns(self.drop_columns)
