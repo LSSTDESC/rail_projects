@@ -304,6 +304,26 @@ PROJECTIONS_FLAGSHIP = [
         "mag_y_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_y_el_model3_ext"))),
             pc.scalar(48.6),
+        ),        
+        "mag_Y_roman": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("roman_Y_el_model3_ext"))),
+            pc.scalar(48.6),
+        ),
+        "mag_J_roman": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("roman_J_el_model3_ext"))),
+            pc.scalar(48.6),
+        ),
+        "mag_H_roman": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("roman_H_el_model3_ext"))),
+            pc.scalar(48.6),
+        ),
+        "mag_F_roman": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("roman_F_el_model3_ext"))),
+            pc.scalar(48.6),
+        ),
+        "mag_K_roman": pc.subtract(
+            pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("roman_K_el_model3_ext"))),
+            pc.scalar(48.6),
         ),
         "mag_h_euclid": pc.subtract(
             pc.multiply(
