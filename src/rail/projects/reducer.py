@@ -78,6 +78,11 @@ COLUMNS_FLAGSHIP = [
     "lsst_i_el_model3_ext",
     "lsst_z_el_model3_ext",
     "lsst_y_el_model3_ext",
+    "roman_Y_el_model3_ext",  # observed flux from the continuum + emission including internal attenuation in LSST bands
+    "roman_J_el_model3_ext",
+    "roman_H_el_model3_ext",
+    "roman_F_el_model3_ext",
+    "roman_K_el_model3_ext",    
     "euclid_nisp_h_el_model3_ext",  # euclid bands (noiseless)
     "euclid_nisp_j_el_model3_ext",
     "euclid_nisp_y_el_model3_ext",
@@ -431,6 +436,11 @@ DROP_COLS_FLAGSHIP: list[str] = [
     "lsst_i_el_model3_ext",
     "lsst_z_el_model3_ext",
     "lsst_y_el_model3_ext",
+    "roman_Y_el_model3_ext",
+    "roman_J_el_model3_ext",
+    "roman_H_el_model3_ext",
+    "roman_F_el_model3_ext",
+    "roman_K_el_model3_ext",    
     "euclid_nisp_h_el_model3_ext",
     "euclid_nisp_j_el_model3_ext",
     "euclid_nisp_y_el_model3_ext",
