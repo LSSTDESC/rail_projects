@@ -19,7 +19,7 @@ __all__: list[str] = [
     "input_tag",
     "label",
     "maglim",
-    "merge_name",    
+    "merge_name",
     "merger_class_name",
     "model_dir",
     "model_name",

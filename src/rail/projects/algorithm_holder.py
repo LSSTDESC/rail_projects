@@ -161,7 +161,7 @@ class RailSpecSelectionAlgorithmHolder(RailAlgorithmHolder):
             fmt="%s",
             required=False,
             msg="Parameter overrides",
-        )
+        ),
     )
     yaml_tag = "SpecSelection"
 
@@ -366,5 +366,3 @@ class RailMergerAlgorithmHolder(RailAlgorithmHolder):
         return RailMerger.get_sub_class(
             class_name, f"{self.config.Module}.{class_name}"
         )
-
-    

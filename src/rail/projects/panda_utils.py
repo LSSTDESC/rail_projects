@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, List, Literal, Optional
+from typing import List, Literal
 
 import pandas as pd
 
@@ -7,11 +7,11 @@ import pandas as pd
 def union_dataframes_deduplicated(
     dataframes: List[pd.DataFrame],
     dedup_column: str,
-    keep: Literal['first', 'last'] = 'first',
+    keep: Literal["first", "last"] = "first",
 ) -> pd.DataFrame:  # pragma: no cover
     """
     Create a union of multiple dataframes and remove duplicates based on a key column.
-    
+
     Parameters
     ----------
     dataframes : List[pd.DataFrame]
@@ -22,12 +22,12 @@ def union_dataframes_deduplicated(
         Which duplicate to keep:
         - 'first': keep first occurrence across all dataframes
         - 'last': keep last occurrence across all dataframes
-    
+
     Returns
     -------
     pd.DataFrame
         Unified dataframe with duplicates removed
-        
+
     Examples
     --------
     >>> df1 = pd.DataFrame({'id': [1, 2, 3], 'value': ['a', 'b', 'c']})
@@ -35,16 +35,20 @@ def union_dataframes_deduplicated(
     >>> result = union_dataframes_deduplicated([df1, df2], dedup_column='id')
     >>> # Returns rows with id=[1, 2, 3, 4], keeping first occurrence of 2 and 3
     """
-    
+
     if not dataframes:
         raise ValueError("dataframes list cannot be empty")
-    
+
     if len(dataframes) == 1:
-        return dataframes[0].drop_duplicates(subset=dedup_column, keep=keep).reset_index(drop=True)
-    
+        return (
+            dataframes[0]
+            .drop_duplicates(subset=dedup_column, keep=keep)
+            .reset_index(drop=True)
+        )
+
     # Verify all dataframes have the same columns
     base_columns = set(dataframes[0].columns)
-    
+
     # Verify dedup_column exists
     if dedup_column not in base_columns:
         raise ValueError(f"dedup_column '{dedup_column}' not found in dataframes")
@@ -54,5 +58,5 @@ def union_dataframes_deduplicated(
 
     # Remove duplicates
     result = combined.drop_duplicates(subset=dedup_column, keep=keep)
-    
+
     return result.reset_index(drop=True)

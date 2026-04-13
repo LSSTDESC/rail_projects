@@ -8,7 +8,6 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow.parquet import filters_to_expression
 
-
 # Legal PyArrow comparison operators for filter expressions
 LEGAL_OPERATIONS = ["==", "!=", "<", "<=", ">", ">=", "in", "not in"]
 
@@ -452,13 +451,12 @@ def inner_join_datasets(
 
 def add_healpix_column(
     table: pa.Table,
-    ra_col: str='ra',
-    dec_col: str='dec',
-    nside: int=256,
-    output_col: str='healpix',
-    nest: bool=True,
+    ra_col: str = "ra",
+    dec_col: str = "dec",
+    nside: int = 256,
+    output_col: str = "healpix",
+    nest: bool = True,
 ) -> pa.Table:
-
     """
     Add a HEALPix pixel column to a PyArrow table.
 
@@ -503,7 +501,7 @@ def add_healpix_column(
 def filter_by_healpix_pixels(
     table: pa.Table,
     pixels: int | list[int] | set[int] | np.ndarray,
-    healpix_col: str='healpix',
+    healpix_col: str = "healpix",
 ) -> pa.Table:
     """
     Filter a PyArrow table to keep only rows where the HEALPix pixel
