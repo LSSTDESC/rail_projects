@@ -708,3 +708,6 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
             "qt_68_high": qt_68_high,
             "qt_95_high": qt_95_high,
         }
+
+
+

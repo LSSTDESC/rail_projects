@@ -95,3 +95,20 @@ Data:
       datasets:
         - blend_baseline_truth_and_mags
 
+
+  # This is a dataset of input catalog data with true redshifts and pz
+  - Dataset:
+      name: pz_pdf
+      class_name: rail.plotting.pz_data_holders.RailPZPdfDataHolder
+      project: ci_test
+      selection: blend
+      flavor: baseline
+      tag: test
+      algo: knn
+
+  # This makes a group of just one dataset, containing the p(z) dataset above
+  - DatasetList:
+      name: pz_dpf
+      dataset_class: rail.plotting.pz_dist_plotters.RailPZDistributionDataset
+      datasets:
+        - pz_pdf

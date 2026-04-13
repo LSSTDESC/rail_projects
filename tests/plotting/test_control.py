@@ -82,3 +82,34 @@ def test_run(setup_project_area: int) -> None:
 
     assert isinstance(plot_holder.plotter, RailPlotter)
     assert isinstance(plot_holder.dataset_holder, RailDatasetHolder)
+
+@pytest.mark.parametrize(
+    "dataset_holder_class, output_yaml",
+    [
+        (
+            "rail.plotting.pz_data_holders.RailPZPointEstimateDataHolder",
+            "tests/temp_data/point_estimate.yaml",
+        ),
+        (
+            "rail.plotting.pz_data_holders.RailPZPdfDataHolder",
+            "tests/temp_data/point_estimate.yaml",
+        ),
+    ]
+)
+def test_extract(
+    setup_project_area: int,
+    dataset_holder_class: str,
+    output_yaml: str,
+) -> None:
+    assert setup_project_area == 0
+    control.clear()
+    control.extract_datasets(
+        "tests/ci_project.yaml",
+        dataset_holder_class,
+        output_yaml,
+        selections=["all"],
+        flavors=["all"],
+        split_by_flavor=True,
+    )
+
+    

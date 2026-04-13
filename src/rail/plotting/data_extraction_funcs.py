@@ -236,6 +236,51 @@ def make_z_true_multi_z_point_dict(
     return out_dict
 
 
+def get_pz_pdf_data(
+    project: RailProject,
+    selection: str,
+    flavor: str,
+    tag: str,
+    algo: str,
+) -> dict[str, Any] | None:
+    """Get the true redshifts and point estimates
+    for a particualar analysis selection and flavor
+
+    Parameters
+    ----------
+    project: RailProject
+        Object with information about the structure of the current project
+
+    selection: str
+        Data selection in question, e.g., 'gold', or 'blended'
+
+    flavor: str
+        Analysis flavor in question, e.g., 'baseline' or 'zCosmos'
+
+    algo: str
+        Algorithm we want the estimates for, e.g., 'knn', 'bpz'], etc...
+
+    tag: str
+        File tag, e.g., 'test' or 'train', or 'train_zCosmos'
+
+    Returns
+    -------
+    pz_data: dict[str, Any] | None
+        Data in question or None if a file is missing
+    """
+    z_true_path = path_funcs.get_z_true_path(project, selection, flavor, tag)
+    z_estimate_path = path_funcs.get_ceci_pz_output_path(
+        project, selection, flavor, algo
+    )
+    if z_estimate_path is None:  # pragma: no cover
+        return None
+    z_true_data = extract_z_true(z_true_path)
+    z_pdf_data = extract_z_pdf(z_estimate_path)
+    pz_data = dict(truth=z_true_data, pz=z_pdf_data)
+    return pz_data
+
+
+
 def get_pz_point_estimate_data(
     project: RailProject,
     selection: str,
