@@ -84,7 +84,7 @@ class SpecSelectionMerger(RailMerger):
             input_dataframes.append(input_dataframe)
 
         merged = union_dataframes_deduplicated(input_dataframes, self.config.merge_col)
-        input_keys = [item_[0] for item in self.config.inputs.items()]
+        input_keys = [item_[0] for item_ in self.config.inputs.items()]
 
         # Set the missing items to False
         
