@@ -855,7 +855,7 @@ class RailPipelineInstance(Configurable):
         if catalog_tag:
             try:
                 CatalogTag.apply(catalog_tag)
-            except KeyError as msg:  # pragma: no cover
+            except KeyError:  # pragma: no cover
                 tokens = catalog_tag.split(".")
                 module_name = ".".join(tokens[:-1])
                 if not module_name:

@@ -12,12 +12,17 @@ class RailMerge(Configurable):
 
     This is just defined as a random number seed and a number of objects
     """
+
     config_options: dict[str, StageParameter] = dict(
-        merge_col=StageParameter(str, "object_id", fmt="%s", required=True, msg="Merge column name"),
+        merge_col=StageParameter(
+            str, "object_id", fmt="%s", required=True, msg="Merge column name"
+        ),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
-        output_basename=StageParameter(str, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(
+            str, None, fmt="%s", msg="Input catalog detatils"
+        ),
     )
-    
+
     yaml_tag = "Merge"
 
     def __init__(self, **kwargs: Any):

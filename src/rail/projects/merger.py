@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import math
 import os
 from typing import Any
 
-import numpy as np
-import yaml
 import tables_io
 
 from ceci.config import StageParameter
@@ -54,7 +51,7 @@ class RailMerger(Configurable, DynamicClass):
 
         output_catalog:
             Path to the output file
-            
+
         """
         raise NotImplementedError()
 
@@ -64,9 +61,13 @@ class SpecSelectionMerger(RailMerger):
 
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Merger Name"),
-        merge_col=StageParameter(str, "object_id", fmt="%s", required=True, msg="Merge column name"),
+        merge_col=StageParameter(
+            str, "object_id", fmt="%s", required=True, msg="Merge column name"
+        ),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
-        output_basename=StageParameter(str, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(
+            str, None, fmt="%s", msg="Input catalog detatils"
+        ),
     )
 
     def run(
