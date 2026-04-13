@@ -8,5 +8,4 @@ modifications.
 from . import library, name_utils
 from .project import RailFlavor, RailProject
 
-
 __all__ = ["library", "name_utils", "RailFlavor", "RailProject"]

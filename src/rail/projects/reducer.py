@@ -8,7 +8,6 @@ import numpy as np
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
-import yaml
 from ceci.config import StageParameter
 from pyarrow import acero
 from rail.core.configurable import Configurable
@@ -82,7 +81,7 @@ COLUMNS_FLAGSHIP = [
     "roman_J_el_model3_ext",
     "roman_H_el_model3_ext",
     "roman_F_el_model3_ext",
-    "roman_K_el_model3_ext",    
+    "roman_K_el_model3_ext",
     "euclid_nisp_h_el_model3_ext",  # euclid bands (noiseless)
     "euclid_nisp_j_el_model3_ext",
     "euclid_nisp_y_el_model3_ext",
@@ -309,7 +308,7 @@ PROJECTIONS_FLAGSHIP = [
         "mag_y_lsst": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("lsst_y_el_model3_ext"))),
             pc.scalar(48.6),
-        ),        
+        ),
         "mag_Y_roman": pc.subtract(
             pc.multiply(pc.scalar(-2.5), pc.log10(pc.field("roman_Y_el_model3_ext"))),
             pc.scalar(48.6),
@@ -440,7 +439,7 @@ DROP_COLS_FLAGSHIP: list[str] = [
     "roman_J_el_model3_ext",
     "roman_H_el_model3_ext",
     "roman_F_el_model3_ext",
-    "roman_K_el_model3_ext",    
+    "roman_K_el_model3_ext",
     "euclid_nisp_h_el_model3_ext",
     "euclid_nisp_j_el_model3_ext",
     "euclid_nisp_y_el_model3_ext",
@@ -498,7 +497,9 @@ class RailReducer(Configurable, DynamicClass):
     config_options: dict[str, StageParameter] = dict(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
-        healpix_cuts=StageParameter(dict, {}, fmt="%s", msg="Healpix cuts, empty for no cut"),
+        healpix_cuts=StageParameter(
+            dict, {}, fmt="%s", msg="Healpix cuts, empty for no cut"
+        ),
     )
 
     sub_classes: dict[str, type[DynamicClass]] = {}
@@ -541,7 +542,7 @@ class RailReducer(Configurable, DynamicClass):
         try:
             parsed_filter = parse_item(self.config.cuts)
             predicate = pq.filters_to_expression(parsed_filter)
-        except Exception as msg:
+        except Exception:
             # Fallback to old way.  FIXME, deprecate this
             predicate = self._fallback_predicate()
 
@@ -590,36 +591,35 @@ class RailReducer(Configurable, DynamicClass):
 
         # batches = plan.to_reader(use_threads=True)
         table = plan.to_table(use_threads=True)
-        
+
         if self.drop_columns:
-            table = table.drop_columns(self.drop_columns)        
-        
-        rename_dict = {'shift_ra': 'ra', 'shift_dec' : 'dec'}
-        renamed_cols = [ rename_dict.get(c, c) for c in table.column_names]
+            table = table.drop_columns(self.drop_columns)
+
+        rename_dict = {"shift_ra": "ra", "shift_dec": "dec"}
+        renamed_cols = [rename_dict.get(c, c) for c in table.column_names]
         table = table.rename_columns(renamed_cols)
-        
+
         if self.config.healpix_cuts:  # pragma: no cover
             table = add_healpix_column(
                 table,
-                ra_col=self.config.healpix_cuts['ra_col'],
-                dec_col=self.config.healpix_cuts['dec_col'],
-                nside=self.config.healpix_cuts['nside'],
-                output_col='healpix',
-                nest=self.config.healpix_cuts['nest'],
+                ra_col=self.config.healpix_cuts["ra_col"],
+                dec_col=self.config.healpix_cuts["dec_col"],
+                nside=self.config.healpix_cuts["nside"],
+                output_col="healpix",
+                nest=self.config.healpix_cuts["nest"],
             )
             table = filter_by_healpix_pixels(
                 table,
-                self.config.healpix_cuts['pixels'],
-                healpix_col='healpix',
+                self.config.healpix_cuts["pixels"],
+                healpix_col="healpix",
             )
-            
+
         print(f"writing dataset to {output_catalog}")
 
         output_dir = os.path.dirname(output_catalog)
 
         os.makedirs(output_dir, exist_ok=True)
         pq.write_table(table, output_catalog)
-
 
 
 class RomanRubinReducer(RailReducer):
@@ -634,11 +634,9 @@ class RomanRubinReducer(RailReducer):
             if "maglim_i" in self.config.cuts:
                 predicate = pc.field("LSST_obs_i") < self.config.cuts["maglim_i"][1]
             elif "maglim_Y" in self.config.cuts:
-                predicate = (
-                    pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
-                )
+                predicate = pc.field("ROMAN_obs_Y106") < self.config.cuts["maglim_Y"][1]
             else:
-                raise ValueError("No valid cut") from msg
+                raise ValueError("No valid cut")
         else:  # pragma: no cover
             predicate = None
         return predicate
@@ -662,7 +660,7 @@ class CardinalReducer(RailReducer):
             elif "maglim_Y" in self.config.cuts:
                 predicate = pc.field("Roman_Y106") < self.config.cuts["maglim_Y"][1]
             else:
-                raise ValueError("No valid cut") from msg
+                raise ValueError("No valid cut")
         else:  # pragma: no cover
             predicate = None
         return predicate
@@ -690,7 +688,7 @@ class FlagshipReducer(RailReducer):
                     < self.config.cuts["maglim_i"][1]
                 )
             else:
-                raise ValueError("No valid cut") from msg
+                raise ValueError("No valid cut")
         else:  # pragma: no cover
             predicate = None
 

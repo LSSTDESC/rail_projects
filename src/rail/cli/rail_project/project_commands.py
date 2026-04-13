@@ -163,7 +163,7 @@ def merge_command(
 
     ok = 0
     for kw in iter_kwargs:
-        output_path = project.merge_data(
+        _output_path = project.merge_data(
             dry_run=dry_run,
             **kw,
             **kwargs,
