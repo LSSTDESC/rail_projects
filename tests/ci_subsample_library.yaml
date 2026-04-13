@@ -1,0 +1,137 @@
+# This is the "library" of common defintions shared between similar projects
+
+# Templates we use to define catalogs
+#
+# A CatalogTemplate can be given several interpolants to resolve to a specific Catalog
+#
+# Some of the interpolants [{catalogs_dir}, {project}, {sim_version}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
+#
+# Possible values of {flavor} are defined the the Project "Flavors" block
+Catalogs:
+  # Data output from running some degraders on the original catalog
+  # Note that the {basename} can be used to select which degraded output we want
+  - CatalogTemplate:
+      name: degraded
+      path_template: "{catalogs_dir}/{project}_{selection}_{flavor}/{healpix}/{basename}"
+      iteration_vars: ['healpix']
+
+
+# This file describes the templates we use to define files and specfic instances
+# of files
+#
+# A FileTemplate can be given several interpolants to resolve to a specific FileInstance
+#
+# Some of the interpolants [{catalogs_dir}, {project}]
+# are defined in the Project CommonPaths block
+#
+# Possibles values of {selection} are defined the the library "Selections" block
+Files:
+  - FileTemplate:
+      name: spec_area_1k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_spec_area_1k.hdf5"
+  - FileTemplate:
+      name: multi_cat_1k
+      path_template: "{catalogs_dir}/test/{project}_{selection}_multi_cat_1k.hdf5"
+
+
+# These describe the ways we can sub-sample the data
+Subsamplers:
+  - Subsampler:
+      name: multi_catalog_subsampler
+      Subsample: MultiCatalogSubsampler
+      Module: rail.projects.subsampler
+  - Subsampler:
+      name: spec_area_subsampler
+      Subsample: SpecAreaSubsampler
+      Module: rail.projects.subsampler
+
+
+# These describe the subsampling used to make test and training datasets
+Subsamples:
+  # Multi-catalog with 1000 events
+  - Subsample:
+      # Combine roman and rubin 1yr and grab 1k events for training
+      name: multi_cat
+      object_id_col: "object_id"
+      seed: 1230
+      num_objects: 100
+      inputs:
+        rubin:
+          basename: output_select_lsst_obs_cond_10yr_VVDSf02.pq
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']
+          mag_band_name_template: "mag_{band}_lsst"
+          mag_err_band_name_template: "mag_{band}_lsst_err"
+          cuts:
+            - ['mag_i_lsst', '<', 23]
+          extra_cols: ['redshift', 'ra', 'dec']
+        roman:
+          basename: output_error_model_roman_medium.pq
+          bands: ['Y', 'J', 'H']
+          mag_band_name_template: "mag_{band}_roman"
+          mag_err_band_name_template: "mag_{band}_roman_err"
+          extra_cols: []
+
+  # Spec-ara with 1000 events
+  - Subsample:
+      name: spec_area
+      object_id_col: "object_id"
+      ra_col: "ra"
+      dec_col: "dec"
+      seed: 1230
+      num_objects: 100
+      spec_inputs:
+        zCOSMOS:
+          basename: output_select_lsst_obs_cond_10yr_zCOSMOS.pq
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']
+          mag_band_name_template: "mag_{band}_lsst"
+          mag_err_band_name_template: "mag_{band}_lsst_err"
+          extra_cols: ['redshift', 'ra', 'dec']
+          cuts:
+            - ['mag_i_lsst', '<', 25.4]
+          area_cut:
+            ra_center: 9.0
+            dec_center: -42.0
+            area_sq_deg: 2.0
+        VVDSf02:
+          basename: output_select_lsst_obs_cond_10yr_VVDSf02.pq
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']
+          mag_band_name_template: "mag_{band}_lsst"
+          mag_err_band_name_template: "mag_{band}_lsst_err"
+          extra_cols: ['redshift', 'ra', 'dec']
+          cuts:
+            - ['mag_i_lsst', '<', 25.4]
+          area_cut:
+            ra_center: 14.0
+            dec_center: -42.0
+            area_sq_deg: 0.6
+        DEEP2_LSST:
+          basename: output_select_lsst_obs_cond_10yr_DEEP2_LSST.pq
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']
+          mag_band_name_template: "mag_{band}_lsst"
+          mag_err_band_name_template: "mag_{band}_lsst_err"
+          extra_cols: ['redshift', 'ra', 'dec']
+          cuts:
+            - ['mag_i_lsst', '<', 25.4]
+          area_cut:
+            ra_center: 9.0
+            dec_center: -46.0
+            area_sq_deg: 2.0
+        DESI_BGS:
+          basename: output_select_lsst_obs_cond_10yr_DESI_BGS_flagship.pq
+          bands: ['u', 'g', 'r', 'i', 'z', 'y']
+          mag_band_name_template: "mag_{band}_lsst"
+          mag_err_band_name_template: "mag_{band}_lsst_err"
+          extra_cols: ['redshift', 'ra', 'dec']
+          cuts:
+            - ['mag_i_lsst', '<', 25.4]
+      # DESI_LRG, DESI_ELG_LOP etc. follow same pattern (no area_cut = full sky)
+      photometric_inputs:
+        roman:
+          basename: output_error_model_roman_medium.pq
+          bands: ['Y', 'J', 'H']
+          mag_band_name_template: "mag_{band}_roman"
+          mag_err_band_name_template: "mag_{band}_roman_err"
+          extra_cols: []

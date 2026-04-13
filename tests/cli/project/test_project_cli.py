@@ -52,7 +52,7 @@ def test_cli_reduce() -> None:
     check_result(result)
 
 
-def test_cli_subsample() -> None:
+def test_cli_subsample_random() -> None:
     runner = CliRunner()
 
     result = runner.invoke(
@@ -67,6 +67,42 @@ def test_cli_subsample() -> None:
         "--selection gold "
         "--basename output.hdf5 "
         "tests/ci_project.yaml",
+    )
+    check_result(result)
+
+
+def test_cli_subsample_multi_cat() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        project_cli,
+        "subsample "
+        "--catalog-template degraded "
+        "--flavor baseline "
+        "--file-template multi_cat_1k "
+        "--subsampler-class-name multi_catalog_subsampler "
+        "--subsample-name multi_cat "
+        "--run-mode dry_run "
+        "--selection gold "
+        "tests/ci_subsample.yaml",
+    )
+    check_result(result)
+
+
+def test_cli_subsample_spec_area() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        project_cli,
+        "subsample "
+        "--catalog-template degraded "
+        "--flavor baseline "
+        "--file-template spec_area_1k "
+        "--subsampler-class-name spec_area_subsampler "
+        "--subsample-name spec_area "
+        "--run-mode dry_run "
+        "--selection gold "
+        "tests/ci_subsample.yaml",
     )
     check_result(result)
 
