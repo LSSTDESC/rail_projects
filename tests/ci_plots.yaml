@@ -125,3 +125,22 @@ Plots:
         - magnitudes
         - magnitudes_v_truth
         - colors_v_truth
+
+  # PIT prob plot
+  - Plotter:
+      name: pit_prob
+      class_name: rail.plotting.pz_dist_plotters.PZPlotterPITProb
+      n_prob_bins: 100
+
+  # PIT QQ plot
+  - Plotter:
+      name: pit_qq
+      class_name: rail.plotting.pz_dist_plotters.PZPlotterPITQQ
+      n_prob_bins: 100
+
+  - PlotterList:
+      name: pit_plots
+      dataset_holder_class: rail.plotting.pz_data_holders.RailPZPdfDataHolder
+      plotters:
+        - pit_prob
+        - pit_qq

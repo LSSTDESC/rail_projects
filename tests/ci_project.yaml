@@ -3,7 +3,7 @@ Project:
   Name: ci_test
 
   # Catalog Library
-  CatalogLib: 
+  CatalogLib:
     - tests/default_catalogs.yaml
 
   # Include other configuration files

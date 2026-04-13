@@ -35,12 +35,12 @@ Project:
         file_aliases:  # Set the training and test files
           test: test_file_100k
           train: train_file_zCOSMOS_100k
-    - Flavor
+    - Flavor:
         name: gpz_gl
         pipelines: ['pz']  # only run the pz pipeline
-        pipeline_overrids:  # Override specifics for particular pipelines
+        pipeline_overrides:  # Override specifics for particular pipelines
           default:
-            kwargs
+            kwargs:
               algorithms: ['gpz']  # Only run gpz
           inform:
             inform_gpz:

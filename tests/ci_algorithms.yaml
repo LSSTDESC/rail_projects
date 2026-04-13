@@ -107,7 +107,7 @@ Splitters:
       name: random_splitter
       Split: RandomSplitter
       Module: rail.projects.splitter
-  
+
 
 # These describe the ways we can reduce the data (by removing columns and applying selections)
 Reducers:

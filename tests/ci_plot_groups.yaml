@@ -43,3 +43,10 @@ PlotGroups:
       name: catalog_plots
       plotter_list_name: catalog_plots
       dataset_list_name: blend_baseline_catalog
+
+
+  # Make PIT plot
+  - PlotGroup:
+      name: pit_plots
+      plotter_list_name: pit_plots
+      dataset_list_name: pz_dpf
