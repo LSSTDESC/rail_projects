@@ -23,8 +23,6 @@ dynamic = ["version"]
 dependencies = [
     "pz-rail-base>=2.0",
     "pz-rail-pipelines",
-    "pz-rail-sompz",
-    "pz-rail-calib",
     "matplotlib",
     "yamllint",
     "pyarrow",
@@ -35,10 +33,14 @@ dependencies = [
 [project.optional-dependencies]
 full = [
     "pz-rail-pipelines[full]",
+    "pz-rail-sompz",
+    "pz-rail-calib",
 ]
 
 dev = [
     "pz-rail-pipelines[full]",
+    "pz-rail-sompz",
+    "pz-rail-calib",
     "coverage",
     "pytest",
     "ruff",
