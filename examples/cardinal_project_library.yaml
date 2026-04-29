@@ -91,6 +91,14 @@ SpecSelections:
       name: zCOSMOS
       Select: SpecSelection_zCOSMOS
       Module: rail.creation.degraders.spectroscopic_selections
+  - SpecSelection:
+      name: gaussian_skewt_scatter
+      Select: GaussianSkewtScatterSelector
+      Module: rail.creation.degraders.gaussian_skewt_scatter_selector
+      Overrides:
+        col_name: redshift_manyband
+        col_name_mag_i: mag_i_lsst
+        col_name_z: redshift
 
 
 # These describe all the algorithms that estimate PZ
