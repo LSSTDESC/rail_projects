@@ -92,7 +92,7 @@ SpecSelections:
       Select: SpecSelection_zCOSMOS
       Module: rail.creation.degraders.spectroscopic_selections
   - SpecSelection:
-      name: gaussian_skewt_scatter
+      name: COSMOS2020
       Select: GaussianSkewtScatterSelector
       Module: rail.creation.degraders.gaussian_skewt_scatter_selector
       Overrides:
