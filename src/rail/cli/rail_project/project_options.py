@@ -7,6 +7,7 @@ __all__: list[str] = [
     "RunMode",
     "args",
     "basename",
+    "cone_cut",
     "config_path",
     "convert_output",
     "catalog_template",
@@ -62,6 +63,13 @@ basename = PartialOption(
 config_file = PartialArgument(
     "config_file",
     type=click.Path(),
+)
+
+
+cone_cut = PartialOption(
+    "--cone-cut",
+    help="[RA, DEC, SIZE] in degrees for a cone selection",
+    type=str,
 )
 
 

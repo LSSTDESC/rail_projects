@@ -124,6 +124,10 @@ class MultiCatalogSubsampler(RailSubsampler):
             str, "object_id", fmt="%s", msg="Object Id column name"
         ),
         cuts=StageParameter(dict, None, fmt="%s", msg="Selection cuts"),
+        cone_cut=StageParameter(
+            list, None, fmt="%s", required=False,
+            msg="[RA, DEC, SIZE] in degrees for a cone selection",
+        ),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
     )
 
@@ -160,6 +164,47 @@ class MultiCatalogSubsampler(RailSubsampler):
         out_list += [mag_err_band_name_template.format(band=band_) for band_ in bands]
         return out_list
 
+    def _apply_cone_selection(self, dataset: ds.Dataset) -> ds.Dataset:
+        """
+        Apply a cone selection to filter objects within a specified angular distance.
+
+        Parameters
+        ----------
+        dataset
+            Input dataset with 'ra' and 'dec' columns in degrees
+
+        Returns
+        -------
+        ds.Dataset
+            Filtered dataset containing only objects within the cone
+        """
+        ra_center_rad = np.radians(self.config.cone_cut[0])
+        dec_center_rad = np.radians(self.config.cone_cut[1])
+        cone_radius_rad = np.radians(self.config.cone_cut[2])
+
+        # Convert to radians
+        ra_rad = np.radians(dataset['ra'].to_numpy())
+        dec_rad = np.radians(dataset['dec'].to_numpy())
+
+        # Calculate angular separation using the haversine formula
+        delta_ra = ra_rad - ra_center_rad
+        delta_dec = dec_rad - dec_center_rad
+
+        # Haversine formula for great circle distance
+        a = (np.sin(delta_dec / 2)**2 +
+            np.cos(dec_center_rad) * np.cos(dec_rad) * np.sin(delta_ra / 2)**2)
+
+        angular_distance_rad = 2 * np.arcsin(np.sqrt(a))
+
+        # Create boolean mask for objects within the cone
+        mask = angular_distance_rad <= cone_radius_rad
+
+        # Apply the mask to filter the dataset
+        filtered_dataset = dataset[mask]
+
+        return filtered_dataset
+
+
     def _sub_selection(self, key: str, file_list: list[str]) -> ds.Dataset:
         sub_selection_params = self.config.inputs[key]
         if self.config.cuts is not None:
@@ -175,6 +220,8 @@ class MultiCatalogSubsampler(RailSubsampler):
         save_cols += self._get_mag_columns(sub_selection_params).copy()
         save_cols += sub_selection_params.get("extra_cols", [])
         filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
+        if self.config.cone_cut:
+            filtered = self._apply_cone_selection(filtered)
         return filtered
 
     def _merge_selection(self, selected_data: dict[str, ds.Dataset]) -> ds.Dataset:

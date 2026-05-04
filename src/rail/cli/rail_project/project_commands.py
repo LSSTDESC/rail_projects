@@ -181,6 +181,7 @@ def merge_command(
 @project_options.selection()
 @project_options.flavor()
 @project_options.basename()
+@project_options.cone_cut()
 def subsample_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
@@ -197,6 +198,12 @@ def subsample_command(
 
     if run_mode == project_options.RunMode.slurm:
         raise NotImplementedError("subsample_command not set up to run under slurm")
+
+    cone_cut_str = kwargs.pop('cone_cut')
+    if cone_cut_str:
+        tokens = cone_cut_str.replace('[', '').replace(']', '').split(',')
+        cone_cut = [float(tokens[0]), float(tokens[1]), float(tokens[2])]
+        kwargs['cone_cut'] = cone_cut
 
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
