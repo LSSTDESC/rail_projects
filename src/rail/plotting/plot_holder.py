@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Any
+import yaml
 
 from matplotlib.figure import Figure
+import numpy as np
 
 if TYPE_CHECKING:
     from .dataset_holder import RailDatasetHolder
@@ -23,6 +25,7 @@ class RailPlotHolder:
         figure: Figure | None = None,
         plotter: RailPlotter | None = None,
         dataset_holder: RailDatasetHolder | None = None,
+        data: dict[str, Any] | None = None,
     ):
         """C'tor"""
         self._name = name
@@ -30,6 +33,7 @@ class RailPlotHolder:
         self._figure = figure
         self._plotter = plotter
         self._dataset_holder = dataset_holder
+        self._data = data
 
     @property
     def name(self) -> str:
@@ -55,6 +59,11 @@ class RailPlotHolder:
     def dataset_holder(self) -> RailDatasetHolder | None:
         """Return the dataset used to make the plot"""
         return self._dataset_holder
+
+    @property
+    def data(self) -> dict[str, Any] | None:
+        """Return the data used to make the plot"""
+        return self._data
 
     def set_path(
         self,
@@ -82,6 +91,29 @@ class RailPlotHolder:
         self.set_path(relpath)
         fullpath = os.path.join(outdir, relpath)
         self.figure.savefig(fullpath, **kwargs)
+
+    def savedata(
+        self,
+        outdir: str = ".",
+    ) -> None:
+        if self.data is None:  # pragma: no cover
+            raise ValueError(f"Tried to savedata missing data {self.name}")
+
+        fullpath = os.path.join(outdir, f"{self.path}.yaml")
+
+        yaml_data: dict[str, Any] = {}
+        for k, v in self.data.items():
+            if isinstance(v, (np.floating, float)):
+                yaml_data[k] = float(v)
+            elif isinstance(v, np.ndarray) and v.ndim == 0:
+                yaml_data[k] = float(v)
+            elif isinstance(v, np.ndarray):
+                yaml_data[k] = v.tolist()
+            else:
+                yaml_data[k] = v
+
+        with open(fullpath, "w", encoding="utf-8") as fout:
+            yaml.dump(yaml_data, fout, default_flow_style=False, sort_keys=False)
 
 
 class RailPlotDict:
@@ -116,7 +148,7 @@ class RailPlotDict:
             os.makedirs(outpath)
         for _key, val in self._plots.items():
             if val.path:  # pragma: no cover
-                val.savefig(val.path, outpath, **kwargs)
+                val.savedata(outpath, **kwargs)
             else:
                 val.savefig(
                     os.path.join(os.path.basename(outpath), f"{val.name}.{figtype}"),
@@ -125,3 +157,18 @@ class RailPlotDict:
                 )
             if purge:
                 val.set_figure(None)
+
+    def savedata(
+        self,
+        outpath: str = ".",
+    ) -> None:
+
+        if not os.path.exists(outpath):  # pragma: no cover
+            os.makedirs(outpath)
+
+        for _key, val in self._plots.items():
+            if val.path:  # pragma: no cover
+                val.savedata(outpath)
+            else:
+                val.set_path(val.name)
+                val.savedata(outpath)

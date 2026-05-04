@@ -280,7 +280,6 @@ def get_pz_pdf_data(
     return pz_data
 
 
-
 def get_pz_point_estimate_data(
     project: RailProject,
     selection: str,

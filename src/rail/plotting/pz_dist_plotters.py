@@ -20,12 +20,12 @@ class RailPZDistributionDataset(RailDataset):
     """Dataet to hold a vector p(z) point estimates and corresponding
     true redshifts
     """
+
     data_types = dict(truth=np.ndarray, pz=qp.Ensemble)
 
 
 class PZPlotterPITProb(RailPlotter):
-    """Class to plot the p(z_true)
-    """
+    """Class to plot the p(z_true)"""
 
     config_options: dict[str, StageParameter] = RailPlotter.config_options.copy()
     config_options.update(
@@ -44,14 +44,12 @@ class PZPlotterPITProb(RailPlotter):
         figure, axes = plt.subplots(figsize=(7, 6))
 
         pit = qp.metrics.PIT(pz, truth)
-        bin_edges = np.linspace(
-            0., 1., self.config.n_prob_bins + 1
-        )
+        bin_edges = np.linspace(0.0, 1.0, self.config.n_prob_bins + 1)
 
-        pdf_vals = pit.pit.pdf(np.linspace(0, 1))
-        mean = 1./pdf_vals.mean()
-        _ = axes.plot(np.linspace(0, 1), pit.pit.pdf(np.linspace(0, 1)))
-        _ = axes.plot([0, 1], [mean, mean], "--", color='black')
+        pdf_vals = np.squeeze(pit.pit.pdf(bin_edges))
+        mean = 1.0 / pdf_vals.mean()
+        _ = axes.plot(bin_edges, pdf_vals)
+        _ = axes.plot([0, 1], [mean, mean], "--", color="black")
         _ = axes.set_xlabel("Q")
         _ = axes.set_ylabel(r"$P(z_{\rm ref})$")
         _ = plt.xlim(0, 1)
@@ -59,7 +57,14 @@ class PZPlotterPITProb(RailPlotter):
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
-            name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
+            name=plot_name,
+            figure=figure,
+            plotter=self,
+            dataset_holder=dataset_holder,
+            data=dict(
+                x_vals=bin_edges,
+                y_vals=pdf_vals,
+            ),
         )
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
@@ -89,10 +94,8 @@ class PZPlotterPITProb(RailPlotter):
         return out_dict
 
 
-
 class PZPlotterPITQQ(RailPlotter):
-    """Class to plot the p(z_true > z(Q))
-    """
+    """Class to plot the p(z_true > z(Q))"""
 
     config_options: dict[str, StageParameter] = RailPlotter.config_options.copy()
     config_options.update(
@@ -111,17 +114,16 @@ class PZPlotterPITQQ(RailPlotter):
         figure, axes = plt.subplots(figsize=(7, 6))
 
         pit = qp.metrics.PIT(pz, truth)
-        bin_edges = np.linspace(
-            0., 1., self.config.n_prob_bins + 1
-        )
+        bin_edges = np.linspace(0.0, 1.0, self.config.n_prob_bins + 1)
 
         ks = pit.evaluate_PIT_KS().statistic
         outlier = pit.evaluate_PIT_outlier_rate()
         CvM = pit.evaluate_PIT_CvM().statistic
         ksamp = pit.evaluate_PIT_anderson_ksamp().statistic
+        cdf_vals = pit.pit.cdf(bin_edges)
 
-        _ = axes.plot(np.linspace(0, 1, 101), pit.pit.cdf(np.linspace(0, 1, 101)))
-        _ = axes.plot([0, 1], [0, 1], "--", color='black')
+        _ = axes.plot(bin_edges, cdf_vals)
+        _ = axes.plot([0, 1], [0, 1], "--", color="black")
         _ = axes.plot(
             [],
             [],
@@ -144,7 +146,16 @@ class PZPlotterPITQQ(RailPlotter):
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
-            name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
+            name=plot_name,
+            figure=figure,
+            plotter=self,
+            dataset_holder=dataset_holder,
+            data=dict(
+                ks=ks,
+                outlier=outlier,
+                CvM=CvM,
+                ksamp=ksamp,
+            ),
         )
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
