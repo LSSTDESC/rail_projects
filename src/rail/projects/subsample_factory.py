@@ -31,6 +31,13 @@ class RailSubsample(Configurable):
         inputs=StageParameter(
             dict, None, fmt="%s", required=False, msg="Input catalog detatils"
         ),
+        cone_cut=StageParameter(
+            list,
+            None,
+            fmt="%s",
+            required=False,
+            msg="[RA, DEC, SIZE] in degrees for a cone selection",
+        ),
         # Fields used by SpecAreaSubsampler (ignored by other subsamplers)
         ra_col=StageParameter(
             str, "ra", required=False, fmt="%s", msg="RA column name for area cuts"
