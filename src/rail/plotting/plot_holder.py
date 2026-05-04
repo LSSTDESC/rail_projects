@@ -148,7 +148,7 @@ class RailPlotDict:
             os.makedirs(outpath)
         for _key, val in self._plots.items():
             if val.path:  # pragma: no cover
-                val.savedata(outpath, **kwargs)
+                val.savefig(val.path, os.path.dirname(outpath), **kwargs)
             else:
                 val.savefig(
                     os.path.join(os.path.basename(outpath), f"{val.name}.{figtype}"),
