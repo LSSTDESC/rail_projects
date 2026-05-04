@@ -31,6 +31,27 @@ class RailSubsample(Configurable):
         inputs=StageParameter(
             dict, None, fmt="%s", required=False, msg="Input catalog detatils"
         ),
+        # Fields used by SpecAreaSubsampler (ignored by other subsamplers)
+        ra_col=StageParameter(
+            str, "ra", required=False, fmt="%s", msg="RA column name for area cuts"
+        ),
+        dec_col=StageParameter(
+            str, "dec", required=False, fmt="%s", msg="Dec column name for area cuts"
+        ),
+        spec_inputs=StageParameter(
+            dict,
+            None,
+            required=False,
+            fmt="%s",
+            msg="Per-survey spec inputs with optional area_cut (SpecAreaSubsampler)",
+        ),
+        photometric_inputs=StageParameter(
+            dict,
+            None,
+            required=False,
+            fmt="%s",
+            msg="Photometric inputs to inner-join with spec union (SpecAreaSubsampler)",
+        ),
     )
     yaml_tag = "Subsample"
 
@@ -47,6 +68,10 @@ class RailSubsample(Configurable):
 
     def __repr__(self) -> str:
         return f"N={self.config.num_objects} seed={self.config.seed}"
+
+    def is_spec_area_subsample(self) -> bool:
+        """Return True if this subsample is configured for SpecAreaSubsampler."""
+        return self.config.spec_inputs is not None
 
 
 class RailSubsampleFactory(RailFactoryMixin):

@@ -264,6 +264,26 @@ def setup_project_area() -> int:  # pragma: no cover
             "tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"
         ):
             return 3
+
+    if not os.path.exists("tests/temp_data/data/ci_test_subsample_gold_baseline.tgz"):
+        urllib.request.urlretrieve(
+            # "https://portal.nersc.gov/cfs/lsst/PZ/test_data/ci_test.tgz",
+            "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test_subsample_gold_baseline.tgz",
+            "tests/temp_data/data/ci_test_subsample_gold_baseline.tgz",
+        )
+        if not os.path.exists("tests/temp_data/data/ci_test_subsample_gold_baseline.tgz"):
+            return 4
+
+    if not os.path.exists("tests/temp_data/data/ci_test_subsample_gold_baseline"):
+        status = subprocess.run(
+            ["tar", "zxvf", "tests/temp_data/data/ci_test_subsample_gold_baseline.tgz", "-C", "tests/temp_data/data"], check=False
+        )
+        if status.returncode != 0:
+            return status.returncode
+
+    if not os.path.exists("tests/temp_data/data/ci_test_subsample_gold_baseline/28/output_error_model_roman_medium.pq"):
+        return 2
+
     return 0
 
 
