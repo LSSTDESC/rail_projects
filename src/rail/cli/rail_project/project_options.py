@@ -116,6 +116,8 @@ flavor = PartialOption(
 label = PartialOption(
     "--label",
     help="File label (e.g., 'test' or 'train')",
+    required=False,
+    default=None,
     type=str,
 )
 
