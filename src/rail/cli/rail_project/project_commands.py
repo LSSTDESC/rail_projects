@@ -181,6 +181,7 @@ def merge_command(
 @project_options.selection()
 @project_options.flavor()
 @project_options.basename()
+@project_options.label()
 @project_options.cone_cut()
 def subsample_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
