@@ -406,7 +406,12 @@ class RailReducer(Configurable, DynamicClass):
 class RomanRubinReducer(RailReducer):
     """Class to reduce the 'roman_rubin' simulation input files for pz analysis"""
 
-    config_options: dict[str, StageParameter] = dict(
+    #config_options: dict[str, StageParameter] = dict(
+    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    #)
+    config_options = RailReducer.config_options.copy()
+    config_options.update(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
@@ -688,7 +693,12 @@ class FlagshipReducer(RailReducer):
 class ComCamReducer(RailReducer):
     """Class to reduce the 'com_cam' input files for pz analysis"""
 
-    config_options: dict[str, StageParameter] = dict(
+    #config_options: dict[str, StageParameter] = dict(
+    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    #)
+    config_options = RailReducer.config_options.copy()
+    config_options.update(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
@@ -773,7 +783,12 @@ class ComCamReducer(RailReducer):
 class DP1Reducer(RailReducer):
     """Class to reduce the 'DP1' input files for pz analysis"""
 
-    config_options: dict[str, StageParameter] = dict(
+    #config_options: dict[str, StageParameter] = dict(
+    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    #)
+    config_options = RailReducer.config_options.copy()
+    config_options.update(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
