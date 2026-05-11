@@ -172,6 +172,8 @@ Reducers:
       name: cardinal
       Reduce: CardinalReducer
       Module: rail.projects.reducer
+      rotation_angles: [60, 0, 0]
+      flip_dec: true
 
 
 # These describe the various data analysis pipelines

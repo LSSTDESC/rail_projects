@@ -168,6 +168,8 @@ Reducers:
       name: flagship
       Reduce: FlagshipReducer
       Module: rail.projects.reducer
+      rotation_angles: [-180, 0, 0]
+      flip_dec: true
 
 
 # These describe the various data analysis pipelines

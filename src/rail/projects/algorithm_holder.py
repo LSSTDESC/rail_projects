@@ -223,6 +223,18 @@ class RailReducerAlgorithmHolder(RailAlgorithmHolder):
             required=True,
             msg="Data Reducer Class",
         ),
+        rotation_angle=StageParameter(
+            list, 
+            [0.0, 0.0, 0.0], 
+            fmt="%s",
+            msg="Three rotation angles, applied to RA, DEC, and around the line of sight axis",
+        ),
+        flip_dec=StageParameter(
+            float, 
+            False, 
+            fmt="%f",
+            msg="Shortcut to flip sign of Dec. If True, multiply Dec by -1. Excecuted BEFORE the rotator",
+        ),
     )
     yaml_tag = "Reducer"
 
