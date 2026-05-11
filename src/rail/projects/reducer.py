@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import numpy as np
+import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
@@ -22,6 +23,7 @@ def rotate_gal_pyarrow(ra, dec, rot_ra, rot_dec, rot_x_ang=0):
     Rotate ra, dec in degrees to new coordinate 
     given three rotation angles
     """
+
     # --- Degrees to radians ---
     k = math.pi / 180.0
     ra_r  = pc.multiply(ra,  k)
@@ -36,23 +38,23 @@ def rotate_gal_pyarrow(ra, dec, rot_ra, rot_dec, rot_x_ang=0):
 
     # --- Step 2a: rot_z(-phi) ---
     cp, sp = math.cos(-phi_r), math.sin(-phi_r)
-    x1 = pc.subtract(pc.multiply(cp, x), pc.multiply(sp, y))
-    y1 = pc.add(pc.multiply(sp, x), pc.multiply(cp, y))
+    x1 = pc.subtract(pc.multiply(pc.scalar(cp), x), pc.multiply(pc.scalar(sp), y))
+    y1 = pc.add(pc.multiply(pc.scalar(sp), x), pc.multiply(pc.scalar(cp), y))
     z1 = z
 
     # --- Step 2b: rot_y(theta) ---
     ct, st = math.cos(theta_r), math.sin(theta_r)
-    x2 = pc.add(pc.multiply(ct, x1), pc.multiply(st, z1))
+    x2 = pc.add(pc.multiply(pc.scalar(ct), x1), pc.multiply(pc.scalar(st), z1))
     y2 = y1
-    z2 = pc.subtract(pc.multiply(ct, z1), pc.multiply(st, x1))
+    z2 = pc.subtract(pc.multiply(pc.scalar(ct), z1), pc.multiply(pc.scalar(st), x1))
 
     # --- Step 2c: Optional rot_x ---
     if rot_x_ang != 0:
         cx = math.cos(rot_x_ang * k)
         sx = math.sin(rot_x_ang * k)
         x3 = x2
-        y3 = pc.subtract(pc.multiply(cx, y2), pc.multiply(sx, z2))
-        z3 = pc.add(pc.multiply(sx, y2), pc.multiply(cx, z2))
+        y3 = pc.subtract(pc.multiply(pc.scalar(cx), y2), pc.multiply(pc.scalar(sx), z2))
+        z3 = pc.add(pc.multiply(pc.scalar(sx), y2), pc.multiply(pc.scalar(cx), z2))
     else:
         x3, y3, z3 = x2, y2, z2
 
@@ -491,7 +493,12 @@ class CardinalReducer(RailReducer):
        preprocessing stage was performed to put them into pyarrow parquet
     """
 
-    config_options: dict[str, StageParameter] = dict(
+    #config_options: dict[str, StageParameter] = dict(
+    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    #)
+    config_options = RailReducer.config_options.copy()
+    config_options.update(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
@@ -546,9 +553,9 @@ class CardinalReducer(RailReducer):
             dec = pc.multiply(pc.scalar(-1), pc.field("dec"))
         else:
             dec = pc.field("dec")     
-        new_ra, new_dec rotate_gal_pyarrow(ra, dec, float(rot_ra), float(rot_dec), rot_x_ang=float(rot_x))
-        PROJECTIONS_CARDINAL['shift_ra'] = new_ra
-        PROJECTIONS_CARDINAL['shift_dec'] = new_dec
+        new_ra, new_dec = rotate_gal_pyarrow(ra, dec, float(rot_ra), float(rot_dec), rot_x_ang=float(rot_x))
+        PROJECTIONS_CARDINAL[0]['shift_ra'] = new_ra
+        PROJECTIONS_CARDINAL[0]['shift_dec'] = new_dec
         
         column_projection = {k: pc.field(k) for k in COLUMNS_CARDINAL}
         projection = column_projection
@@ -585,7 +592,12 @@ class CardinalReducer(RailReducer):
 class FlagshipReducer(RailReducer):
     """Class to reduce the 'flagship' simulation input files for pz analysis"""
 
-    config_options: dict[str, StageParameter] = dict(
+    #config_options: dict[str, StageParameter] = dict(
+    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    #)
+    config_options = RailReducer.config_options.copy()
+    config_options.update(
         name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
         cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
     )
@@ -637,9 +649,9 @@ class FlagshipReducer(RailReducer):
             dec = pc.multiply(pc.scalar(-1), pc.field("dec_mag_gal"))
         else:
             dec = pc.field("dec_mag_gal")     
-        new_ra, new_dec rotate_gal_pyarrow(ra, dec, float(rot_ra), float(rot_dec), rot_x_ang=float(rot_x))
-        PROJECTIONS_FLAGSHIP['ra'] = new_ra
-        PROJECTIONS_FLAGSHIP['dec'] = new_dec
+        new_ra, new_dec = rotate_gal_pyarrow(ra, dec, float(rot_ra), float(rot_dec), rot_x_ang=float(rot_x))
+        PROJECTIONS_FLAGSHIP[0]['ra'] = new_ra
+        PROJECTIONS_FLAGSHIP[0]['dec'] = new_dec
         
         column_projection = {k: pc.field(k) for k in COLUMNS_FLAGSHIP}
         projection = column_projection
