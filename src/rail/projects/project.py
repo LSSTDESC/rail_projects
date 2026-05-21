@@ -463,7 +463,14 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         assert issubclass(reducer_class, RailReducer)
 
         reducer_args = library.get_selection(selection)
-        reducer = reducer_class(**reducer_args.config.to_dict())
+
+        # also fetch the reducer configs:
+        reducer_config = reducer_args.config.to_dict()
+        reducer_holder = library.get_algorithm("Reducer", reducer_class_name)
+        reducer_config["rotation_angle"] = reducer_holder.config.rotation_angle
+        reducer_config["flip_dec"] = reducer_holder.config.flip_dec
+        reducer = reducer_class(**reducer_config)
+        #reducer = reducer_class(**reducer_args.config.to_dict())
 
         if not dry_run:  # pragma: no cover
             for source_, sink_ in zip(sources, sinks):
