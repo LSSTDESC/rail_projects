@@ -609,11 +609,10 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         subsampler_args = library.get_subsample(subsample_name)
 
         use_pairs = {
-            key: val
+            key: kwargs.get(key, val)
             for key, val in subsampler_args.config.to_dict().items()
             if key in subsampler_config_keys
         }
-
         subsampler = subsampler_class(**use_pairs)
 
         basename_dict: dict[str, str] = subsampler.get_basename_dict()
