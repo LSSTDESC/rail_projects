@@ -259,7 +259,7 @@ class MultiCatalogSubsampler(RailSubsampler):
             num_rows += num_rows_i
             print("num rows selected", idx, num_rows_i)
             temp_file = f"{output}.{idx}"            
-            pq.write_table(subset_i, temp_file)
+            pq.write_table(subset_i.to_table(), temp_file)
             all_selected.append(temp_file)
 
         print("concating")
