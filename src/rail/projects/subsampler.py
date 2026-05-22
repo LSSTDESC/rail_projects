@@ -242,26 +242,27 @@ class MultiCatalogSubsampler(RailSubsampler):
                 else:
                     dict_dict[i] = {key: vv}
 
-        all_selected = []
+        all_selected: list[str] = []
         num_rows = 0
-        for _, file_dict in dict_dict.items():
+        for idx, file_dict in dict_dict.items():
 
             selected_data = {
                 key: self._sub_selection(key, val) for key, val in file_dict.items()
             }
-            print("selecting", i)
+            print("selecting", idx)
             subset_i = self._merge_selection(selected_data)
-            print("merged", i)
+            print("merged", idx)
             if self.config.cone_cut:
                 subset_i = self._apply_cone_selection(subset_i)
                 print("applied cones")
             num_rows_i = subset_i.count_rows()
             num_rows += num_rows_i
-            print("num rows selected", i, num_rows_i)
-            all_selected.append(subset_i)
+            print("num rows selected", idx, num_rows_i)
+            
+            pq.write_table(subset_i, f"part_{idx}_{output}")
 
         print("concating")
-        subset = pd.concat([all_selected])
+        subset = ds.dataset(all_selected)
         print("concated")
 
         rng = np.random.default_rng(self.config.seed)
