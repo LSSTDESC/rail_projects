@@ -235,39 +235,18 @@ class MultiCatalogSubsampler(RailSubsampler):
         output: str,
     ) -> None:
 
-        dict_dict: dict[int, dict[str, str]] = {}
-        for key, val in input_files.items():
-            for i, vv in enumerate(val):
-                if i in dict_dict:
-                    dict_dict[i][key] = vv
-                else:
-                    dict_dict[i] = {key: vv}
+        selected_data = {
+            key: self._sub_selection(key, val) for key, val in input_files.items()
+        }
 
-        all_selected: list[str] = []
-        num_rows = 0
-        for idx, file_dict in dict_dict.items():
-
-            selected_data = {
-                key: self._sub_selection(key, val) for key, val in file_dict.items()
-            }
-            n_rows = {key: val.count_rows() for key, val in selected_data.items()}
-            print("selecting", idx, n_rows)
-            subset_i = self._merge_selection(selected_data)
-            print("merged", idx)
-            if self.config.cone_cut:
-                subset_i = self._apply_cone_selection(subset_i)
-                print("applied cones")
-            num_rows_i = subset_i.count_rows()
-            num_rows += num_rows_i
-            print("num rows selected", idx, num_rows_i)
-            temp_file = f"{output}.{idx}"            
-            pq.write_table(subset_i.to_table(), temp_file)
-            all_selected.append(temp_file)
-            gc.collect()
-
-        print("concating")
-        subset = ds.dataset(all_selected)
-        print("concated")
+        print("selecting")
+        subset = self._merge_selection(selected_data)
+        print("merged")
+        if self.config.cone_cut:
+            subset = self._apply_cone_selection(subset)
+            print("applied cones")
+        num_rows = subset.count_rows()
+        print("num rows selected", num_rows)
 
         rng = np.random.default_rng(self.config.seed)
         print("sampling", self.config.num_objects)
@@ -284,9 +263,6 @@ class MultiCatalogSubsampler(RailSubsampler):
             output,
         )
 
-        for f in all_selected:
-            os.unlink(f)
-        
         print("done")
 
 
