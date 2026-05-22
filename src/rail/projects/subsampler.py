@@ -181,10 +181,12 @@ class MultiCatalogSubsampler(RailSubsampler):
         ra_center_rad = np.radians(self.config.cone_cut[0])
         dec_center_rad = np.radians(self.config.cone_cut[1])
         cone_radius_rad = np.radians(self.config.cone_cut[2])
+        # Read the dataset into a table to access the data
+        table = dataset.to_table()
 
         # Convert to radians
-        ra_rad = np.radians(dataset['ra'].to_numpy())
-        dec_rad = np.radians(dataset['dec'].to_numpy())
+        ra_rad = np.radians(table['ra'].to_numpy())
+        dec_rad = np.radians(table['dec'].to_numpy())
 
         # Calculate angular separation using the haversine formula
         delta_ra = ra_rad - ra_center_rad
@@ -200,7 +202,7 @@ class MultiCatalogSubsampler(RailSubsampler):
         mask = angular_distance_rad <= cone_radius_rad
 
         # Apply the mask to filter the dataset
-        filtered_dataset = dataset[mask]
+        filtered_dataset = ds.InMemoryDataset(table.filter(mask))
 
         return filtered_dataset
 
@@ -220,11 +222,10 @@ class MultiCatalogSubsampler(RailSubsampler):
         save_cols += self._get_mag_columns(sub_selection_params).copy()
         save_cols += sub_selection_params.get("extra_cols", [])
         filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
-        if self.config.cone_cut:
-            filtered = self._apply_cone_selection(filtered)
         return filtered
 
     def _merge_selection(self, selected_data: dict[str, ds.Dataset]) -> ds.Dataset:
+        breakpoint()
         return inner_join_datasets(selected_data, self.config.object_id_col)
 
     def run(
@@ -233,8 +234,7 @@ class MultiCatalogSubsampler(RailSubsampler):
         output: str,
     ) -> None:
 
-
-        dict_dict: dict[int, dict[str, str]]
+        dict_dict: dict[int, dict[str, str]] = {}
         for key, val in input_files.items():
             for i, vv in enumerate(val):
                 if i in dict_dict:
@@ -245,16 +245,24 @@ class MultiCatalogSubsampler(RailSubsampler):
         all_selected = []
         num_rows = 0
         for _, file_dict in dict_dict.items():
+
             selected_data = {
                 key: self._sub_selection(key, val) for key, val in file_dict.items()
             }
+            print("selecting", i)
             subset_i = self._merge_selection(selected_data)
+            print("merged", i)
+            if self.config.cone_cut:
+                subset_i = self._apply_cone_selection(subset_i)
+                print("applied cones")
             num_rows_i = subset_i.count_rows()
             num_rows += num_rows_i
             print("num rows selected", i, num_rows_i)
             all_selected.append(subset_i)
 
+        print("concating")
         subset = pd.concat([all_selected])
+        print("concated")
 
         rng = np.random.default_rng(self.config.seed)
         print("sampling", self.config.num_objects)
