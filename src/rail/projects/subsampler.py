@@ -250,7 +250,8 @@ class MultiCatalogSubsampler(RailSubsampler):
             selected_data = {
                 key: self._sub_selection(key, val) for key, val in file_dict.items()
             }
-            print("selecting", idx)
+            n_rows = {key: val.count_rows() for key, val in selected_data.items()}
+            print("selecting", idx, n_rows)
             subset_i = self._merge_selection(selected_data)
             print("merged", idx)
             if self.config.cone_cut:
