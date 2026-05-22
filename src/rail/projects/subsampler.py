@@ -226,7 +226,6 @@ class MultiCatalogSubsampler(RailSubsampler):
         return filtered
 
     def _merge_selection(self, selected_data: dict[str, ds.Dataset]) -> ds.Dataset:
-        breakpoint()
         return inner_join_datasets(selected_data, self.config.object_id_col)
 
     def run(
