@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import os
 from typing import Any, cast
 
@@ -261,6 +262,7 @@ class MultiCatalogSubsampler(RailSubsampler):
             temp_file = f"{output}.{idx}"            
             pq.write_table(subset_i.to_table(), temp_file)
             all_selected.append(temp_file)
+            gc.collect()
 
         print("concating")
         subset = ds.dataset(all_selected)
