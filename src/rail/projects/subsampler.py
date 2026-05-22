@@ -233,13 +233,28 @@ class MultiCatalogSubsampler(RailSubsampler):
         output: str,
     ) -> None:
 
-        selected_data = {
-            key: self._sub_selection(key, val) for key, val in input_files.items()
-        }
-        subset = self._merge_selection(selected_data)
-        num_rows = subset.count_rows()
 
-        print("num rows selected", num_rows)
+        dict_dict: dict[int, dict[str, str]]
+        for key, val in input_files.items():
+            for i, vv in enumerate(val):
+                if i in dict_dict:
+                    dict_dict[i][key] = vv
+                else:
+                    dict_dict[i] = {key: vv}
+
+        all_selected = []
+        num_rows = 0
+        for _, file_dict in dict_dict.items():
+            selected_data = {
+                key: self._sub_selection(key, val) for key, val in file_dict.items()
+            }
+            subset_i = self._merge_selection(selected_data)
+            num_rows_i = subset_i.count_rows()
+            num_rows += num_rows_i
+            print("num rows selected", i, num_rows_i)
+            all_selected.append(subset_i)
+
+        subset = pd.concat([all_selected])
 
         rng = np.random.default_rng(self.config.seed)
         print("sampling", self.config.num_objects)
