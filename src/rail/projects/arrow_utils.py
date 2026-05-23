@@ -153,11 +153,40 @@ def parse_item(
         return parse_item(sub_list, False)
     raise AssertionError(f"Item {item} is neither a list nor a dict")
 
+def parse_cuts_and_filter_dataset(
+    file_list: list[str],
+    all_cuts: list[dict] | None,
+    save_cols: list[str] | None,
+) -> ds.Dataset:
+    """
+    Create and filter a pyarrow dataset
+
+    This is a convenience wrapper around filter_dataset, which is
+    in turn a wrapper around PyArrow's native filtering and
+
+    Parameters
+    ----------
+    file_list:
+        List of files in the dataset
+    all_cuts:
+        Set of cuts to apply, see filter_dataset for syntax
+    save_cols:
+        List columns to save
+
+    Returns
+    -------
+    Filtered dataset
+    """
+    parsed_cuts = parse_item(all_cuts) if all_cuts else []
+    dataset = ds.dataset(file_list)    
+    filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
+    return filtered
+
 
 def filter_dataset(
     dataset: ds.Dataset,
     filter_conditions: list[tuple[str, str, Any]] | list[list[tuple[str, str, Any]]],
-    columns: list[str] | dict[str, str],
+    columns: list[str] | dict[str, str] | None,
 ) -> _ProjectedDataset:
     """
     Filter a PyArrow dataset and select specific columns.
@@ -250,7 +279,9 @@ def filter_dataset(
     # Validate columns exist in schema
     schema_names = set(filtered_dataset.schema.names)
 
-    if isinstance(columns, dict):
+    if columns is None:
+        column_spec = list(schema_names)
+    elif isinstance(columns, dict):
         # Dict: {new_name: old_name}
         missing_cols = set(columns.values()) - schema_names
         if missing_cols:
@@ -540,3 +571,49 @@ def filter_by_healpix_pixels(
     filtered_table = table.filter(mask)
 
     return filtered_table
+
+
+def apply_cone_selection(self, dataset: ds.Dataset, cone_cut: list[float]) -> ds.Dataset:
+    """
+    Apply a cone selection to filter objects within a specified angular distance.
+    
+    Parameters
+    ----------
+    dataset
+        Input dataset with 'ra' and 'dec' columns in degrees
+
+    cone_cut:
+        RA, DEC, Radius (in deg) 
+
+    Returns
+    -------
+    ds.Dataset
+        Filtered dataset containing only objects within the cone
+    """
+    ra_center_rad = np.radians(cone_cut[0])
+    dec_center_rad = np.radians(cone_cut[1])
+    cone_radius_rad = np.radians(cone_cut[2])
+    # Read the dataset into a table to access the data
+    table = dataset.to_table()
+
+    # Convert to radians
+    ra_rad = np.radians(table['ra'].to_numpy())
+    dec_rad = np.radians(table['dec'].to_numpy())
+
+    # Calculate angular separation using the haversine formula
+    delta_ra = ra_rad - ra_center_rad
+    delta_dec = dec_rad - dec_center_rad
+
+    # Haversine formula for great circle distance
+    a = (np.sin(delta_dec / 2)**2 +
+        np.cos(dec_center_rad) * np.cos(dec_rad) * np.sin(delta_ra / 2)**2)
+            
+    angular_distance_rad = 2 * np.arcsin(np.sqrt(a))
+
+    # Create boolean mask for objects within the cone
+    mask = angular_distance_rad <= cone_radius_rad
+    
+    # Apply the mask to filter the dataset
+    filtered_dataset = ds.InMemoryDataset(table.filter(mask))
+    
+    return filtered_dataset
