@@ -10,6 +10,7 @@ from rail.core.configurable import Configurable
 
 from .panda_utils import union_dataframes_deduplicated
 from .dynamic_class import DynamicClass
+from .arrow_utils import parse_item, filter_dataset, apply_cone_selection
 
 
 class RailMerger(Configurable, DynamicClass):
@@ -66,7 +67,7 @@ class SpecSelectionMerger(RailMerger):
         ),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
         output_basename=StageParameter(
-            str, None, fmt="%s", msg="Input catalog detatils"
+            str, None, fmt="%s", msg="Output file basename"
         ),
     )
 
@@ -77,11 +78,22 @@ class SpecSelectionMerger(RailMerger):
     ) -> None:
 
         input_dataframes = []
-        for input_key, input_basename in self.config.inputs.items():
+        for input_key, input_info in self.config.inputs.items():
+            if isinstance(input_info, str):
+                input_basename = input_info
+                input_cuts = None
+                input_cone_cut = None
+            else:
+                input_basename = input_info['basename']
+                input_cuts = input_info.get('cuts')
+                input_cone_cut = input_info.get('cone_cut')
             input_fullname = os.path.join(input_catalog, input_basename)
-            input_dataframe = tables_io.read(input_fullname)
+
+            filtered = parse_cuts_and_filter_dataset([input_fullname], input_cuts, None)
+            if input_cone_cut:
+                filtered = apply_cone_selection(filtered, input_cone_cut)
             input_dataframe[input_key] = True
-            input_dataframes.append(input_dataframe)
+            input_dataframes.append(filtered.to_pandas())
 
         merged = union_dataframes_deduplicated(input_dataframes, self.config.merge_col)
         input_keys = [item_[0] for item_ in self.config.inputs.items()]

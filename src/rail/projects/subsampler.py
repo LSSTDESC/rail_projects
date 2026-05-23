@@ -12,7 +12,7 @@ from ceci.config import StageParameter
 from rail.core.configurable import Configurable
 
 from .dynamic_class import DynamicClass
-from .arrow_utils import parse_item, filter_dataset, inner_join_datasets
+from .arrow_utils import parse_item, filter_dataset, inner_join_datasets, apply_cone_selection, parse_cuts_and_filter_dataset
 
 
 class RailSubsampler(Configurable, DynamicClass):
@@ -179,34 +179,7 @@ class MultiCatalogSubsampler(RailSubsampler):
         ds.Dataset
             Filtered dataset containing only objects within the cone
         """
-        ra_center_rad = np.radians(self.config.cone_cut[0])
-        dec_center_rad = np.radians(self.config.cone_cut[1])
-        cone_radius_rad = np.radians(self.config.cone_cut[2])
-        # Read the dataset into a table to access the data
-        table = dataset.to_table()
-
-        # Convert to radians
-        ra_rad = np.radians(table['ra'].to_numpy())
-        dec_rad = np.radians(table['dec'].to_numpy())
-
-        # Calculate angular separation using the haversine formula
-        delta_ra = ra_rad - ra_center_rad
-        delta_dec = dec_rad - dec_center_rad
-
-        # Haversine formula for great circle distance
-        a = (np.sin(delta_dec / 2)**2 +
-            np.cos(dec_center_rad) * np.cos(dec_rad) * np.sin(delta_ra / 2)**2)
-
-        angular_distance_rad = 2 * np.arcsin(np.sqrt(a))
-
-        # Create boolean mask for objects within the cone
-        mask = angular_distance_rad <= cone_radius_rad
-
-        # Apply the mask to filter the dataset
-        filtered_dataset = ds.InMemoryDataset(table.filter(mask))
-
-        return filtered_dataset
-
+        return apply_cone_selection(dataset, self.config.cone_cut)
 
     def _sub_selection(self, key: str, file_list: list[str]) -> ds.Dataset:
         sub_selection_params = self.config.inputs[key]
@@ -217,13 +190,10 @@ class MultiCatalogSubsampler(RailSubsampler):
         sub_sel_cuts = sub_selection_params.get("cuts", [])
         if sub_sel_cuts:
             all_cuts += sub_sel_cuts
-        parsed_cuts = parse_item(all_cuts)
-        dataset = ds.dataset(file_list)
         save_cols: list[str] = [self.config.object_id_col]
         save_cols += self._get_mag_columns(sub_selection_params).copy()
         save_cols += sub_selection_params.get("extra_cols", [])
-        filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
-        return filtered
+        return parse_cuts_and_filter_dataset(file_list, all_cuts, save_cols)        
 
     def _merge_selection(self, selected_data: dict[str, ds.Dataset]) -> ds.Dataset:
         return inner_join_datasets(selected_data, self.config.object_id_col)
@@ -469,15 +439,11 @@ class SpecAreaSubsampler(RailSubsampler):
             all_cuts += list(sub_sel_cuts)
         if apply_area_cut:
             all_cuts += self._make_area_cut_filters(input_params)
-
-        parsed_cuts = parse_item(all_cuts) if all_cuts else []
-        dataset = ds.dataset(file_list)
-
         save_cols: list[str] = [self.config.object_id_col]
         save_cols += self._get_mag_columns(input_params)
         save_cols += input_params.get("extra_cols", [])
 
-        filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
+        filtered = parse_cuts_and_filter_dataset(file_list, all_cuts, save_cols)        
         return filtered.to_table()
 
     def run(
