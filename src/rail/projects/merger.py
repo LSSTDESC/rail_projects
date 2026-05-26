@@ -10,7 +10,7 @@ from rail.core.configurable import Configurable
 
 from .panda_utils import union_dataframes_deduplicated
 from .dynamic_class import DynamicClass
-from .arrow_utils import parse_item, filter_dataset, apply_cone_selection
+from .arrow_utils import parse_item, filter_dataset, apply_cone_selection, parse_cuts_and_filter_dataset
 
 
 class RailMerger(Configurable, DynamicClass):
@@ -92,8 +92,9 @@ class SpecSelectionMerger(RailMerger):
             filtered = parse_cuts_and_filter_dataset([input_fullname], input_cuts, None)
             if input_cone_cut:
                 filtered = apply_cone_selection(filtered, input_cone_cut)
-            input_dataframe[input_key] = True
-            input_dataframes.append(filtered.to_pandas())
+            filtered_pd = filtered.to_table().to_pandas()
+            filtered_pd[input_key] = True
+            input_dataframes.append(filtered_pd)
 
         merged = union_dataframes_deduplicated(input_dataframes, self.config.merge_col)
         input_keys = [item_[0] for item_ in self.config.inputs.items()]
