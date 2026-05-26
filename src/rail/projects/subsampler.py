@@ -180,6 +180,7 @@ class MultiCatalogSubsampler(RailSubsampler):
             Filtered dataset containing only objects within the cone
         """
         return apply_cone_selection(dataset, self.config.cone_cut)
+    
 
     def _sub_selection(self, key: str, file_list: list[str]) -> ds.Dataset:
         sub_selection_params = self.config.inputs[key]
