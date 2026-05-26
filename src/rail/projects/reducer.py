@@ -600,22 +600,6 @@ class RailReducer(Configurable, DynamicClass):
         output_catalog: str,
             Path to the output file
         """
-        raise NotImplementedError()
-
-
-class RomanRubinReducer(RailReducer):
-    """Class to reduce the 'roman_rubin' simulation input files for pz analysis"""
-
-    #config_options: dict[str, StageParameter] = dict(
-    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
-    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
-    #)
-
-    def run(
-        self,
-        input_catalog: str,
-        output_catalog: str,
-    ) -> None:
         # Try to do this right
         try:
             parsed_filter = parse_item(self.config.cuts)
