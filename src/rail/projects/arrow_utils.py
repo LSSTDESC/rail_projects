@@ -463,9 +463,17 @@ def inner_join_datasets(
         else:
             right_table = dataset
 
+        # Before joining, ensure uniqueness
+        left_table = result.to_table()
+        right_table_materialized = right_table.to_table()
+
+        # Group by join_key and take first row (or aggregate as needed)
+        left_table = left_table.group_by(join_key).aggregate([])
+        right_table_materialized = right_table_materialized.group_by(join_key).aggregate([])
+
         # Perform inner join with automatic suffix handling
-        result = result.join(
-            right_table,
+        result = ds.dataset(left_table).join(
+            ds.dataset(right_table_materialized),
             keys=join_key,
             join_type="inner",
             left_suffix=f"_{first_name}",
@@ -573,7 +581,7 @@ def filter_by_healpix_pixels(
     return filtered_table
 
 
-def apply_cone_selection(self, dataset: ds.Dataset, cone_cut: list[float]) -> ds.Dataset:
+def apply_cone_selection(dataset: ds.Dataset, cone_cut: list[float]) -> ds.Dataset:
     """
     Apply a cone selection to filter objects within a specified angular distance.
     
