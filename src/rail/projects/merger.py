@@ -8,7 +8,7 @@ import tables_io
 from ceci.config import StageParameter
 from rail.core.configurable import Configurable
 
-from .panda_utils import union_dataframes_deduplicated
+from .panda_utils import outer_join_deduplicate_columns
 from .dynamic_class import DynamicClass
 from .arrow_utils import parse_item, filter_dataset, apply_cone_selection, parse_cuts_and_filter_dataset
 
