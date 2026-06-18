@@ -17,13 +17,11 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt install libbz2-dev	
         python -m pip install --upgrade pip
-        pip install wheel
         pip install .
         pip install .[dev]
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
