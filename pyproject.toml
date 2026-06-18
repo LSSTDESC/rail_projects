@@ -1,83 +1,48 @@
 [project]
 name = "pz-rail-projects"
-description = "RAIL Project files"
-readme = "README.rst"
-requires-python = ">=3.10"
-license = { file = "LICENSE" }
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+readme = "README.md"
 authors = [
-    { name = "The LSST DESC PZ WG", email = "echarles@slac.stanford.edu" },
+    { name = "LSST Dark Energy Science Collaboration (DESC)", email = "lsst-desc-rail-admin@slac.stanford.edu" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Natural Language :: English",
-    "Operating System :: POSIX"
 ]
-
 dynamic = ["version"]
-dependencies = [
-    "pz-rail-base>=2.0",
-    "pz-rail-pipelines",
-    "matplotlib",
-    "yamllint",
-    "pyarrow",
-    "jinja2",
-    "tables_io[full]",
-]
+
+dependencies = []
+
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
 [project.optional-dependencies]
-full = [
-    "pz-rail-pipelines[full]",
-    "pz-rail-sompz",
-    "pz-rail-calib",
-]
-
 dev = [
-    "pz-rail-pipelines[full]",
-    "pz-rail-sompz",
-    "pz-rail-calib",
-    "coverage",
     "pytest",
-    "ruff",
-    "mypy",
     "pytest-cov", # Used to report total code coverage
     "pre-commit", # Used to run checks before finalizing a git commit
     "pylint", # Used for static linting of files
 ]
 
-docs = [
-    "nbsphinx",
-    "sphinx", # Used to automatically generate documentation
-    "sphinx-autodoc-typehints", 
-    "sphinx_rtd_theme", # Used to render documentation
-    "sphinx-autoapi", # Used to automatically generate api documentation    
-    "sphinx-tabs", # Used to create tabbed content within the docs
-    "sphinx-click", # Used for command line interface docs
-]
-
-
-[project.scripts]
-rail-project = "rail.cli.rail_project.project_commands:project_cli"
-rail-plot = "rail.cli.rail_plot.plot_commands:plot_cli"
-
 [build-system]
-requires = ["setuptools>=62", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = [
+    "setuptools>=62", # Used to build and package the Python project
+    "setuptools_scm>=6.2", # Gets release version from git. Makes it available programmatically
+]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "src/rail/projects/_version.py"
+write_to = "src/rail/rail_projects/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
 ]
 addopts = [
-    "--cov=src/rail",
+    "--cov=rail",
     "--cov-report=html"
 ]
 
@@ -85,11 +50,7 @@ addopts = [
 disable = [
     "abstract-method",
     "invalid-name",
-    "too-many-lines",
     "too-many-statements",
-    "too-many-instance-attributes",
-    "too-many-positional-arguments",
-    "too-many-nested-blocks",
     "missing-module-docstring",
     "missing-class-docstring",
     "missing-function-docstring",
@@ -98,36 +59,7 @@ disable = [
     "use-dict-literal",
     "broad-exception-caught",
 ]
-generated-members = ["add", "multiply", "subtract", "divide", "sqrt", "floor", "atan2"]
 max-line-length = 110
 max-locals = 50
 max-branches = 25
 max-public-methods = 50
-max-args = 7
-
-
-[tool.mypy]
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-ignore_missing_imports = true
-local_partial_types = true
-no_implicit_reexport = true
-show_error_codes = true
-strict_equality = true
-warn_redundant_casts = true
-warn_unreachable = true
-warn_unused_ignores = true
-
-[tool.coverage.run]
-omit = [
-     "*/_version.py",
-     ]
-
-[tool.coverage.report]
-exclude_also = [
-    "raise NotImplementedError",
-    "__repr__",
-    "TYPE_CHECKING",
-    "if cls._instance is None:",
-    "except KeyError as missing_key:",
-    ]
