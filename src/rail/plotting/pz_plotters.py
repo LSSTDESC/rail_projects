@@ -67,7 +67,7 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
             self.config.z_min, self.config.z_max, self.config.n_zbins + 1
         )
         dz = (pointEstimate - truth) / (1 + truth)
-        mean, _mean_err, std, outlier_rate, abs_outlier_rate = (
+        mean, mean_err, std, outlier_rate, abs_outlier_rate = (
             self.get_biweight_mean_sigma_outlier(dz, nclip=self.config.n_clip)
         )
         mean, std, outlier_rate, abs_outlier_rate = (
@@ -125,7 +125,17 @@ class PZPlotterPointEstimateVsTrueHist2D(RailPlotter):
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
-            name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
+            name=plot_name,
+            figure=figure,
+            plotter=self,
+            dataset_holder=dataset_holder,
+            data=dict(
+                mean=mean,
+                mean_err=mean_err,
+                std=std,
+                outlier_rate=outlier_rate,
+                abs_outlier_rate=abs_outlier_rate,
+            ),
         )
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
@@ -421,7 +431,11 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
         axes[1].set_ylabel(r"$(z_{phot} - z_{spec})/(1+z_{spec})$")
         plot_name = self._make_full_plot_name(prefix, "")
         return RailPlotHolder(
-            name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
+            name=plot_name,
+            figure=figure,
+            plotter=self,
+            dataset_holder=dataset_holder,
+            data=results,
         )
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
@@ -505,16 +519,16 @@ class PZPlotterBiweightStatsVsRedshift(RailPlotter):
             z_mean.append(np.mean(zx[bin_indices == i]))
 
         return {
-            "z_mean": z_mean,
-            "biweight_mean": biweight_mean,
-            "biweight_std": biweight_std,
-            "biweight_sigma": biweight_sigma,
-            "biweight_outlier": biweight_outlier,
-            "qt_95_low": qt_95_low,
-            "qt_68_low": qt_68_low,
-            "median": median,
-            "qt_68_high": qt_68_high,
-            "qt_95_high": qt_95_high,
+            "z_mean": np.array(z_mean),
+            "biweight_mean": np.array(biweight_mean),
+            "biweight_std": np.array(biweight_std),
+            "biweight_sigma": np.array(biweight_sigma),
+            "biweight_outlier": np.array(biweight_outlier),
+            "qt_95_low": np.array(qt_95_low),
+            "qt_68_low": np.array(qt_68_low),
+            "median": np.array(median),
+            "qt_68_high": np.array(qt_68_high),
+            "qt_95_high": np.array(qt_95_high),
         }
 
 
@@ -604,7 +618,11 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
         plot_name = self._make_full_plot_name(prefix, "")
 
         return RailPlotHolder(
-            name=plot_name, figure=figure, plotter=self, dataset_holder=dataset_holder
+            name=plot_name,
+            figure=figure,
+            plotter=self,
+            dataset_holder=dataset_holder,
+            data=results,
         )
 
     def _make_plots(self, prefix: str, **kwargs: Any) -> dict[str, RailPlotHolder]:
@@ -697,17 +715,14 @@ class PZPlotterBiweightStatsVsMag(RailPlotter):
         mag_mean = (mag_bins[:-1] + mag_bins[1:]) / 2
 
         return {
-            "mag_mean": mag_mean,
-            "biweight_mean": biweight_mean,
-            "biweight_std": biweight_std,
-            "biweight_sigma": biweight_sigma,
-            "biweight_outlier": biweight_outlier,
-            "qt_95_low": qt_95_low,
-            "qt_68_low": qt_68_low,
-            "median": median,
-            "qt_68_high": qt_68_high,
-            "qt_95_high": qt_95_high,
+            "mag_mean": np.array(mag_mean),
+            "biweight_mean": np.array(biweight_mean),
+            "biweight_std": np.array(biweight_std),
+            "biweight_sigma": np.array(biweight_sigma),
+            "biweight_outlier": np.array(biweight_outlier),
+            "qt_95_low": np.array(qt_95_low),
+            "qt_68_low": np.array(qt_68_low),
+            "median": np.array(median),
+            "qt_68_high": np.array(qt_68_high),
+            "qt_95_high": np.array(qt_95_high),
         }
-
-
-

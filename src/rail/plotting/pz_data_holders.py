@@ -467,5 +467,3 @@ class RailPZPdfDataHolder(RailDatasetHolder):
             dataset_lists.append(dataset_list)
 
         return (projects, datasets, dataset_lists)
-
-    
