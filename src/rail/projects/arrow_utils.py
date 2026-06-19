@@ -467,9 +467,23 @@ def inner_join_datasets(
         left_table = result.to_table()
         right_table_materialized = right_table.to_table()
 
+        # Group by join_key and take first row for all other columns
+        left_aggs = [(col, "first") for col in left_table.column_names if col != join_key]
+        right_aggs = [(col, "first") for col in right_table_materialized.column_names if col != join_key]
+
         # Group by join_key and take first row (or aggregate as needed)
-        left_table = left_table.group_by(join_key).aggregate([])
-        right_table_materialized = right_table_materialized.group_by(join_key).aggregate([])
+        left_table = left_table.group_by(join_key, use_threads=False).aggregate(left_aggs)
+        right_table_materialized = right_table_materialized.group_by(join_key, use_threads=False).aggregate(right_aggs)
+
+        # Rename columns to remove "_first" suffix
+        left_table = left_table.rename_columns([
+            col.replace("_first", "") if col != join_key else col 
+            for col in left_table.column_names
+        ])
+        right_table_materialized = right_table_materialized.rename_columns([
+            col.replace("_first", "") if col != join_key else col 
+            for col in right_table_materialized.column_names
+        ])
 
         # Perform inner join with automatic suffix handling
         result = ds.dataset(left_table).join(
