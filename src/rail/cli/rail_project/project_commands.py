@@ -131,6 +131,46 @@ def split_command(
     return ok
 
 
+@project_cli.command(name="merge")
+@project_options.config_file()
+@project_options.run_mode()
+@project_options.catalog_template()
+@project_options.output_catalog_template()
+@project_options.merge_name()
+@project_options.merger_class_name()
+@project_options.selection()
+@project_options.flavor()
+def merge_command(
+    config_file: str, run_mode: project_options.RunMode, **kwargs: Any
+) -> int:
+    """Merged files from a particular catalog
+
+    This will:
+    create a catalog of input files from the catalog_template,
+    flavor, selection and basename parameters,
+    be merging varous input files
+    """
+
+    if run_mode == project_options.RunMode.slurm:
+        raise NotImplementedError("subsample_command not set up to run under slurm")
+
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+
+    dry_run = run_mode == project_options.RunMode.dry_run
+
+    ok = 0
+    for kw in iter_kwargs:
+        _output_path = project.merge_data(
+            dry_run=dry_run,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
 @project_cli.command(name="subsample")
 @project_options.config_file()
 @project_options.run_mode()
@@ -141,6 +181,8 @@ def split_command(
 @project_options.selection()
 @project_options.flavor()
 @project_options.basename()
+@project_options.label()
+@project_options.cone_cut()
 def subsample_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
@@ -157,6 +199,12 @@ def subsample_command(
 
     if run_mode == project_options.RunMode.slurm:
         raise NotImplementedError("subsample_command not set up to run under slurm")
+
+    cone_cut_str = kwargs.pop('cone_cut')
+    if cone_cut_str:
+        tokens = cone_cut_str.replace('[', '').replace(']', '').split(',')
+        cone_cut = [float(tokens[0]), float(tokens[1]), float(tokens[2])]
+        kwargs['cone_cut'] = cone_cut
 
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
@@ -195,6 +243,7 @@ def subsample_command(
 @project_options.reducer_class_name()
 @project_options.input_selection()
 @project_options.selection()
+@project_options.sim_version()
 def reduce_command(
     config_file: str, run_mode: project_options.RunMode, **kwargs: Any
 ) -> int:
@@ -233,6 +282,7 @@ def run_group() -> None:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the photometric errors analysis pipeline"""
@@ -257,6 +307,7 @@ def photmetric_errors_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the truth-to-observed data pipeline"""
@@ -281,6 +332,7 @@ def prepare_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the truth-to-observed data pipeline"""
@@ -305,6 +357,7 @@ def truth_to_observed_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def blending_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the blending analysis pipeline"""
@@ -329,6 +382,7 @@ def blending_pipeline(config_file: str, **kwargs: Any) -> int:
 @project_options.selection()
 @project_options.flavor()
 @project_options.run_mode()
+@project_options.convert_output()
 @project_options.site()
 def spectroscopic_selection_pipeline(config_file: str, **kwargs: Any) -> int:
     """Run the spectroscopic selection data pipeline"""

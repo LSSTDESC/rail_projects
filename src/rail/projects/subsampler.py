@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import os
 from typing import Any, cast
 
@@ -11,7 +12,7 @@ from ceci.config import StageParameter
 from rail.core.configurable import Configurable
 
 from .dynamic_class import DynamicClass
-from .arrow_utils import parse_item, filter_dataset, inner_join_datasets
+from .arrow_utils import parse_item, filter_dataset, inner_join_datasets, apply_cone_selection, parse_cuts_and_filter_dataset
 
 
 class RailSubsampler(Configurable, DynamicClass):
@@ -124,6 +125,10 @@ class MultiCatalogSubsampler(RailSubsampler):
             str, "object_id", fmt="%s", msg="Object Id column name"
         ),
         cuts=StageParameter(dict, None, fmt="%s", msg="Selection cuts"),
+        cone_cut=StageParameter(
+            list, None, fmt="%s", required=False,
+            msg="[RA, DEC, SIZE] in degrees for a cone selection",
+        ),
         inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
     )
 
@@ -160,6 +165,23 @@ class MultiCatalogSubsampler(RailSubsampler):
         out_list += [mag_err_band_name_template.format(band=band_) for band_ in bands]
         return out_list
 
+    def _apply_cone_selection(self, dataset: ds.Dataset) -> ds.Dataset:
+        """
+        Apply a cone selection to filter objects within a specified angular distance.
+
+        Parameters
+        ----------
+        dataset
+            Input dataset with 'ra' and 'dec' columns in degrees
+
+        Returns
+        -------
+        ds.Dataset
+            Filtered dataset containing only objects within the cone
+        """
+        return apply_cone_selection(dataset, self.config.cone_cut)
+    
+
     def _sub_selection(self, key: str, file_list: list[str]) -> ds.Dataset:
         sub_selection_params = self.config.inputs[key]
         if self.config.cuts is not None:
@@ -169,13 +191,10 @@ class MultiCatalogSubsampler(RailSubsampler):
         sub_sel_cuts = sub_selection_params.get("cuts", [])
         if sub_sel_cuts:
             all_cuts += sub_sel_cuts
-        parsed_cuts = parse_item(all_cuts)
-        dataset = ds.dataset(file_list)
         save_cols: list[str] = [self.config.object_id_col]
         save_cols += self._get_mag_columns(sub_selection_params).copy()
         save_cols += sub_selection_params.get("extra_cols", [])
-        filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
-        return filtered
+        return parse_cuts_and_filter_dataset(file_list, all_cuts, save_cols)        
 
     def _merge_selection(self, selected_data: dict[str, ds.Dataset]) -> ds.Dataset:
         return inner_join_datasets(selected_data, self.config.object_id_col)
@@ -189,9 +208,14 @@ class MultiCatalogSubsampler(RailSubsampler):
         selected_data = {
             key: self._sub_selection(key, val) for key, val in input_files.items()
         }
-        subset = self._merge_selection(selected_data)
-        num_rows = subset.count_rows()
 
+        print("selecting")
+        subset = self._merge_selection(selected_data)
+        print("merged")
+        if self.config.cone_cut:
+            subset = self._apply_cone_selection(subset)
+            print(f"applied cones: {self.config.cone_cut}")
+        num_rows = subset.count_rows()
         print("num rows selected", num_rows)
 
         rng = np.random.default_rng(self.config.seed)
@@ -208,6 +232,7 @@ class MultiCatalogSubsampler(RailSubsampler):
             subset,
             output,
         )
+
         print("done")
 
 
@@ -415,15 +440,11 @@ class SpecAreaSubsampler(RailSubsampler):
             all_cuts += list(sub_sel_cuts)
         if apply_area_cut:
             all_cuts += self._make_area_cut_filters(input_params)
-
-        parsed_cuts = parse_item(all_cuts) if all_cuts else []
-        dataset = ds.dataset(file_list)
-
         save_cols: list[str] = [self.config.object_id_col]
         save_cols += self._get_mag_columns(input_params)
         save_cols += input_params.get("extra_cols", [])
 
-        filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
+        filtered = parse_cuts_and_filter_dataset(file_list, all_cuts, save_cols)        
         return filtered.to_table()
 
     def run(

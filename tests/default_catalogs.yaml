@@ -140,7 +140,7 @@ CatalogTags:
       name: "roman_rubin"
       mag_column_template: "LSST_obs_{band}"
       mag_err_column_template: "LSST_obs_{band}_err"
-      redshift_col: "true_redshift"
+      redshift_col: "redshift"
       filter_template: "DC2LSST_{band}"
       band_list: ['u', 'g', 'r', 'i', 'z', 'y']
       bands:

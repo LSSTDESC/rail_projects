@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 from ceci.config import StageParameter
 from rail.core.configurable import Configurable
+from rail.utils import catalog_utils
 
 from rail.projects import RailProject
 from rail.projects.dynamic_class import DynamicClass
@@ -288,4 +289,6 @@ class RailProjectHolder(Configurable):
         """Read the associated yaml file and create a RailProject"""
         if self._project is None:
             self._project = RailProject.load_config(self.config.yaml_file)
+            for catalog_lib in self._project.config.CatalogLib:
+                catalog_utils.load_yaml(catalog_lib)
         return self._project

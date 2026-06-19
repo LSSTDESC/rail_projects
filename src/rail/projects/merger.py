@@ -1,0 +1,108 @@
+from __future__ import annotations
+
+import os
+from typing import Any
+
+import tables_io
+
+from ceci.config import StageParameter
+from rail.core.configurable import Configurable
+
+from .panda_utils import outer_join_deduplicate_columns
+from .dynamic_class import DynamicClass
+from .arrow_utils import parse_item, filter_dataset, apply_cone_selection, parse_cuts_and_filter_dataset
+
+
+class RailMerger(Configurable, DynamicClass):
+    """Base class for merging output files
+
+    The main function in this class is:
+    run(input_catalog, output_catalog)
+
+    This function will files in the input_catalog, and reduce each one to make the
+    output catalog
+    """
+
+    config_options: dict[str, StageParameter] = {}
+    sub_classes: dict[str, type[DynamicClass]] = {}
+
+    def __init__(self, **kwargs: Any):
+        """C'tor
+
+        Parameters
+        ----------
+        **kwargs:
+            Configuration parameters for this Reducer, must match
+            class.config_options data members
+        """
+        DynamicClass.__init__(self)
+        Configurable.__init__(self, **kwargs)
+
+    def run(
+        self,
+        input_catalog: str,
+        output_catalog: str,
+    ) -> None:
+        """Subsample the data
+
+        Parameters
+        ----------
+        input_catalog:
+            Input files to subsamle
+
+        output_catalog:
+            Path to the output file
+
+        """
+        raise NotImplementedError()
+
+
+class SpecSelectionMerger(RailMerger):
+    """Class to merge different spec selections"""
+
+    config_options: dict[str, StageParameter] = dict(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Merger Name"),
+        merge_col=StageParameter(
+            str, "object_id", fmt="%s", required=True, msg="Merge column name"
+        ),
+        inputs=StageParameter(dict, None, fmt="%s", msg="Input catalog detatils"),
+        output_basename=StageParameter(
+            str, None, fmt="%s", msg="Output file basename"
+        ),
+    )
+
+    def run(
+        self,
+        input_catalog: str,
+        output_catalog: str,
+    ) -> None:
+
+        input_dataframes = []
+        for input_key, input_info in self.config.inputs.items():
+            if isinstance(input_info, str):
+                input_basename = input_info
+                input_cuts = None
+                input_cone_cut = None
+            else:
+                input_basename = input_info['basename']
+                input_cuts = input_info.get('cuts')
+                input_cone_cut = input_info.get('cone_cut')
+            input_fullname = os.path.join(input_catalog, input_basename)
+
+            filtered = parse_cuts_and_filter_dataset([input_fullname], input_cuts, None)
+            if input_cone_cut:
+                filtered = apply_cone_selection(filtered, input_cone_cut)
+            filtered_pd = filtered.to_table().to_pandas()
+            filtered_pd[input_key] = True
+            input_dataframes.append(filtered_pd)
+
+        merged = outer_join_deduplicate_columns(input_dataframes, self.config.merge_col)
+        input_keys = [item_[0] for item_ in self.config.inputs.items()]
+
+        # Set the missing items to False
+        
+        merged[input_keys] = merged[input_keys].replace({None: False})        
+
+        output_file = os.path.join(output_catalog, self.config.output_basename)
+        print(output_file)
+        tables_io.write(merged, output_file)

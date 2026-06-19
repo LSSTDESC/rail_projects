@@ -15,6 +15,7 @@ from .algorithm_factory import RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
 from .catalog_template import RailProjectCatalogTemplate
 from .file_template import RailProjectFileTemplate
+from .merger import RailMerger
 from .pipeline_factory import RailPipelineFactory
 from .pipeline_holder import RailPipelineTemplate
 from .project_file_factory import RailProjectFileFactory
@@ -49,6 +50,9 @@ class RailFlavor(Configurable):
         pipelines=StageParameter(list, ["all"], fmt="%s", msg="pipelines being used"),
         file_aliases=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
         pipeline_overrides=StageParameter(dict, {}, fmt="%s", msg="file aliases used"),
+        path_overrides=StageParameter(
+            dict, {}, fmt="%s", required=False, msg="Overrieds to common paths"
+        ),
     )
 
     def __init__(self, **kwargs: Any) -> None:
@@ -84,17 +88,17 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
     """
 
     config_options: dict[str, StageParameter] = dict(
-        Name=StageParameter(str, None, fmt="%s", required=True, msg="Project name"),
+        Name=StageParameter(str, None, fmt="%s", required=False, msg="Project name"),
         SiteConfig=StageParameter(dict, {}, fmt="%s", msg="Site configuration options"),
         CatalogLib=StageParameter(list, [], fmt="%s", msg="Libraries of catalog tags"),
         Includes=StageParameter(list, [], fmt="%s", msg="Files to include"),
         Baseline=StageParameter(
-            dict, None, fmt="%s", required=True, msg="Baseline analysis configuration"
+            dict, None, fmt="%s", required=False, msg="Baseline analysis configuration"
         ),
         Flavors=StageParameter(list, [], fmt="%s", msg="Analysis variants"),
         PathTemplates=StageParameter(dict, {}, fmt="%s", msg="File path templates"),
         CommonPaths=StageParameter(
-            dict, {}, fmt="%s", required=True, msg="Paths to shared directories"
+            dict, {}, fmt="%s", required=False, msg="Paths to shared directories"
         ),
         IterationVars=StageParameter(
             dict, {}, fmt="%s", msg="Iteration variables to use"
@@ -298,8 +302,19 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         """
         Configurable.__init__(self, **kwargs)
 
+        included_dict: dict[str, Any] = {}
         for include_ in self.config.Includes:
-            library.load_yaml(os.path.expandvars(include_))
+            included_tags = library.load_yaml(os.path.expandvars(include_))
+            included_dict.update(**included_tags)
+
+        for key, val in included_dict.items():
+            if isinstance(val, dict):
+                if self.config[key] is None:
+                    self.config[key] = val.copy()
+                else:
+                    self.config[key].update(**val)
+            else:
+                self.config[key] = val
 
         self.name_factory = name_utils.NameFactory(
             config=self.config,
@@ -478,6 +493,74 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
 
         return sinks
 
+    def merge_data(
+        self,
+        catalog_template: str,
+        output_catalog_template: str,
+        merger_class_name: str,
+        merge_name: str,
+        flavor: str,
+        selection: str,
+        dry_run: bool = False,
+        **kwargs: Any,
+    ) -> list[str]:
+        """Reduce some data
+
+        Parameters
+        ----------
+        catalog_template:
+            Tag for the input catalog
+
+        output_catalog_template:
+            Which label to apply to output dataset
+
+        merger_class_name:
+            Name of the class to use for merging
+
+        merge_name:
+            Name of the config to merge input inputs
+
+        flavor:
+            Flavor to apply
+
+        selection:
+            Selection to use
+
+        dry_run:
+            If true, do not actually run
+
+        **kwargs:
+            Used to provide values for additional interpolants.
+
+        Returns
+        -------
+        list[str]:
+            Paths to output files
+
+        """
+        sources = self.get_catalog_files(
+            catalog_template, selection=selection, flavor=flavor, basename="", **kwargs
+        )
+        sinks = self.get_catalog_files(
+            output_catalog_template,
+            selection=selection,
+            flavor=flavor,
+            basename="",
+            **kwargs,
+        )
+
+        merger_class = library.get_algorithm_class("Merger", merger_class_name, "Merge")
+        assert issubclass(merger_class, RailMerger)
+
+        merger_args = library.get_merge(merge_name)
+        merger = merger_class(**merger_args.config.to_dict())
+
+        if not dry_run:  # pragma: no cover
+            for source_, sink_ in zip(sources, sinks):
+                merger.run(source_, sink_)
+
+        return sinks
+
     def subsample_data(
         self,
         catalog_template: str,
@@ -526,11 +609,10 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         subsampler_args = library.get_subsample(subsample_name)
 
         use_pairs = {
-            key: val
+            key: kwargs.get(key, val)
             for key, val in subsampler_args.config.to_dict().items()
             if key in subsampler_config_keys
         }
-
         subsampler = subsampler_class(**use_pairs)
 
         basename_dict: dict[str, str] = subsampler.get_basename_dict()
@@ -627,9 +709,9 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         if self.config.CatalogLib:
             for catalog_lib in self.config.CatalogLib:
                 catalog_utils.load_yaml(catalog_lib)
-        else:            
+        else:
             catalog_utils.load_yaml(catalog_utils.DEFAULT_CATAlOG_TAG_FILE)
-        
+
         flavor_dict = self.get_flavor(flavor)
         pipelines_to_build = flavor_dict["pipelines"]
         all_flavor_overrides = flavor_dict.get("pipeline_overrides", {}).copy()
@@ -684,7 +766,11 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         """
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
-        return pipeline_instance.make_pipeline_single_input_command(self, **kwargs)
+        flavor_dict = self.get_flavor(flavor)
+        path_overrides = flavor_dict.config.path_overrides
+        return pipeline_instance.make_pipeline_single_input_command(
+            self, **kwargs, **path_overrides
+        )
 
     def make_pipeline_catalog_commands(
         self,
@@ -712,7 +798,11 @@ class RailProject(Configurable):  # pylint: disable=too-many-public-methods
         """
         pipeline_template = self.get_pipeline(pipeline_name)
         pipeline_instance = pipeline_template.make_instance(self, flavor, {})
-        return pipeline_instance.make_pipeline_catalog_commands(self, **kwargs)
+        flavor_dict = self.get_flavor(flavor)
+        path_overrides = flavor_dict.config.path_overrides
+        return pipeline_instance.make_pipeline_catalog_commands(
+            self, **kwargs, **path_overrides
+        )
 
     def run_pipeline_single(
         self,

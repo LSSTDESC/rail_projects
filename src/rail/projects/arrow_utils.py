@@ -1,11 +1,12 @@
 from __future__ import annotations
 from typing import Any
 
+import numpy as np
+import healpy as hp
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 from pyarrow.parquet import filters_to_expression
-
 
 # Legal PyArrow comparison operators for filter expressions
 LEGAL_OPERATIONS = ["==", "!=", "<", "<=", ">", ">=", "in", "not in"]
@@ -152,11 +153,40 @@ def parse_item(
         return parse_item(sub_list, False)
     raise AssertionError(f"Item {item} is neither a list nor a dict")
 
+def parse_cuts_and_filter_dataset(
+    file_list: list[str],
+    all_cuts: list[dict] | None,
+    save_cols: list[str] | None,
+) -> ds.Dataset:
+    """
+    Create and filter a pyarrow dataset
+
+    This is a convenience wrapper around filter_dataset, which is
+    in turn a wrapper around PyArrow's native filtering and
+
+    Parameters
+    ----------
+    file_list:
+        List of files in the dataset
+    all_cuts:
+        Set of cuts to apply, see filter_dataset for syntax
+    save_cols:
+        List columns to save
+
+    Returns
+    -------
+    Filtered dataset
+    """
+    parsed_cuts = parse_item(all_cuts) if all_cuts else []
+    dataset = ds.dataset(file_list)    
+    filtered = filter_dataset(dataset, parsed_cuts, save_cols)  # type: ignore
+    return filtered
+
 
 def filter_dataset(
     dataset: ds.Dataset,
     filter_conditions: list[tuple[str, str, Any]] | list[list[tuple[str, str, Any]]],
-    columns: list[str] | dict[str, str],
+    columns: list[str] | dict[str, str] | None,
 ) -> _ProjectedDataset:
     """
     Filter a PyArrow dataset and select specific columns.
@@ -249,7 +279,9 @@ def filter_dataset(
     # Validate columns exist in schema
     schema_names = set(filtered_dataset.schema.names)
 
-    if isinstance(columns, dict):
+    if columns is None:
+        column_spec = list(schema_names)
+    elif isinstance(columns, dict):
         # Dict: {new_name: old_name}
         missing_cols = set(columns.values()) - schema_names
         if missing_cols:
@@ -431,9 +463,31 @@ def inner_join_datasets(
         else:
             right_table = dataset
 
+        # Before joining, ensure uniqueness
+        left_table = result.to_table()
+        right_table_materialized = right_table.to_table()
+
+        # Group by join_key and take first row for all other columns
+        left_aggs = [(col, "first") for col in left_table.column_names if col != join_key]
+        right_aggs = [(col, "first") for col in right_table_materialized.column_names if col != join_key]
+
+        # Group by join_key and take first row (or aggregate as needed)
+        left_table = left_table.group_by(join_key, use_threads=False).aggregate(left_aggs)
+        right_table_materialized = right_table_materialized.group_by(join_key, use_threads=False).aggregate(right_aggs)
+
+        # Rename columns to remove "_first" suffix
+        left_table = left_table.rename_columns([
+            col.replace("_first", "") if col != join_key else col 
+            for col in left_table.column_names
+        ])
+        right_table_materialized = right_table_materialized.rename_columns([
+            col.replace("_first", "") if col != join_key else col 
+            for col in right_table_materialized.column_names
+        ])
+
         # Perform inner join with automatic suffix handling
-        result = result.join(
-            right_table,
+        result = ds.dataset(left_table).join(
+            ds.dataset(right_table_materialized),
             keys=join_key,
             join_type="inner",
             left_suffix=f"_{first_name}",
@@ -446,3 +500,142 @@ def inner_join_datasets(
         first_name = f"{first_name}+{name}"
 
     return result
+
+
+def add_healpix_column(
+    table: pa.Table,
+    ra_col: str = "ra",
+    dec_col: str = "dec",
+    nside: int = 256,
+    output_col: str = "healpix",
+    nest: bool = True,
+) -> pa.Table:
+    """
+    Add a HEALPix pixel column to a PyArrow table.
+
+    Parameters
+    ----------
+    table : pyarrow.Table
+        Input table containing RA and Dec columns
+    ra_col : str, default='ra'
+        Name of the Right Ascension column (in degrees)
+    dec_col : str, default='dec'
+        Name of the Declination column (in degrees)
+    nside : int, default=256
+        HEALPix resolution parameter (must be power of 2)
+    output_col : str, default='healpix'
+        Name for the output HEALPix column
+    nest : bool, default=True
+        If True, use nested ordering; if False, use ring ordering
+    output_col : str, default='healpix'
+        Name for the output HEALPix column
+
+    Returns
+    -------
+    pyarrow.Table
+        Table with added HEALPix column
+    """
+    # Extract RA and Dec columns as numpy arrays
+    ra = table[ra_col].to_numpy()
+    dec = table[dec_col].to_numpy()
+
+    # Compute HEALPix pixel indices
+    pixels = hp.ang2pix(nside, ra, dec, nest=nest, lonlat=True)
+
+    # Create PyArrow array from pixels
+    healpix_array = pa.array(pixels, type=pa.int64())
+
+    # Add the new column to the table
+    table = table.append_column(output_col, healpix_array)
+
+    return table
+
+
+def filter_by_healpix_pixels(
+    table: pa.Table,
+    pixels: int | list[int] | set[int] | np.ndarray,
+    healpix_col: str = "healpix",
+) -> pa.Table:
+    """
+    Filter a PyArrow table to keep only rows where the HEALPix pixel
+    matches one of the specified pixels.
+
+    Parameters
+    ----------
+    table : pyarrow.Table
+        Input table containing a HEALPix pixel column
+    pixels : int, list, set, or numpy.ndarray
+        Pixel index or collection of pixel indices to keep
+    healpix_col : str, default='healpix'
+        Name of the HEALPix column
+
+    Returns
+    -------
+    pyarrow.Table
+        Filtered table containing only rows with matching pixels
+    """
+    # Convert single pixel to list
+    if isinstance(pixels, (int, np.integer)):
+        pixels = [pixels]
+
+    # Convert to PyArrow array for efficient filtering
+    if isinstance(pixels, (list, tuple, set)):
+        pixel_array = pa.array(list(pixels), type=pa.int64())
+    elif isinstance(pixels, np.ndarray):
+        pixel_array = pa.array(pixels, type=pa.int64())
+    else:
+        pixel_array = pixels  # Assume it's already a PyArrow array
+
+    # Create filter mask using is_in
+    mask = pc.is_in(table[healpix_col], value_set=pixel_array)
+
+    # Filter the table
+    filtered_table = table.filter(mask)
+
+    return filtered_table
+
+
+def apply_cone_selection(dataset: ds.Dataset, cone_cut: list[float]) -> ds.Dataset:
+    """
+    Apply a cone selection to filter objects within a specified angular distance.
+    
+    Parameters
+    ----------
+    dataset
+        Input dataset with 'ra' and 'dec' columns in degrees
+
+    cone_cut:
+        RA, DEC, Radius (in deg) 
+
+    Returns
+    -------
+    ds.Dataset
+        Filtered dataset containing only objects within the cone
+    """
+    ra_center_rad = np.radians(cone_cut[0])
+    dec_center_rad = np.radians(cone_cut[1])
+    cone_radius_rad = np.radians(cone_cut[2])
+    # Read the dataset into a table to access the data
+    table = dataset.to_table()
+
+    # Convert to radians
+    ra_rad = np.radians(table['ra'].to_numpy())
+    dec_rad = np.radians(table['dec'].to_numpy())
+
+    # Calculate angular separation using the haversine formula
+    delta_ra = ra_rad - ra_center_rad
+    delta_dec = dec_rad - dec_center_rad
+
+    # Haversine formula for great circle distance
+    a = (np.sin(delta_dec / 2)**2 +
+        np.cos(dec_center_rad) * np.cos(dec_rad) * np.sin(delta_ra / 2)**2)
+            
+    angular_distance_rad = 2 * np.arcsin(np.sqrt(a))
+
+    # Create boolean mask for objects within the cone
+    mask = angular_distance_rad <= cone_radius_rad
+    
+    # Apply the mask to filter the dataset
+    filtered_dataset = ds.InMemoryDataset(table.filter(mask))
+    
+    return filtered_dataset
