@@ -214,7 +214,7 @@ class MultiCatalogSubsampler(RailSubsampler):
         print("merged")
         if self.config.cone_cut:
             subset = self._apply_cone_selection(subset)
-            print("applied cones")
+            print(f"applied cones: {self.config.cone_cut}")
         num_rows = subset.count_rows()
         print("num rows selected", num_rows)
 
