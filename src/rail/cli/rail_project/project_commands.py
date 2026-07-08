@@ -449,6 +449,32 @@ def estimate_single(config_file: str, **kwargs: Any) -> int:
         )
     return ok
 
+@run_group.command(name="estimate-many")
+@project_options.config_file()
+@project_options.selection()
+@project_options.flavor()
+@project_options.basename()
+@project_options.run_mode()
+@project_options.convert_output()
+@project_options.site()
+def estimate_many(config_file: str, **kwargs: Any) -> int:
+    """Run the spectroscopic selection data pipeline"""
+    project = RailProject.load_config(config_file)
+    flavors = project.get_flavor_args(kwargs.pop("flavor"))
+    selections = project.get_selection_args(kwargs.pop("selection"))
+    iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
+    ok = 0
+    pipeline_name = "estimate"
+
+    for kw in iter_kwargs:
+        ok |= project.run_pipeline_catalog(
+            pipeline_name,
+            **kw,
+            **kwargs,
+        )
+    return ok
+
+
 
 @run_group.command(name="evaluate")
 @project_options.config_file()
