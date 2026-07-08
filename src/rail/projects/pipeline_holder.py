@@ -657,6 +657,7 @@ CATALOG_CONVERT_COMMANDS_DICT = dict(
     photometric_errors=photometric_errors_convert_commands,
     spec_selection=spectroscopic_selection_convert_commands,
     blending=blending_convert_commands,
+    estimate=[]
 )
 
 
