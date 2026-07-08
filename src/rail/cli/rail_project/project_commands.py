@@ -455,7 +455,6 @@ def estimate_single(config_file: str, **kwargs: Any) -> int:
 @project_options.flavor()
 @project_options.basename()
 @project_options.run_mode()
-@project_options.convert_output()
 @project_options.site()
 def estimate_many(config_file: str, **kwargs: Any) -> int:
     """Run the spectroscopic selection data pipeline"""
