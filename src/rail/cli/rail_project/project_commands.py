@@ -461,11 +461,13 @@ def estimate_many(config_file: str, **kwargs: Any) -> int:
     project = RailProject.load_config(config_file)
     flavors = project.get_flavor_args(kwargs.pop("flavor"))
     selections = project.get_selection_args(kwargs.pop("selection"))
+    the_basename = kwargs.pop("basename")
     iter_kwargs = project.generate_kwargs_iterable(flavor=flavors, selection=selections)
     ok = 0
     pipeline_name = "estimate"
 
     for kw in iter_kwargs:
+        kw.update(basename=the_basename)
         ok |= project.run_pipeline_catalog(
             pipeline_name,
             **kw,

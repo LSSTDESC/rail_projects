@@ -980,10 +980,10 @@ class RailPipelineInstance(Configurable):
         )
 
         catalog_convert_commands_function = CATALOG_CONVERT_COMMANDS_DICT[pipeline_name]
-
+        
         source_catalog_files = project.get_catalog_files(
             pipeline_info.config.input_catalog_template,
-            basename=pipeline_info.config.input_catalog_basename,
+            basename=kwargs.pop('basename', pipeline_info.config.input_catalog_basename),
             flavor=self.config.flavor,
             **kwargs,
         )
@@ -993,7 +993,6 @@ class RailPipelineInstance(Configurable):
             flavor=self.config.flavor,
             **kwargs,
         )
-
         all_commands: list[tuple[list[list[str]], str]] = []
 
         pipeline_config_kwargs = pipeline_info.config.kwargs.copy()
