@@ -1004,9 +1004,20 @@ class RailPipelineInstance(Configurable):
 
         selection = kwargs["selection"]
 
+        input_callback = INPUT_CALLBACK_DICT.get(pipeline_name, None)
+        
         for source_catalog, sink_catalog in zip(
             source_catalog_files, sink_catalog_files
         ):
+
+            if input_callback is not None:
+                input_files = input_callback(
+                    project, pipeline_name, sink_dir, flavor=self.config.flavor, **kwargs
+                )
+            else:
+                input_files = {}
+            input_files[input] = source_catalog
+                
             sink_dir = os.path.dirname(sink_catalog)
             script_path = os.path.join(
                 sink_dir,
@@ -1015,7 +1026,7 @@ class RailPipelineInstance(Configurable):
             ceci_commands = project.generate_ceci_command(
                 pipeline_path=pipeline_path,
                 config=pipeline_path.replace(".yaml", "_config.yml"),
-                inputs=dict(input=source_catalog),
+                inputs=input_files,
                 output_dir=sink_dir,
                 log_dir=sink_dir,
             )
