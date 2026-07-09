@@ -1010,6 +1010,8 @@ class RailPipelineInstance(Configurable):
             source_catalog_files, sink_catalog_files
         ):
 
+            sink_dir = os.path.dirname(sink_catalog)
+            
             if input_callback is not None:
                 input_files = input_callback(
                     project, pipeline_name, sink_dir, flavor=self.config.flavor, **kwargs
@@ -1018,7 +1020,6 @@ class RailPipelineInstance(Configurable):
                 input_files = {}
             input_files[input] = source_catalog
                 
-            sink_dir = os.path.dirname(sink_catalog)
             script_path = os.path.join(
                 sink_dir,
                 f"run_{pipeline_name}_{selection}_{flavor}.sh",
