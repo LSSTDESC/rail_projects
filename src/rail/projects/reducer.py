@@ -178,6 +178,41 @@ COLUMNS_CARDINAL = [
     "Euclid_redshift"
 ]
 
+COLUMNS_DIFFSKY = [
+    'redshift', 
+    'lsst_u', 
+    'lsst_g',
+    'lsst_r',
+    'lsst_i',
+    'lsst_z',
+    'lsst_y',
+    'ra_obs',
+    'dec_obs',
+    'shear1',
+    'shear2',
+    'bulge_to_total',
+    'r50_bulge_2d',
+    'r50_disk_2d',
+    'ellipticity_bulge',
+    'ellipticity_disk',
+    'logmp_obs',
+    'logmp_obs_host',
+    'logsm_obs',
+    'logssfr_obs',
+    'roman_F062',
+    'roman_F087', 
+    'roman_F106',
+    'roman_F129',
+    'roman_F146',
+    'roman_F184',
+    'roman_F213',
+    'roman_Grism_0thOrder', 
+    'roman_Grism_1stOrder',
+    'roman_Prism',
+    'ra_rot', # this is my post-processed coordinates for this particular version! Remove in future versions
+    'dec_rot', # this is my post-processed coordinates for this particular version! Remove in future versions
+]
+
 PROJECTIONS_COM_CAM = [
     {
         "ref_flux": pc.field("i_cModelFlux"),
@@ -346,6 +381,48 @@ PROJECTIONS_FLAGSHIP = [
                     pc.scalar(2 * math.pi),
                 ),
             ),
+        ),
+    },
+]
+
+
+PROJECTIONS_DIFFSKY = [
+    {
+        "mag_u_lsst": pc.field("lsst_u"),
+        "mag_g_lsst": pc.field("lsst_g"),
+        "mag_r_lsst": pc.field("lsst_r"),
+        "mag_i_lsst": pc.field("lsst_i"),
+        "mag_z_lsst": pc.field("lsst_z"),
+        "mag_y_lsst": pc.field("lsst_y"),
+        "totalHalfLightRadiusArcsec": pc.add(
+            pc.multiply(
+                pc.field("r50_disk_2d"),
+                pc.subtract(pc.scalar(1), pc.field("bulge_to_total")),
+            ),
+            pc.multiply(
+                pc.field("r50_bulge_2d"),
+                pc.field("bulge_to_total"),
+            ),
+        ),
+        "totalEllipticity": pc.add(
+            pc.multiply(
+                pc.field("ellipticity_disk"),
+                pc.subtract(pc.scalar(1), pc.field("bulge_to_total")),
+            ),
+            pc.multiply(
+                pc.field("ellipticity_bulge"),
+                pc.field("bulge_to_total"),
+            ),
+        ),
+    },
+    {
+        "major": pc.divide(
+            pc.field("totalHalfLightRadiusArcsec"),
+            pc.sqrt(pc.field("totalEllipticity")),
+        ),
+        "minor": pc.multiply(
+            pc.field("totalHalfLightRadiusArcsec"),
+            pc.sqrt(pc.field("totalEllipticity")),
         ),
     },
 ]
@@ -662,6 +739,102 @@ class FlagshipReducer(RailReducer):
         projection = column_projection
         project_nodes = []
         for _projection in PROJECTIONS_FLAGSHIP:
+            for k, v in _projection.items():
+                projection[k] = v
+            project_node = acero.Declaration(
+                "project",
+                acero.ProjectNodeOptions(
+                    [v for k, v in projection.items()],
+                    names=[k for k, v in projection.items()],
+                ),
+            )
+            project_nodes.append(project_node)
+
+        seq = [
+            scan_node,
+            filter_node,
+            *project_nodes,
+        ]
+        plan = acero.Declaration.from_sequence(seq)
+
+        # batches = plan.to_reader(use_threads=True)
+        table = plan.to_table(use_threads=True)
+        print(f"writing dataset to {output_catalog}")
+
+        output_dir = os.path.dirname(output_catalog)
+
+        os.makedirs(output_dir, exist_ok=True)
+        pq.write_table(table, output_catalog)
+
+
+class DiffskyReducer(RailReducer):
+    """Class to reduce the 'diffsky' simulation input files for pz analysis"""
+
+    #config_options: dict[str, StageParameter] = dict(
+    #    name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+    #    cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    #)
+    config_options = RailReducer.config_options.copy()
+    config_options.update(
+        name=StageParameter(str, None, fmt="%s", required=True, msg="Reducer Name"),
+        cuts=StageParameter(dict, {}, fmt="%s", msg="Selections"),
+    )
+
+    def run(
+        self,
+        input_catalog: str,
+        output_catalog: str,
+    ) -> None:
+        # Try to do this right
+        try:
+            parsed_filter = parse_item(self.config.cuts)
+            predicate = pq.filters_to_expression(parsed_filter)
+        except Exception as msg:
+            # Fallback to old way.  FIXME, deprecate this
+            if self.config.cuts:
+                if "maglim_i" in self.config.cuts:
+                    predicate = pc.field("lsst_i") < self.config.cuts["maglim_i"][1]
+                else:
+                    raise ValueError("No valid cut") from msg
+            else:  # pragma: no cover
+                predicate = None
+
+        dataset = ds.dataset(
+            input_catalog,
+            format="parquet",
+        )
+
+        scan_node = acero.Declaration(
+            "scan",
+            acero.ScanNodeOptions(
+                dataset,
+                columns=COLUMNS_FLAGSHIP,
+                filter=predicate,
+            ),
+        )
+
+        filter_node = acero.Declaration(
+            "filter",
+            acero.FilterNodeOptions(
+                predicate,
+            ),
+        )
+
+        # add ra, dec projections with rotation
+        rot_ra, rot_dec, rot_x = self.config.rotation_angle
+        ra = pc.field("ra_obs")
+        if self.config.flip_dec == True:
+            dec = pc.multiply(pc.scalar(-1), pc.field("dec_obs"))
+        else:
+            dec = pc.field("dec_obs")     
+        new_ra, new_dec = rotate_gal_pyarrow(ra, dec, float(rot_ra), float(rot_dec), rot_x_ang=float(rot_x))
+        PROJECTIONS_DIFFSKY[0]['ra'] = new_ra
+        PROJECTIONS_DIFFSKY[0]['dec'] = new_dec
+        
+        column_projection = {k: pc.field(k) for k in COLUMNS_DIFFSKY}
+        projection = column_projection
+        project_nodes = []
+        for _projection in PROJECTIONS_DIFFSKY:
             for k, v in _projection.items():
                 projection[k] = v
             project_node = acero.Declaration(
