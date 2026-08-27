@@ -204,13 +204,12 @@ COLUMNS_DIFFSKY = [
     'roman_F106',
     'roman_F129',
     'roman_F146',
+    'roman_F158',
     'roman_F184',
     'roman_F213',
     'roman_Grism_0thOrder', 
     'roman_Grism_1stOrder',
     'roman_Prism',
-    'ra_rot', # this is my post-processed coordinates for this particular version! Remove in future versions
-    'dec_rot', # this is my post-processed coordinates for this particular version! Remove in future versions
 ]
 
 PROJECTIONS_COM_CAM = [
@@ -808,7 +807,7 @@ class DiffskyReducer(RailReducer):
             "scan",
             acero.ScanNodeOptions(
                 dataset,
-                columns=COLUMNS_FLAGSHIP,
+                columns=COLUMNS_DIFFSKY,
                 filter=predicate,
             ),
         )
