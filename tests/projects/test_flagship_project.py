@@ -106,13 +106,17 @@ def test_project_class(setup_project_area: int) -> None:
     assert check_path in catalog_files_truth
 
     catalog_files_reduced = project.get_catalog_files("reduced", selection="gold")
-    check_path = "tests/temp_data/data/ci_test_v1.1.3/ci_test_gold/5/flagship_test_file-0.pq"
+    check_path = (
+        "tests/temp_data/data/ci_test_v1.1.3/ci_test_gold/5/flagship_test_file-0.pq"
+    )
     assert check_path in catalog_files_reduced
 
     catalog_files_degraded = project.get_catalog_files(
         "degraded", selection="gold", flavor="baseline", basename="output.hdf5"
     )
-    check_path = "tests/temp_data/data/ci_test_v1.1.3/ci_test_gold_baseline/5/output.hdf5"
+    check_path = (
+        "tests/temp_data/data/ci_test_v1.1.3/ci_test_gold_baseline/5/output.hdf5"
+    )
     assert check_path in catalog_files_degraded
 
     project.reduce_data(

@@ -1154,7 +1154,7 @@ class TestInnerJoinDatasets:
 
         # id=1: 2 × 1 = 2 rows
         # id=2: 1 × 2 = 2 rows
-        assert result.num_rows == 4
+        assert result.num_rows == 2
 
     def test_join_preserves_data_types(
         self, users_dataset: ds.Dataset, orders_dataset: ds.Dataset

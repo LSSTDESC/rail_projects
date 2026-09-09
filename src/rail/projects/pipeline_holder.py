@@ -540,15 +540,15 @@ def tomography_input_callback(
     return input_files
 
 
-def truth_to_observed_convert_commands(
-    sink_dir: str, **kwargs: Any
-) -> list[list[str]]:
-    phot_errors = kwargs.get("error_models", [])
+def truth_to_observed_convert_commands(sink_dir: str, **kwargs: Any) -> list[list[str]]:
+    phot_errors = kwargs.get("error_models", {})
     if phot_errors is not None:
         assert isinstance(phot_errors, dict)
-    spec_selections = kwargs.get("selectors", [])
+    spec_selections = kwargs.get("selectors", {})
     if spec_selections is not None:
         assert isinstance(spec_selections, dict)
+    models_to_run_select = kwargs.get("models_to_run_select", [])
+
     convert_commands = []
 
     for phot_error_ in phot_errors:
@@ -561,8 +561,9 @@ def truth_to_observed_convert_commands(
             f"{sink_dir}/output_error_model_{phot_error_}.hdf5",
         ]
         convert_commands += [convert_command]
-        
         for spec_selection_ in spec_selections:
+            if spec_selection_ not in models_to_run_select:
+                continue
             convert_command = [
                 "tables-io",
                 "convert",
@@ -590,7 +591,7 @@ def prepare_convert_commands(sink_dir: str, **_kwargs: Any) -> list[list[str]]:
 
 def photometric_errors_convert_commands(
     sink_dir: str, **_kwargs: Any
-) -> list[list[str]]:    
+) -> list[list[str]]:
     convert_command = [
         "tables-io",
         "convert",
@@ -656,6 +657,7 @@ CATALOG_CONVERT_COMMANDS_DICT = dict(
     photometric_errors=photometric_errors_convert_commands,
     spec_selection=spectroscopic_selection_convert_commands,
     blending=blending_convert_commands,
+    estimate=[]
 )
 
 
@@ -787,7 +789,9 @@ class RailPipelineInstance(Configurable):
     def __repr__(self) -> str:
         return f"{self.config.pipeline_template} {self.config.path}"
 
-    def _parse_pipeline_kwargs(self, project: RailProject, **kwargs: Any) -> dict[str, Any]:
+    def _parse_pipeline_kwargs(
+        self, project: RailProject, **kwargs: Any
+    ) -> dict[str, Any]:
         """Parse the set of kwargs to expand out 'all'"""
         overrides: dict[str, Any] = {}
         for key, val in kwargs.items():
@@ -801,6 +805,9 @@ class RailPipelineInstance(Configurable):
                 temp_dict = project.get_summarizers()
             elif key == "error_models":
                 temp_dict = project.get_error_models()
+            elif key == "models_to_run_select":
+                overrides[key] = val
+                continue
             else:
                 continue
             if "all" in val:
@@ -810,7 +817,7 @@ class RailPipelineInstance(Configurable):
                     algo_name_: temp_dict[algo_name_] for algo_name_ in val
                 }
         return overrides
-            
+
     def build(
         self,
         project: RailProject,
@@ -843,13 +850,13 @@ class RailPipelineInstance(Configurable):
             stages_config = None
 
         parsed_overrides = self._parse_pipeline_kwargs(project, **pipeline_kwargs)
-        pipeline_kwargs.update(**parsed_overrides)            
+        pipeline_kwargs.update(**parsed_overrides)
 
         catalog_tag = project.get_flavor(self.config.flavor).get("catalog_tag", None)
         if catalog_tag:
             try:
                 CatalogTag.apply(catalog_tag)
-            except KeyError as msg:  # pragma: no cover
+            except KeyError:  # pragma: no cover
                 tokens = catalog_tag.split(".")
                 module_name = ".".join(tokens[:-1])
                 if not module_name:
@@ -965,16 +972,18 @@ class RailPipelineInstance(Configurable):
         """
         pipeline_name = self.config.pipeline_template
         pipeline_info = project.get_pipeline(pipeline_name)
+        convert_output = kwargs.pop("convert_output", False)
+
         flavor = self.config.flavor
         pipeline_path = project.get_path(
             "pipeline_path", pipeline=pipeline_name, flavor=flavor, **kwargs
         )
 
         catalog_convert_commands_function = CATALOG_CONVERT_COMMANDS_DICT[pipeline_name]
-
+        
         source_catalog_files = project.get_catalog_files(
             pipeline_info.config.input_catalog_template,
-            basename=pipeline_info.config.input_catalog_basename,
+            basename=kwargs.pop('basename', pipeline_info.config.input_catalog_basename),
             flavor=self.config.flavor,
             **kwargs,
         )
@@ -984,19 +993,33 @@ class RailPipelineInstance(Configurable):
             flavor=self.config.flavor,
             **kwargs,
         )
-
         all_commands: list[tuple[list[list[str]], str]] = []
 
         pipeline_config_kwargs = pipeline_info.config.kwargs.copy()
-        parsed_overrides = self._parse_pipeline_kwargs(project, **pipeline_config_kwargs)
-        pipeline_config_kwargs.update(**parsed_overrides)            
-                
+        parsed_overrides = self._parse_pipeline_kwargs(
+            project, **pipeline_config_kwargs
+        )
+        pipeline_config_kwargs.update(**parsed_overrides)
+
         selection = kwargs["selection"]
 
+        input_callback = INPUT_CALLBACK_DICT.get(pipeline_name, None)
+        
         for source_catalog, sink_catalog in zip(
             source_catalog_files, sink_catalog_files
         ):
+
             sink_dir = os.path.dirname(sink_catalog)
+            
+            if input_callback is not None:
+                input_files = input_callback(
+                    project, pipeline_name, sink_dir, flavor=self.config.flavor, **kwargs
+                )
+                input_files['input'] = source_catalog
+                input_files.pop('sink_dir')
+            else:
+                input_files = {}
+                
             script_path = os.path.join(
                 sink_dir,
                 f"run_{pipeline_name}_{selection}_{flavor}.sh",
@@ -1004,15 +1027,18 @@ class RailPipelineInstance(Configurable):
             ceci_commands = project.generate_ceci_command(
                 pipeline_path=pipeline_path,
                 config=pipeline_path.replace(".yaml", "_config.yml"),
-                inputs=dict(input=source_catalog),
+                inputs=input_files,
                 output_dir=sink_dir,
                 log_dir=sink_dir,
             )
-            convert_commands = catalog_convert_commands_function(
-                sink_dir,
-                **kwargs,
-                **pipeline_config_kwargs,
-            )
+            if convert_output:
+                convert_commands = catalog_convert_commands_function(
+                    sink_dir,
+                    **kwargs,
+                    **pipeline_config_kwargs,
+                )
+            else:
+                convert_commands = []
             iter_commands = [
                 ["mkdir", "-p", f"{sink_dir}"],
                 ceci_commands,

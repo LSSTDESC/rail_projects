@@ -5,12 +5,14 @@ from __future__ import annotations
 import os
 import subprocess
 import urllib.request
+from typing import Any
 
 import yaml
 from rail.core.factory_mixin import RailFactoryMixin
 
 from .algorithm_factory import ALGORITHM_TYPES, RailAlgorithmFactory
 from .catalog_factory import RailCatalogFactory
+from .merge_factory import RailMergeFactory
 from .pipeline_factory import RailPipelineFactory
 from .project_file_factory import RailProjectFileFactory
 from .selection_factory import RailSelectionFactory
@@ -19,6 +21,7 @@ from .subsample_factory import RailSubsampleFactory
 THE_FACTORIES: list[type[RailFactoryMixin]] = [
     RailAlgorithmFactory,
     RailCatalogFactory,
+    RailMergeFactory,
     RailPipelineFactory,
     RailProjectFileFactory,
     RailSelectionFactory,
@@ -144,6 +147,19 @@ get_subsample_names = RailSubsampleFactory.get_subsample_names
 get_subsample = RailSubsampleFactory.get_subsample
 
 
+# Lift the RailMergeFactory class methods
+
+load_merges_yaml = RailMergeFactory.load_yaml
+
+load_merges_yaml_tag = RailMergeFactory.load_yaml_tag
+
+get_merges = RailMergeFactory.get_merges
+
+get_merge_names = RailMergeFactory.get_merge_names
+
+get_merge = RailMergeFactory.get_merge
+
+
 # Define a few additional functions
 def clear() -> None:
     """Clean all the factories"""
@@ -159,7 +175,7 @@ def print_contents() -> None:
         print("")
 
 
-def load_yaml(yaml_file: str) -> None:
+def load_yaml(yaml_file: str) -> dict[str, Any]:
     """Read a yaml file and load the factory accordingly
 
     Parameters
@@ -175,11 +191,14 @@ def load_yaml(yaml_file: str) -> None:
     with open(os.path.expandvars(yaml_file), encoding="utf-8") as fin:
         yaml_data = yaml.safe_load(fin)
 
+    ret_vals: dict[str, Any] = {}
     for yaml_key, yaml_item in yaml_data.items():
         if yaml_key == RailSelectionFactory.yaml_tag:
             load_selection_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailSubsampleFactory.yaml_tag:
             load_subsample_yaml_tag(yaml_item, yaml_file)
+        elif yaml_key == RailMergeFactory.yaml_tag:
+            load_merges_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailProjectFileFactory.yaml_tag:
             load_project_file_yaml_tag(yaml_item, yaml_file)
         elif yaml_key == RailCatalogFactory.yaml_tag:
@@ -188,15 +207,19 @@ def load_yaml(yaml_file: str) -> None:
             load_pipeline_yaml_tag(yaml_item, yaml_file)
         elif yaml_key in ALGORITHM_TYPES:
             load_algorithm_yaml_tag(yaml_item, f"{yaml_file}#{yaml_key}")
-        else:  # pragma: no cover
-            good_tags = ALGORITHM_TYPES + [
-                RailSelectionFactory.yaml_tag,
-                RailSubsampleFactory.yaml_tag,
-                RailProjectFileFactory.yaml_tag,
-                RailCatalogFactory.yaml_tag,
-                RailPipelineFactory.yaml_tag,
-            ]
-            raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")
+        else:
+            ret_vals[yaml_key] = yaml_item
+        # else:  # pragma: no cover
+        #    good_tags = ALGORITHM_TYPES + [
+        #        RailSelectionFactory.yaml_tag,
+        #        RailSubsampleFactory.yaml_tag,
+        #        RailMergeFactory.yaml_tag,
+        #        RailProjectFileFactory.yaml_tag,
+        #        RailCatalogFactory.yaml_tag,
+        #        RailPipelineFactory.yaml_tag,
+        #    ]
+        #    raise KeyError(f"Yaml Tag {yaml_key} not in expected keys {good_tags}")
+    return ret_vals
 
 
 def write_yaml(yaml_file: str) -> None:
@@ -236,7 +259,7 @@ def setup_project_area() -> int:  # pragma: no cover
 
     if not os.path.exists("tests/ci_test.tgz"):
         urllib.request.urlretrieve(
-            # "https://portal.nersc.gov/cfs/lsst/PZ/test_data/ci_test.tgz",
+            #"https://portal.nersc.gov/cfs/lsst/PZ/test_data/ci_test.tgz",
             "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
             "tests/ci_test.tgz",
         )
