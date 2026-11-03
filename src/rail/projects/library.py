@@ -260,7 +260,7 @@ def setup_project_area() -> int:  # pragma: no cover
     if not os.path.exists("tests/ci_test.tgz"):
         urllib.request.urlretrieve(
             #"https://portal.nersc.gov/cfs/lsst/PZ/test_data/ci_test.tgz",
-            "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test.tgz",
+            "http://s3df.slac.stanford.edu/people/echarles/package_test_data/rail_projects/ci_test.tgz",
             "tests/ci_test.tgz",
         )
         if not os.path.exists("tests/ci_test.tgz"):
@@ -279,7 +279,7 @@ def setup_project_area() -> int:  # pragma: no cover
     if not os.path.exists("tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5"):
         os.makedirs("tests/temp_data/data/test", exist_ok=True)
         urllib.request.urlretrieve(
-            "http://s3df.slac.stanford.edu/people/echarles/xfer/"
+            "http://s3df.slac.stanford.edu/people/echarles/package_test_data/rail_projects/"
             "roman_rubin_2023_maglim_25.5_baseline_100k.hdf5",
             "tests/temp_data/data/test/ci_test_blend_baseline_100k.hdf5",
         )
@@ -291,7 +291,7 @@ def setup_project_area() -> int:  # pragma: no cover
     if not os.path.exists("tests/temp_data/data/ci_test_subsample_gold_baseline.tgz"):
         urllib.request.urlretrieve(
             # "https://portal.nersc.gov/cfs/lsst/PZ/test_data/ci_test.tgz",
-            "http://s3df.slac.stanford.edu/people/echarles/xfer/ci_test_subsample_gold_baseline.tgz",
+            "http://s3df.slac.stanford.edu/people/echarles/package_test_data/rail_projects/ci_test_subsample_gold_baseline.tgz",
             "tests/temp_data/data/ci_test_subsample_gold_baseline.tgz",
         )
         if not os.path.exists("tests/temp_data/data/ci_test_subsample_gold_baseline.tgz"):
